@@ -1,0 +1,365 @@
+# Implementation Status (Current Turn)
+
+## Completed
+
+- Monorepo bootstrap with fixed directories:
+  - `apps/mobile`
+  - `apps/admin`
+  - `services/api`
+  - `packages/contracts`
+  - `infra`
+- Governance process and mandatory artifacts:
+  - PCR template
+  - Architecture review log
+  - CI gate scripts
+- Contracts baseline:
+  - OpenAPI v1 file
+  - JSON schemas for `InventoryItem`, `ActivityLog`, `ParsedEntity`
+  - Error code dictionary
+- FastAPI baseline service:
+  - Unified response envelope
+  - Header validation + Idempotency-Key enforcement
+  - Auth, inventory, AI parse, suggestions, push endpoints
+  - New required admin endpoints
+- Phase 1 persistence upgrade:
+  - SQLAlchemy data models for users/sessions/inventory/activity logs
+  - DB-backed auth/session/token verification
+  - DB-backed inventory items/operations/log pagination
+  - DB-backed admin users/dashboard/session revoke
+  - Alembic scaffold + initial migration script
+- Phase 2 persistence upgrade (part 1):
+  - DB-backed purchase suggestions and suggestion items
+  - DB-backed audit task queue and review updates
+  - Alembic revision `20260331_0002` for suggestion/audit tables
+- Phase 3 jobs and push persistence (part 1):
+  - Celery + Redis baseline wiring with beat schedules
+  - Auto decay job implementation (`00:05` schedule)
+  - Purchase reminder job implementation (`20:00` schedule)
+  - DB-backed push devices/preferences/delivery records
+  - Alembic revision `20260331_0003` for push tables
+- Phase 3 jobs and conflict handling (part 2):
+  - Redis-backed offline replay queue with local fallback
+  - `POST /inventory/offline/replay` enqueue API
+  - Minutely replay worker task
+  - `client_version` conflict checks and `BIZ_409_CONFLICT` response details
+  - `op_id` replay dedupe marker support
+- Phase 4 admin integration (part 1):
+  - Dashboard page wired to `/admin/dashboard/summary`
+  - Users page wired to `/admin/users` + session revoke action
+  - Audit page wired to `/admin/audit/tasks` + review action
+  - Shared admin API client with required headers and idempotency keys
+  - Browser-side token session bootstrap via SMS login
+- Phase 5 mobile UI integration (part 1):
+  - Replaced placeholder Flutter pages with state-driven MVP flows
+  - Implemented Home/List/Log/Settings tab scaffold and interactions
+  - Implemented Voice/OCR modal state machines + Manual Fill flow
+  - Implemented Auth + Onboarding + Item Detail pages
+  - Added shared in-app `AppStore` for inventory/suggestion/log state
+- Phase 5 mobile API integration (part 2):
+  - Added mobile API client for auth/inventory/logs/suggestions/push preference
+  - Auth page now calls real `/auth/sms/send` and `/auth/sms/login`
+  - App store now supports backend refresh and batch operation sync
+  - Home/List/Log/Settings pages trigger backend-backed refresh/generation/save paths
+  - Retained local fallback data to keep screens operable when backend is unavailable
+- Phase 5 mobile AI parse integration (part 3):
+  - Added mobile API client methods for `/ai/voice/parse`, `/ai/ocr/parse`, `/ai/parse/confirm`
+  - Extended mobile `ParsedEntity` mapping to include `parse_session_id` and full confirm payload fields
+  - Voice modal now uses real parse response + confidence gating and backend confirm write-back
+  - OCR modal now uses real parse response + unknown item handling and backend confirm write-back
+  - App store now exposes parse/confirm methods with online API calls and local fallback behavior
+- Phase 5 mobile session hardening (part 4):
+  - Added persistent mobile auth session storage (`access_token`, `refresh_token`, `session_id`, `device_id`)
+  - Added startup session hydration with silent access token restoration on Auth screen
+  - Added automatic token refresh + single retry for authenticated API requests on `AUTH_401_TOKEN_EXPIRED`
+  - Added logout action in Settings to revoke session and clear local auth data
+- Phase 5 auth failure UX guard (part 5):
+  - Added protected-page auth guard baseline（首版在 `MainTabScaffold`）
+  - Added unified redirect to `/auth` when session invalidates during runtime
+  - Added explicit auth-expired user messaging and login-page error carryover
+- Phase 5 secure storage + route guard expansion (part 6):
+  - Replaced session persistence backend with `flutter_secure_storage` for token/keychain storage
+  - Added reusable `AuthGuard` and applied to all protected routes (home/list/log/settings/onboarding/detail/modal pages)
+  - Removed duplicate auth checks from tab scaffold to keep redirect behavior single-sourced
+- Phase 5 refresh consistency hardening (part 7):
+  - Fixed backend refresh flow to rotate tokens on the same session (stable `session_id`)
+  - Refresh API now returns `session_id` with rotated tokens
+  - Logout API now enforces bearer auth consistently with security contract
+  - Added API tests for refresh rotation, old-token invalidation, and refresh+logout chain
+- Phase 5 mobile offline replay integration (part 8):
+  - Added typed mobile API error model and replay enqueue API integration (`/inventory/offline/replay`)
+  - Added in-app pending replay queue for failed inventory batch sync
+  - Added automatic replay queue flush after successful auth/data refresh
+  - Added conflict-specific handling for `BIZ_409_CONFLICT` with auto snapshot refresh
+  - Added Home page indicator for pending replay queue visibility
+- Phase 5 mobile replay durability (part 9):
+  - Persisted pending replay queue to secure storage to survive app restarts
+  - Added replay queue load during app session initialization
+  - Kept replay queue clear behavior scoped to logout/reset flow only
+- Phase 5 logout ownership guard (part 10):
+  - Restricted `/auth/logout` to revoke only sessions owned by current bearer user
+  - Added cross-user revoke-attempt regression test
+- Phase 5 acceptance automation (part 11):
+  - Added one-command acceptance script (`scripts/run_phase5_acceptance.sh`)
+  - Added `make phase5-accept` target for governance + key auth/offline/admin checks
+  - Updated README runbook with acceptance command
+- Phase 5 admin RBAC baseline (part 12):
+  - Added `require_admin` dependency for all `/admin/*` APIs
+  - Added admin allowlist gate based on `SUPERASSISTANT_ADMIN_PHONES`
+  - Added non-admin forbidden + admin success regression tests
+  - Updated OpenAPI admin routes to declare `403` response
+- Phase 5 session governance baseline (part 13):
+  - Added max active session cap with oldest-session auto-revoke on login
+  - Added `security_events` persistence for session eviction traces
+  - Added `SESSION_EVICTED` security event write path in auth session creation
+  - Added regression test for multi-device overflow eviction and security event auditability
+- Phase 5 admin action audit trail (part 14):
+  - Added reusable `add_security_event` store method for governance event persistence
+  - Added audit writes for admin user session revoke and admin audit-review actions
+  - Extended API tests to assert security event details for admin operations
+- Phase 6 release gate prep (part 15):
+  - Added PostgreSQL service to CI pipeline
+  - Added `alembic upgrade head` migration gate before tests
+  - Verified migration chain to latest revision (`20260331_0004`)
+- Phase 6 performance smoke baseline (part 16):
+  - Added `scripts/run_phase6_perf_smoke.py` for voice/OCR p95 + offline replay throughput checks
+  - Added `make phase6-perf` run target
+  - Fixed `/ai/parse/confirm` inventory snapshot to use DB-backed list retrieval
+  - Added regression test for parse-confirm snapshot contract
+- Phase 4/6 RBAC role matrix baseline (part 17):
+  - Added `users.role` field + migration (`20260331_0005`)
+  - Added role assignment pipeline (`USER/ADMIN/AUDITOR`) via allowlist env config
+  - Split admin dependencies into `require_admin` and `require_audit_reviewer`
+  - Updated admin users table to expose role field
+  - Added auditor permission boundary test coverage
+- Phase 2/6 AI provider abstraction baseline (part 18):
+  - Added `core/ai_pipeline.py` provider interfaces and pipeline orchestration
+  - Added Claude/GPT compatibility parser adapters (`LLM_PROVIDER` switch)
+  - Refactored `/ai/voice/parse` and `/ai/ocr/parse` to route through provider pipeline
+  - Switched parse session IDs to per-request dynamic IDs and kept entity/session contract一致
+  - Added parse pipeline regression test (session uniqueness + entity session binding)
+- Phase 6 release readiness automation (part 19):
+  - Added `scripts/run_phase6_release_readiness.sh`
+  - Added `make phase6-ready` one-command pre-release gate
+  - Included governance + regression + acceptance + perf smoke in single flow
+  - Verified gate flow locally with full PASS
+- Phase 2/6 external AI provider integration (part 20):
+  - Added OpenAI Whisper STT adapter (`OpenAIWhisperProvider`) for real transcription calls
+  - Added Anthropic Claude and OpenAI GPT parser adapters for entity extraction
+  - Added JSON output normalization/validation for provider responses
+  - Added env-driven provider switch (`STT_PROVIDER`, `LLM_PROVIDER`, API keys)
+  - Added hard fallback path to local STT/heuristic parser on provider failures
+  - Added dedicated unit tests for provider adapters and fallback behavior
+- Phase 2/6 provider migration to DeepSeek default (part 21):
+  - Added `DeepSeekParser` adapter and `DeepSeekCompatibleParser`
+  - Switched default parser provider to `LLM_PROVIDER=deepseek`
+  - Added DeepSeek endpoint/model env configs (`DEEPSEEK_API_KEY`, `DEEPSEEK_MODEL`, `DEEPSEEK_CHAT_ENDPOINT`)
+  - Kept Claude/GPT compatibility branches as optional fallbacks
+  - Added DeepSeek adapter regression test with mocked response
+- Phase 6 provider runtime guardrails (part 22):
+  - Added AI runtime metrics in pipeline (calls/failures/fallbacks/breaker-skips/last-error)
+  - Added STT + parser circuit breaker (failure threshold + cooldown)
+  - Added dashboard exposure of `ai_runtime` metrics in `/admin/dashboard/summary`
+  - Added breaker-open behavior regression test and admin dashboard metric assertion
+- Phase 4/6 high-risk approval workflow baseline (part 23):
+  - Added `approval_requests` table + migration (`20260331_0006`)
+  - Converted session-revoke action to approval-request flow (no direct execution)
+  - Added approval APIs (`/admin/approvals`, `/admin/approvals/{approval_id}/review`)
+  - Enforced no self-approval on approve action
+  - Added admin Approvals page and Users page request flow update
+  - Added approval audit events and regression tests
+- Phase 6 provider quota guardrails (part 24):
+  - Added `core/ai_quota.py` with token/QPS budget guard (`ProviderQuotaGuard`)
+  - Added Redis-backed multi-instance counters with local fallback mode
+  - Added parser/STT quota rejection metrics and quota snapshots in `ai_runtime`
+  - Added env controls: `AI_PROVIDER_QPS_PER_MINUTE`, `AI_PROVIDER_TOKEN_PER_MINUTE`, `AI_PROVIDER_TOKEN_PER_DAY`, `AI_QUOTA_REDIS_URL`
+  - Added quota fallback regression tests (`test_ai_quota.py`)
+- Phase 6 full external-load benchmark suite (part 25):
+  - Added `scripts/run_phase6_external_load.py` (standalone API process + real HTTP concurrency)
+  - Added scenario baselines for `inventory/items`, `ai/voice/parse`, `ai/ocr/parse`
+  - Added 100-op offline enqueue timing gate
+  - Added `make phase6-load` command and runbook updates
+- Phase 6 UAT/gray release package baseline (part 26):
+  - Added release artifacts:
+    - `docs/release/UAT_EXECUTION_CHECKLIST.md`
+    - `docs/release/GRAY_RELEASE_RUNBOOK.md`
+    - `docs/release/RELEASE_SIGNOFF_TEMPLATE.md`
+  - Added `scripts/run_phase6_release_pack.sh` to enforce release-doc presence + combined quality gates
+  - Added `make phase6-pack` one-command entry for pre-release package verification
+- Phase 6 release evidence automation (part 27):
+  - Added `scripts/generate_phase6_release_evidence.sh` to auto-generate timestamped markdown evidence reports
+  - Added `make phase6-evidence` entrypoint
+  - Evidence output path standardized to `docs/release/evidence/PHASE6_RELEASE_EVIDENCE_*.md`
+  - Included host/runtime metadata and full `make phase6-pack` command logs in evidence report
+  - Updated mobile README with environment-specific API endpoint run commands (simulator/device/staging)
+- Phase 6 gray wave execution logging automation (part 28):
+  - Added `scripts/record_gray_wave_checkpoint.py` with two modes:
+    - `template`: generate wave record skeleton
+    - `live`: login as admin and snapshot dashboard/approvals/audit metrics
+  - Added `make phase6-wave-template WAVE=10|50|100`
+  - Added `make phase6-wave-live WAVE=10|50|100 API_BASE_URL=...`
+  - Added gray wave evidence output files under `docs/release/evidence/GRAY_WAVE_*.md`
+  - Updated gray release runbook and signoff template to require wave logs
+- Phase 6 signoff draft compilation automation (part 29):
+  - Added `scripts/generate_release_signoff_draft.py`
+  - Added `make phase6-signoff-draft`
+  - Auto-discovers latest files:
+    - `PHASE6_RELEASE_EVIDENCE_*.md`
+    - `GRAY_WAVE_10/50/100_*.md`
+  - Outputs `docs/release/evidence/RELEASE_SIGNOFF_DRAFT_*.md`
+  - Updated signoff template/README runbook references
+- Phase 6 release-window readiness gate automation (part 30):
+  - Added `scripts/check_release_window_readiness.py`
+  - Added `make phase6-window-status` (soft report)
+  - Added `make phase6-window-gate` (strict gate)
+  - Strict gate checks:
+    - latest phase6 evidence is PASS
+    - required waves (10/50/100) have `mode=live` and `snapshot=OK`
+    - signoff draft exists
+  - Outputs `docs/release/evidence/RELEASE_WINDOW_STATUS_*.md`
+- Phase 6 local release simulation automation (part 31):
+  - Added `scripts/run_phase6_local_release_simulation.sh`
+  - Added `make phase6-local-sim`
+  - One-command flow includes:
+    - release pack gate
+    - phase6 evidence generation
+    - wave live checkpoints (10/50/100)
+    - signoff draft generation
+    - strict release-window gate
+  - Intended for local/staging rehearsal before real release window
+- Phase 6 release handoff package automation (part 32):
+  - Added `scripts/build_release_handoff_package.py`
+  - Added `make phase6-handoff-pack`
+  - Validates strict window readiness before packaging (unless explicitly overridden)
+  - Collects latest evidence/docs into:
+    - `docs/release/handoff/RELEASE_HANDOFF_<timestamp>/`
+    - `docs/release/handoff/RELEASE_HANDOFF_<timestamp>.tar.gz`
+  - Generates `MANIFEST.md` with included file list
+- Phase 6 signoff finalization automation (part 33):
+  - Added `scripts/finalize_release_signoff.py`
+  - Added `make phase6-signoff-final`
+  - Validates latest strict window gate is ready before generating final signoff file
+  - Outputs `docs/release/evidence/RELEASE_SIGNOFF_FINAL_*.md`
+  - Updated handoff pack builder to include latest signoff final when present
+- Phase 6 gray-wave execution runner automation (part 34):
+  - Added `scripts/run_gray_wave_execution.sh`
+  - Added `make phase6-wave-exec WAVE=10|50|100`
+  - Added `make phase6-wave-exec-final WAVE=100`
+  - One-command wave flow includes:
+    - live wave checkpoint
+    - signoff draft refresh
+    - strict readiness check for current wave set
+    - optional finalize signoff + handoff package
+- Phase 5/6 admin governance observability (part 35):
+  - Added `GET /api/v1/admin/security/events` (reviewer-role gate, filters: `user_id`, `event_type`, `limit`)
+  - Added backend query module `core/security_store.py::query_security_events(...)` for cross-user governance retrieval
+  - Added API regression tests for:
+    - non-reviewer `403` enforcement
+    - reviewer filtered query response contract
+  - Added admin Security page (`/security`) with filters and tabular event inspection
+  - Updated admin nav/home and OpenAPI contract for new governance endpoint
+- Phase 6 gray-wave auto gate enforcement (part 36):
+  - Added `scripts/evaluate_gray_wave_gate.py` for threshold-based wave decision: `CONTINUE | HOLD | ROLLBACK`
+  - Added generated evidence output: `docs/release/evidence/GRAY_WAVE_GATE_<wave>_<timestamp>.md`
+  - Added make target: `make phase6-wave-gate WAVE=10|50|100 [STRICT=1]`
+  - Integrated auto gate into `scripts/run_gray_wave_execution.sh` (`--require-continue`) to block unsafe promotion
+  - Updated release runbook/signoff template and README command runbooks for gate evidence requirements
+- Phase 6 progress visibility automation (part 37):
+  - Added `scripts/report_phase_status.py` to auto-generate current phase and remaining-work summary
+  - Added report output path: `docs/roadmap/status/PHASE_STATUS_REPORT_<timestamp>.md`
+  - Added evidence checks in report:
+    - strict window gate latest status
+    - latest wave reports (10/50/100)
+    - non-local wave evidence detection
+  - Added make target: `make phase-status`
+  - Updated README/API README runbooks for status reporting command
+- Phase 6 non-local release-window gate hardening (part 38):
+  - Extended `scripts/check_release_window_readiness.py` with `--require-non-local-wave-evidence`
+  - Wave readiness report now includes `api_base_url` and `non_local` status per wave
+  - Added make target: `make phase6-window-gate-live`
+  - Updated `scripts/run_gray_wave_execution.sh` to accept `REQUIRE_NON_LOCAL_WAVES=1` and enforce non-local gate mode
+  - Updated release runbook/signoff template and README/API README command runbooks
+- Phase 6 containerized local validation fixes (part 39):
+  - Fixed API image boot path by copying `services/api/main.py` in Dockerfile (resolved `Could not import module "main"` crash)
+  - Fixed Redis replay dedupe cleanup in `core/offline_queue.py::clear()` to remove `offline_processed:*` keys
+  - Verified full gate success after fix via `make phase6-pack` (governance + regression + phase5 accept + perf smoke + external load all PASS)
+- Phase 6 health probe compatibility hardening (part 40):
+  - Exempted `/healthz` from mandatory request header/idempotency middleware checks
+  - Added regression test `services/api/tests/test_health_probe.py` to guarantee probe compatibility
+  - Revalidated API contract: `/healthz` returns `200` without custom headers, `/api/v1/*` remains guarded
+- Phase 6 local-staging wave execution (part 41):
+  - Executed gray wave automation against local staging API (`API_BASE_URL=http://127.0.0.1:8000/api/v1`)
+  - Completed `WAVE=10` / `WAVE=50` / `WAVE=100` with `decision=CONTINUE` in all gate reports
+  - Completed final signoff generation and handoff package build:
+    - `docs/release/evidence/RELEASE_SIGNOFF_FINAL_20260401_050318.md`
+    - `docs/release/handoff/RELEASE_HANDOFF_20260401_050318.tar.gz`
+- Phase 6 non-local gate precheck (part 42):
+  - Executed `make phase6-window-gate-live` to validate non-local evidence requirement
+  - Gate report confirms remaining blocker is non-local wave evidence only (`base_url` for 10/50/100 currently localhost)
+  - Current local staging gates are complete; release-live gate remains pending external staging/prod endpoint evidence
+- Phase 6 local-runthrough stabilization (part 43):
+  - Deferred `phase6-window-gate-live` and set immediate goal to local runthrough success
+  - Fixed quota guard test isolation in `services/api/tests/test_ai_quota.py` (unique provider key per test run)
+  - Re-ran and passed full local simulation: `make phase6-local-sim`
+  - Generated local full-chain artifacts:
+    - `docs/release/evidence/PHASE6_RELEASE_EVIDENCE_20260401_050803.md`
+    - `docs/release/evidence/GRAY_WAVE_10_20260401_050818.md`
+    - `docs/release/evidence/GRAY_WAVE_50_20260401_050818.md`
+    - `docs/release/evidence/GRAY_WAVE_100_20260401_050818.md`
+    - `docs/release/evidence/RELEASE_WINDOW_STATUS_strict_20260401_050819_157689.md`
+- Test baseline:
+  - API smoke tests (26 passed)
+- Admin skeleton:
+  - Dashboard / Users / Audit routes
+- Mobile Flutter app:
+  - Auth / Onboarding / Home / List / Log / Settings / Voice / OCR / ManualFill / Item Detail
+  - Shared app state + interactive state machine screens
+- Infra baseline:
+  - Docker compose with Postgres/Redis/API
+  - Local start/stop scripts
+
+## Not Yet Implemented (next iterations)
+
+- Staging/prod窗口内实际灰度波次执行与最终签署结果回填（依赖上线窗口）
+
+## Local Runbook
+
+1. Install API dependencies:
+   - `python3 -m pip install -e 'services/api[dev]'`
+2. Start API:
+   - `cd services/api && uvicorn main:app --reload`
+3. Run checks:
+   - `npm run check:all`
+4. Run tests:
+   - `pytest -q services/api/tests`
+5. Optional infra:
+   - `bash infra/scripts/start-local.sh`
+6. Alembic migration:
+   - `cd services/api && alembic upgrade head`
+7. Phase 6 external-load benchmark:
+   - `make phase6-load`
+8. Phase 6 release package gate:
+   - `make phase6-pack`
+9. Phase 6 release evidence report:
+   - `make phase6-evidence`
+10. Phase 6 gray wave records:
+   - `make phase6-wave-template WAVE=10`
+   - `make phase6-wave-live WAVE=10 API_BASE_URL=http://localhost:8000/api/v1`
+   - `make phase6-wave-gate WAVE=10`
+   - `make phase6-wave-gate WAVE=10 STRICT=1`
+11. Phase 6 signoff draft:
+   - `make phase6-signoff-draft`
+12. Phase 6 release-window readiness:
+   - `make phase6-window-status`
+   - `make phase6-window-gate`
+   - `make phase6-window-gate-live`
+13. Phase 6 local release simulation:
+   - `make phase6-local-sim`
+14. Phase 6 handoff package:
+   - `make phase6-handoff-pack`
+15. Phase 6 signoff final:
+   - `make phase6-signoff-final`
+16. Phase 6 wave execution runner:
+   - `make phase6-wave-exec WAVE=10 API_BASE_URL=http://localhost:8000/api/v1`
+   - `make phase6-wave-exec-final WAVE=100 API_BASE_URL=http://localhost:8000/api/v1`
+17. Phase progress and remaining work report:
+   - `make phase-status`

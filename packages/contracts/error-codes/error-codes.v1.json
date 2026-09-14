@@ -1,0 +1,15 @@
+{
+  "AUTH_401_UNAUTHORIZED": {"http": 401, "retriable": false},
+  "AUTH_401_TOKEN_EXPIRED": {"http": 401, "retriable": true},
+  "AUTH_403_FORBIDDEN": {"http": 403, "retriable": false},
+  "AUTH_409_SESSION_REVOKED": {"http": 409, "retriable": false},
+  "AUTH_429_SMS_RATE_LIMIT": {"http": 429, "retriable": true},
+  "VAL_400_INVALID_PARAM": {"http": 400, "retriable": false},
+  "BIZ_404_ITEM_NOT_FOUND": {"http": 404, "retriable": false},
+  "BIZ_409_CONFLICT": {"http": 409, "retriable": true},
+  "AI_429_RATE_LIMIT": {"http": 429, "retriable": true},
+  "AI_504_TIMEOUT": {"http": 504, "retriable": true},
+  "SYS_500_INTERNAL": {"http": 500, "retriable": true},
+  "SYS_503_DEPENDENCY_DOWN": {"http": 503, "retriable": true},
+  "API_410_GONE": {"http": 410, "retriable": false}
+}

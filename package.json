@@ -1,0 +1,16 @@
+{
+  "name": "superassistant-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/admin",
+    "packages/contracts"
+  ],
+  "scripts": {
+    "check:line-limit": "bash scripts/check_line_limit.sh",
+    "check:module-boundary": "python3 scripts/check_module_boundaries.py",
+    "check:architecture": "bash scripts/check_architecture_review.sh",
+    "check:all": "npm run check:line-limit && npm run check:module-boundary && npm run check:architecture",
+    "test:api": "cd services/api && python3 -m pytest -q"
+  }
+}

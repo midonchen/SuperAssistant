@@ -1,0 +1,6 @@
+{
+  "name": "@superassistant/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OpenAPI and schema contracts for SuperAssistant MVP"
+}

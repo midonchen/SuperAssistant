@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://superassistant.local/schemas/parsed-entity.schema.json",
+  "title": "ParsedEntity",
+  "type": "object",
+  "required": [
+    "item_key",
+    "operation",
+    "value",
+    "unit",
+    "normalized_value",
+    "normalized_unit",
+    "confidence",
+    "parse_session_id"
+  ],
+  "properties": {
+    "item_key": { "type": "string" },
+    "operation": {
+      "type": "string",
+      "enum": ["ADD", "SET", "SUBTRACT", "CLEAR"]
+    },
+    "value": { "type": "number" },
+    "unit": { "type": "string" },
+    "normalized_value": { "type": "number" },
+    "normalized_unit": { "type": "string" },
+    "confidence": { "type": "number" },
+    "parse_session_id": { "type": "string" }
+  }
+}

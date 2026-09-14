@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://superassistant.local/schemas/inventory-item.schema.json",
+  "title": "InventoryItem",
+  "type": "object",
+  "required": [
+    "item_key",
+    "item_name",
+    "unit",
+    "current_stock",
+    "max_stock",
+    "warning_threshold",
+    "status",
+    "daily_avg_rate",
+    "last_calibrated",
+    "last_updated",
+    "server_version"
+  ],
+  "properties": {
+    "item_key": {
+      "type": "string",
+      "enum": ["EGG", "MILK", "MANTOU", "RICE", "PORK", "VEG"]
+    },
+    "item_name": { "type": "string" },
+    "unit": { "type": "string" },
+    "current_stock": { "type": "number" },
+    "max_stock": { "type": "number" },
+    "warning_threshold": { "type": "number" },
+    "status": {
+      "type": "string",
+      "enum": ["PLENTY", "WARNING", "CRITICAL", "EMPTY"]
+    },
+    "daily_avg_rate": { "type": "number" },
+    "last_calibrated": { "type": "string", "format": "date-time" },
+    "last_updated": { "type": "string", "format": "date-time" },
+    "server_version": { "type": "integer", "minimum": 1 }
+  }
+}
