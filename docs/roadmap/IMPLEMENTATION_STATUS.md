@@ -306,6 +306,12 @@
     - `docs/release/evidence/GRAY_WAVE_50_20260401_050818.md`
     - `docs/release/evidence/GRAY_WAVE_100_20260401_050818.md`
     - `docs/release/evidence/RELEASE_WINDOW_STATUS_strict_20260401_050819_157689.md`
+- Governance refactor (part 44):
+  - Split 800-line `core/store.py` (at line cap) into `core/store/` domain mixin package:
+    - `base.py` (config + mappers), `users.py`, `inventory.py`, `offline.py`,
+      `suggestions.py`, `push.py`, `audit.py`
+  - Public API unchanged (`from core.store import store`); all 10 call sites untouched
+  - Verified: 26/26 API tests PASS, `npm run check:all` governance gates PASS, app boots (30 routes)
 - Test baseline:
   - API smoke tests (26 passed)
 - Admin skeleton:
