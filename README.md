@@ -15,6 +15,8 @@ This repository implements the SuperAssistant MVP baseline defined in:
 - `infra`: Local/staging infrastructure assets
 - `docs`: Architecture, process, and roadmap docs
 
+Deployment guide: `docs/deployment/STAGING_DEPLOYMENT.md` (server sizing, env template, release-window runbook).
+
 ## Governance Gates
 
 - Max handwritten file size: 800 lines
