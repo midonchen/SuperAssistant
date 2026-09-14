@@ -312,6 +312,17 @@
       `suggestions.py`, `push.py`, `audit.py`
   - Public API unchanged (`from core.store import store`); all 10 call sites untouched
   - Verified: 26/26 API tests PASS, `npm run check:all` governance gates PASS, app boots (30 routes)
+- Phase 6 staging deployment + non-local gray release (part 45):
+  - Provisioned Alibaba Cloud ECS staging (Ubuntu 24.04, 2C4G, Docker 29.8 + Compose v5)
+  - Parameterized `infra/docker/docker-compose.yml` via env (postgres password, AI provider,
+    queue URLs, governance phones); Dockerfile now bundles alembic.ini + alembic/
+  - Applied all 6 alembic migrations on staging Postgres; full stack up (api/worker/beat/postgres/redis)
+  - Smoke verified: `/healthz`=200, DeepSeek endpoint reachable, beat/worker tasks running
+  - Executed non-local gray waves against `http://agint.sonmuu.com:8000/api/v1`:
+    - WAVE=10/50/100 all PASS with gate decision=CONTINUE
+    - `RELEASE_SIGNOFF_FINAL_20260914_075032.md` generated
+    - Handoff package: `docs/release/handoff/RELEASE_HANDOFF_20260914_075032.tar.gz`
+  - `make phase6-window-gate-live` PASS — final release blocker (non-local wave evidence) cleared
 - Test baseline:
   - API smoke tests (26 passed)
 - Admin skeleton:
@@ -325,7 +336,7 @@
 
 ## Not Yet Implemented (next iterations)
 
-- Staging/prod窗口内实际灰度波次执行与最终签署结果回填（依赖上线窗口）
+当前无发布门禁遗留项：staging 非本地灰度证据已补齐，`phase6-window-gate-live` PASS。
 
 ## Local Runbook
 
