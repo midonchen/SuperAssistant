@@ -1,11 +1,25 @@
 version: '3.9'
 
+x-app-env: &app-env
+  DATABASE_URL: postgresql+psycopg://superassistant:${POSTGRES_PASSWORD:-superassistant}@postgres:5432/superassistant
+  CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+  CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/1}
+  OFFLINE_QUEUE_REDIS_URL: ${OFFLINE_QUEUE_REDIS_URL:-redis://redis:6379/2}
+  AI_QUOTA_REDIS_URL: ${AI_QUOTA_REDIS_URL:-redis://redis:6379/3}
+  STT_PROVIDER: ${STT_PROVIDER:-local}
+  LLM_PROVIDER: ${LLM_PROVIDER:-deepseek}
+  DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+  DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
+  SUPERASSISTANT_ADMIN_PHONES: ${SUPERASSISTANT_ADMIN_PHONES:-13900139000}
+  SUPERASSISTANT_AUDITOR_PHONES: ${SUPERASSISTANT_AUDITOR_PHONES:-13900139001}
+  SUPERASSISTANT_MAX_ACTIVE_SESSIONS: ${SUPERASSISTANT_MAX_ACTIVE_SESSIONS:-3}
+
 services:
   postgres:
     image: postgres:16
     environment:
       POSTGRES_USER: superassistant
-      POSTGRES_PASSWORD: superassistant
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-superassistant}
       POSTGRES_DB: superassistant
     ports:
       - "5432:5432"
@@ -21,10 +35,7 @@ services:
     build:
       context: ../../services/api
       dockerfile: Dockerfile
-    environment:
-      DATABASE_URL: postgresql+psycopg://superassistant:superassistant@postgres:5432/superassistant
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/1
+    environment: *app-env
     ports:
       - "8000:8000"
     depends_on:
@@ -36,10 +47,7 @@ services:
       context: ../../services/api
       dockerfile: Dockerfile
     command: celery -A core.celery_app:celery_app worker -l info
-    environment:
-      DATABASE_URL: postgresql+psycopg://superassistant:superassistant@postgres:5432/superassistant
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/1
+    environment: *app-env
     depends_on:
       - postgres
       - redis
@@ -49,10 +57,7 @@ services:
       context: ../../services/api
       dockerfile: Dockerfile
     command: celery -A core.celery_app:celery_app beat -l info
-    environment:
-      DATABASE_URL: postgresql+psycopg://superassistant:superassistant@postgres:5432/superassistant
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/1
+    environment: *app-env
     depends_on:
       - postgres
       - redis
