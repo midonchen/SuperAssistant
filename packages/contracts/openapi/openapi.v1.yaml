@@ -110,7 +110,6 @@ components:
       properties:
         item_key:
           type: string
-          enum: [EGG, MILK, MANTOU, RICE, PORK, VEG]
         item_name:
           type: string
         unit:
@@ -224,6 +223,29 @@ components:
                 type: string
               reason:
                 type: string
+    Category:
+      type: object
+      required: [category_id, name, unit_type, is_system, created_at]
+      properties:
+        category_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        icon:
+          type: string
+          nullable: true
+        unit_type:
+          type: string
+        decay_template:
+          type: object
+          nullable: true
+          additionalProperties: true
+        is_system:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
 paths:
   /auth/sms/send:
     post:
@@ -329,6 +351,84 @@ paths:
                 reason: { type: string }
       responses:
         '200': { description: success }
+  /categories:
+    get:
+      summary: List custom and system categories
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create a custom category
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, unit_type]
+              properties:
+                name: { type: string, minLength: 1, maxLength: 32 }
+                icon: { type: string, maxLength: 64, nullable: true }
+                unit_type: { type: string, minLength: 1, maxLength: 16 }
+                decay_template: { type: object, nullable: true, additionalProperties: true }
+      responses:
+        '200': { description: success }
+        '409': { description: conflict }
+  /categories/{category_id}:
+    patch:
+      summary: Update a custom category
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: category_id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, minLength: 1, maxLength: 32 }
+                icon: { type: string, maxLength: 64, nullable: true }
+                unit_type: { type: string, minLength: 1, maxLength: 16 }
+                decay_template: { type: object, nullable: true, additionalProperties: true }
+      responses:
+        '200': { description: success }
+        '403': { description: forbidden (system category) }
+        '404': { description: not found }
+    delete:
+      summary: Delete a custom category
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: category_id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: success }
+        '403': { description: forbidden (system category) }
+        '404': { description: not found }
+        '409': { description: conflict (category has activity history) }
   /inventory/items:
     get:
       summary: Get inventory list

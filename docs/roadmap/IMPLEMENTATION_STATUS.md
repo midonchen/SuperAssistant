@@ -334,9 +334,19 @@
   - Docker compose with Postgres/Redis/API
   - Local start/stop scripts
 
+- Phase 2.1 custom categories (part 46):
+  - Added `categories` table + Alembic migration `20260331_0007`
+  - Refactored `ItemKey` from enum to system category constants; `item_key` is now a plain string to support custom keys
+  - Added `CategoryStoreMixin` with list/create/update/delete and auto inventory placeholder creation
+  - Added `/categories` CRUD API (`GET`, `POST`, `PATCH`, `DELETE`) with system-category protection
+  - Updated AI parser prompts and `_to_entities` to accept dynamic uppercase item keys
+  - Updated OpenAPI contract: `InventoryItem.item_key` is unbounded string, added `Category` schema and `/categories` paths
+  - Added 10 API regression tests in `services/api/tests/test_categories.py`
+  - Verified: 36/36 API tests PASS, `npm run check:all` PASS, `alembic upgrade head` PASS
+
 ## Not Yet Implemented (next iterations)
 
-当前无发布门禁遗留项：staging 非本地灰度证据已补齐，`phase6-window-gate-live` PASS。
+Phase 2.2 家庭成员协作待开发。
 
 ## Local Runbook
 

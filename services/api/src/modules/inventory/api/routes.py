@@ -7,14 +7,14 @@ from pydantic import BaseModel
 
 from core.auth_dep import require_bearer
 from core.response import success
-from core.schemas import ActionType, ItemKey, Operation
+from core.schemas import ActionType, Operation
 from core.store import store
 
 router = APIRouter(prefix="/inventory", tags=["inventory"])
 
 
 class BatchOperation(BaseModel):
-    item_key: ItemKey
+    item_key: str
     operation: Operation
     value: float
     unit: str
@@ -64,7 +64,7 @@ async def list_logs(
     user_id: str = Depends(require_bearer),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=200),
-    item_key: ItemKey | None = Query(default=None),
+    item_key: str | None = Query(default=None),
 ):
     uid = UUID(user_id)
     rows, total = store.list_logs(uid, page=page, page_size=page_size, item_key=item_key)
@@ -80,7 +80,7 @@ async def list_logs(
 
 
 @router.post("/items/{item_key}/calibrate")
-async def calibrate(item_key: ItemKey, payload: CalibrateRequest, request: Request, user_id: str = Depends(require_bearer)):
+async def calibrate(item_key: str, payload: CalibrateRequest, request: Request, user_id: str = Depends(require_bearer)):
     uid = UUID(user_id)
     store.apply_operation(uid, item_key, Operation.SET, payload.value, ActionType.CALIBRATE)
     item = store.get_item(uid, item_key)

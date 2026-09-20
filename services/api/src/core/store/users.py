@@ -6,6 +6,7 @@ from sqlalchemy import Select, func, select
 
 from core.db import SessionLocal
 from core.models import (
+    CategoryModel,
     InventoryItemModel,
     SecurityEventModel,
     SessionModel,
@@ -41,7 +42,7 @@ class UserStoreMixin(StoreBase):
                     db.add(
                         InventoryItemModel(
                             user_id=user.id,
-                            item_key=key.value,
+                            item_key=key,
                             item_name=name,
                             unit=unit,
                             current_stock=max_stock * 0.5,
@@ -52,6 +53,18 @@ class UserStoreMixin(StoreBase):
                             last_calibrated=now,
                             last_updated=now,
                             server_version=1,
+                        )
+                    )
+                    db.add(
+                        CategoryModel(
+                            id=str(uuid4()),
+                            user_id=user.id,
+                            item_key=key,
+                            name=name,
+                            icon=None,
+                            unit_type=unit,
+                            decay_template=None,
+                            is_system=True,
                         )
                     )
                 db.commit()

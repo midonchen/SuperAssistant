@@ -8,7 +8,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
-class ItemKey(str, Enum):
+class ItemKey:
     EGG = "EGG"
     MILK = "MILK"
     MANTOU = "MANTOU"
@@ -68,7 +68,7 @@ class UserProfile(BaseModel):
 
 
 class InventoryItem(BaseModel):
-    item_key: ItemKey
+    item_key: str
     item_name: str
     unit: str
     current_stock: float
@@ -83,7 +83,7 @@ class InventoryItem(BaseModel):
 
 class ActivityLog(BaseModel):
     activity_id: UUID
-    item_key: ItemKey
+    item_key: str
     action_type: ActionType
     operation: Operation
     delta_value: float
@@ -96,7 +96,7 @@ class ActivityLog(BaseModel):
 
 
 class ParsedEntity(BaseModel):
-    item_key: ItemKey
+    item_key: str
     operation: Operation
     value: float
     unit: str
@@ -107,7 +107,7 @@ class ParsedEntity(BaseModel):
 
 
 class PurchaseSuggestionItem(BaseModel):
-    item_key: ItemKey
+    item_key: str
     suggested_qty: float
     unit: str
     reason: str
@@ -119,6 +119,30 @@ class PurchaseSuggestion(BaseModel):
     mode: str
     items: list[PurchaseSuggestionItem]
     status: str
+
+
+class Category(BaseModel):
+    category_id: str
+    name: str
+    icon: str | None = None
+    unit_type: str
+    decay_template: dict[str, Any] | None = None
+    is_system: bool
+    created_at: datetime
+
+
+class CategoryCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=32)
+    icon: str | None = Field(default=None, max_length=64)
+    unit_type: str = Field(..., min_length=1, max_length=16)
+    decay_template: dict[str, Any] | None = None
+
+
+class CategoryUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=32)
+    icon: str | None = Field(default=None, max_length=64)
+    unit_type: str | None = Field(default=None, min_length=1, max_length=16)
+    decay_template: dict[str, Any] | None = None
 
 
 def utc_now() -> datetime:

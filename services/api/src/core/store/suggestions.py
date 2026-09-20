@@ -40,7 +40,7 @@ class SuggestionStoreMixin(StoreBase):
                 db.add(
                     SuggestionItemModel(
                         suggestion_id=suggestion_id,
-                        item_key=item.item_key.value,
+                        item_key=item.item_key,
                         suggested_qty=item.suggested_qty,
                         unit=item.unit,
                         reason=item.reason,

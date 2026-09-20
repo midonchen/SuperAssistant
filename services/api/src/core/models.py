@@ -171,3 +171,19 @@ class ApprovalRequestModel(Base):
     execution_result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, index=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+
+
+class CategoryModel(Base):
+    __tablename__ = "categories"
+    __table_args__ = (UniqueConstraint("user_id", "item_key", name="uq_category_user_item_key"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    item_key: Mapped[str] = mapped_column(String(16), index=True)
+    name: Mapped[str] = mapped_column(String(32))
+    icon: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    unit_type: Mapped[str] = mapped_column(String(16))
+    decay_template: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    is_system: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)

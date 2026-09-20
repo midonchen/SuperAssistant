@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import os
+from uuid import UUID
 
 from core.models import (
     ActivityLogModel,
+    CategoryModel,
     InventoryItemModel,
     SuggestionItemModel,
     SuggestionModel,
@@ -12,6 +14,7 @@ from core.models import (
 from core.schemas import (
     ActionType,
     ActivityLog,
+    Category,
     InventoryItem,
     InventoryStatus,
     ItemKey,
@@ -20,7 +23,6 @@ from core.schemas import (
     PurchaseSuggestionItem,
     UserProfile,
 )
-from uuid import UUID
 
 ITEM_META = {
     ItemKey.EGG: ("鸡蛋", "个", 30.0, 6.0),
@@ -71,7 +73,7 @@ class StoreBase:
 
     def _inventory_item(self, row: InventoryItemModel) -> InventoryItem:
         return InventoryItem(
-            item_key=ItemKey(row.item_key),
+            item_key=row.item_key,
             item_name=row.item_name,
             unit=row.unit,
             current_stock=row.current_stock,
@@ -87,7 +89,7 @@ class StoreBase:
     def _activity(self, row: ActivityLogModel) -> ActivityLog:
         return ActivityLog(
             activity_id=UUID(row.id),
-            item_key=ItemKey(row.item_key),
+            item_key=row.item_key,
             action_type=ActionType(row.action_type),
             operation=Operation(row.operation),
             delta_value=row.delta_value,
@@ -107,13 +109,24 @@ class StoreBase:
             status=suggestion.status,
             items=[
                 PurchaseSuggestionItem(
-                    item_key=ItemKey(item.item_key),
+                    item_key=item.item_key,
                     suggested_qty=item.suggested_qty,
                     unit=item.unit,
                     reason=item.reason,
                 )
                 for item in items
             ],
+        )
+
+    def _category(self, row: CategoryModel) -> Category:
+        return Category(
+            category_id=row.id,
+            name=row.name,
+            icon=row.icon,
+            unit_type=row.unit_type,
+            decay_template=row.decay_template,
+            is_system=row.is_system,
+            created_at=row.created_at,
         )
 
     def _status_for(self, current_stock: float, warning_threshold: float) -> str:

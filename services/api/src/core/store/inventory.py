@@ -12,7 +12,6 @@ from core.schemas import (
     ActionType,
     ActivityLog,
     InventoryItem,
-    ItemKey,
     Operation,
     utc_now,
 )
@@ -28,24 +27,24 @@ class InventoryStoreMixin(StoreBase):
             rows = db.scalars(stmt).all()
             return [self._inventory_item(row) for row in rows]
 
-    def get_item(self, user_id: UUID, item_key: ItemKey) -> InventoryItem:
+    def get_item(self, user_id: UUID, item_key: str) -> InventoryItem:
         with SessionLocal() as db:
             row = db.scalar(
                 select(InventoryItemModel).where(
                     InventoryItemModel.user_id == str(user_id),
-                    InventoryItemModel.item_key == item_key.value,
+                    InventoryItemModel.item_key == item_key,
                 )
             )
             if row is None:
                 raise KeyError("item not found")
             return self._inventory_item(row)
 
-    def apply_operation(self, user_id: UUID, item_key: ItemKey, op: Operation, value: float, source: ActionType) -> ActivityLog:
+    def apply_operation(self, user_id: UUID, item_key: str, op: Operation, value: float, source: ActionType) -> ActivityLog:
         with SessionLocal() as db:
             row = db.scalar(
                 select(InventoryItemModel).where(
                     InventoryItemModel.user_id == str(user_id),
-                    InventoryItemModel.item_key == item_key.value,
+                    InventoryItemModel.item_key == item_key,
                 )
             )
             if row is None:
@@ -68,7 +67,7 @@ class InventoryStoreMixin(StoreBase):
 
             log_row = ActivityLogModel(
                 user_id=str(user_id),
-                item_key=item_key.value,
+                item_key=item_key,
                 action_type=source.value,
                 operation=op.value,
                 delta_value=round(after - before, 3),
@@ -90,7 +89,7 @@ class InventoryStoreMixin(StoreBase):
             if op_id and offline_replay_queue.is_processed(op_id):
                 continue
 
-            item_key = raw["item_key"] if isinstance(raw["item_key"], ItemKey) else ItemKey(raw["item_key"])
+            item_key = raw["item_key"]
             operation = raw["operation"] if isinstance(raw["operation"], Operation) else Operation(raw["operation"])
             source = raw["source"] if isinstance(raw["source"], ActionType) else ActionType(raw["source"])
             value = float(raw["value"])
@@ -104,7 +103,7 @@ class InventoryStoreMixin(StoreBase):
                         "BIZ_409_CONFLICT",
                         "inventory version conflict",
                         details={
-                            "item_key": item_key.value,
+                            "item_key": item_key,
                             "server_version": item.server_version,
                             "client_version": int(client_version),
                         },
@@ -114,7 +113,7 @@ class InventoryStoreMixin(StoreBase):
             log = self.apply_operation(user_id, item_key, operation, value, source)
             activity_ids.append(str(log.activity_id))
             item = self.get_item(user_id, item_key)
-            updated[item_key.value] = {
+            updated[item_key] = {
                 "item_key": item.item_key,
                 "current_stock": item.current_stock,
                 "status": item.status,
@@ -138,7 +137,7 @@ class InventoryStoreMixin(StoreBase):
                     row = db.scalar(
                         select(InventoryItemModel).where(
                             InventoryItemModel.user_id == str(user_id),
-                            InventoryItemModel.item_key == item.item_key.value,
+                            InventoryItemModel.item_key == item.item_key,
                         )
                     )
                     if row is None:
@@ -150,7 +149,7 @@ class InventoryStoreMixin(StoreBase):
                     db.add(
                         ActivityLogModel(
                             user_id=str(user_id),
-                            item_key=item.item_key.value,
+                            item_key=item.item_key,
                             action_type=ActionType.AUTO_DECAY.value,
                             operation=Operation.SUBTRACT.value,
                             delta_value=round(after - before, 3),
@@ -163,13 +162,13 @@ class InventoryStoreMixin(StoreBase):
                     affected_items += 1
         return {"processed_users": len(user_ids), "affected_items": affected_items}
 
-    def list_logs(self, user_id: UUID, page: int, page_size: int, item_key: ItemKey | None = None) -> tuple[list[ActivityLog], int]:
+    def list_logs(self, user_id: UUID, page: int, page_size: int, item_key: str | None = None) -> tuple[list[ActivityLog], int]:
         with SessionLocal() as db:
             stmt = select(ActivityLogModel).where(ActivityLogModel.user_id == str(user_id))
             count_stmt = select(func.count()).select_from(ActivityLogModel).where(ActivityLogModel.user_id == str(user_id))
             if item_key is not None:
-                stmt = stmt.where(ActivityLogModel.item_key == item_key.value)
-                count_stmt = count_stmt.where(ActivityLogModel.item_key == item_key.value)
+                stmt = stmt.where(ActivityLogModel.item_key == item_key)
+                count_stmt = count_stmt.where(ActivityLogModel.item_key == item_key)
             stmt = stmt.order_by(ActivityLogModel.timestamp.desc()).offset((page - 1) * page_size).limit(page_size)
             rows = db.scalars(stmt).all()
             total = int(db.scalar(count_stmt) or 0)

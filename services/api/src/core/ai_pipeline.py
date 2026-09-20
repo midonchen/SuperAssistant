@@ -98,33 +98,33 @@ class OpenAIWhisperProvider:
 
 def _heuristic_entities(raw_text: str, parse_session_id: str) -> list[ParsedEntity]:
     text = raw_text.lower()
-    if "蛋" in raw_text or "egg" in text:
+    if "\u86cb" in raw_text or "egg" in text:
         return [
             ParsedEntity(
                 item_key=ItemKey.EGG,
                 operation=Operation.ADD,
                 value=10,
-                unit="个",
+                unit="\u4e2a",
                 normalized_value=10,
-                normalized_unit="个",
+                normalized_unit="\u4e2a",
                 confidence=0.95,
                 parse_session_id=parse_session_id,
             )
         ]
-    if "猪肉" in raw_text or "pork" in text:
+    if "\u732a\u8089" in raw_text or "pork" in text:
         return [
             ParsedEntity(
                 item_key=ItemKey.PORK,
                 operation=Operation.ADD,
                 value=1,
-                unit="斤",
+                unit="\u65a4",
                 normalized_value=500,
                 normalized_unit="g",
                 confidence=0.88,
                 parse_session_id=parse_session_id,
             )
         ]
-    if "牛奶" in raw_text or "milk" in text:
+    if "\u725b\u5976" in raw_text or "milk" in text:
         return [
             ParsedEntity(
                 item_key=ItemKey.MILK,
@@ -142,13 +142,21 @@ def _heuristic_entities(raw_text: str, parse_session_id: str) -> list[ParsedEnti
             item_key=ItemKey.VEG,
             operation=Operation.ADD,
             value=1,
-            unit="份",
+            unit="\u4efd",
             normalized_value=1,
-            normalized_unit="份",
+            normalized_unit="\u4efd",
             confidence=0.7,
             parse_session_id=parse_session_id,
         )
     ]
+
+
+def _build_category_hint() -> str:
+    return (
+        "Known system categories: EGG, MILK, MANTOU, RICE, PORK, VEG. "
+        "If the item matches a user-defined category, use its uppercase item_key. "
+        "If no known category matches, use a short uppercase identifier derived from the item name."
+    )
 
 
 def _extract_json(text: str) -> dict[str, Any]:
@@ -170,20 +178,20 @@ def _to_entities(payload: dict[str, Any], parse_session_id: str) -> list[ParsedE
     for row in items:
         if not isinstance(row, dict):
             continue
-        item_key = str(row.get("item_key", "")).upper()
+        item_key = str(row.get("item_key", "")).upper().strip()
         operation = str(row.get("operation", "")).upper()
-        if item_key not in ItemKey._value2member_map_:
+        if not item_key:
             continue
         if operation not in Operation._value2member_map_:
             continue
         value = float(row.get("value", 0))
         normalized_value = float(row.get("normalized_value", value))
-        unit = str(row.get("unit", "")).strip() or "个"
+        unit = str(row.get("unit", "")).strip() or "\u4e2a"
         normalized_unit = str(row.get("normalized_unit", "")).strip() or unit
         confidence = max(0.0, min(1.0, float(row.get("confidence", 0.7))))
         parsed.append(
             ParsedEntity(
-                item_key=ItemKey(item_key),
+                item_key=item_key,
                 operation=Operation(operation),
                 value=value,
                 unit=unit,
@@ -213,8 +221,9 @@ class AnthropicClaudeParser:
     def parse_entities(self, raw_text: str, parse_session_id: str) -> list[ParsedEntity]:
         prompt = (
             "你是库存解析器。请从文本提取实体，返回 JSON: "
-            '{"entities":[{"item_key":"EGG|MILK|MANTOU|RICE|PORK|VEG","operation":"ADD|SET|SUBTRACT|CLEAR","value":number,'
+            '{"entities":[{"item_key":"uppercase identifier","operation":"ADD|SET|SUBTRACT|CLEAR","value":number,'
             '"unit":"string","normalized_value":number,"normalized_unit":"string","confidence":0-1}]}\n'
+            f"{_build_category_hint()}\n"
             f"文本: {raw_text}"
         )
         close_client = self._client is None
@@ -259,8 +268,9 @@ class OpenAIGPTParser:
     def parse_entities(self, raw_text: str, parse_session_id: str) -> list[ParsedEntity]:
         system_prompt = (
             "Extract inventory entities from user text. Return strict JSON object: "
-            '{"entities":[{"item_key":"EGG|MILK|MANTOU|RICE|PORK|VEG","operation":"ADD|SET|SUBTRACT|CLEAR","value":number,'
-            '"unit":"string","normalized_value":number,"normalized_unit":"string","confidence":0-1}]}'
+            '{"entities":[{"item_key":"uppercase identifier","operation":"ADD|SET|SUBTRACT|CLEAR","value":number,'
+            '"unit":"string","normalized_value":number,"normalized_unit":"string","confidence":0-1}]}\n'
+            f"{_build_category_hint()}"
         )
         close_client = self._client is None
         client = self._client or httpx.Client(timeout=self._timeout_seconds)
@@ -309,8 +319,9 @@ class DeepSeekParser:
     def parse_entities(self, raw_text: str, parse_session_id: str) -> list[ParsedEntity]:
         system_prompt = (
             "Extract inventory entities from user text. Return strict JSON object: "
-            '{"entities":[{"item_key":"EGG|MILK|MANTOU|RICE|PORK|VEG","operation":"ADD|SET|SUBTRACT|CLEAR","value":number,'
-            '"unit":"string","normalized_value":number,"normalized_unit":"string","confidence":0-1}]}'
+            '{"entities":[{"item_key":"uppercase identifier","operation":"ADD|SET|SUBTRACT|CLEAR","value":number,'
+            '"unit":"string","normalized_value":number,"normalized_unit":"string","confidence":0-1}]}\n'
+            f"{_build_category_hint()}"
         )
         close_client = self._client is None
         client = self._client or httpx.Client(timeout=self._timeout_seconds)
