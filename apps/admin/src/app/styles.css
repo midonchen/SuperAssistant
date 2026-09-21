@@ -161,3 +161,36 @@ td {
     grid-template-columns: 1fr;
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #121212;
+    --panel: #1e1e1e;
+    --card: #242424;
+    --text: #ececec;
+    --accent: #e7c84f;
+    --danger: #ff6b4a;
+    --muted: #9a9a9a;
+    --border: #3a3a3a;
+  }
+
+  button {
+    color: #1a1a1a;
+  }
+
+  button.secondary {
+    background: #333;
+    color: #ececec;
+  }
+
+  input {
+    background: #1e1e1e;
+    color: #ececec;
+  }
+
+  th,
+  td {
+    border-bottom: 1px solid #3a3a3a;
+  }
+}

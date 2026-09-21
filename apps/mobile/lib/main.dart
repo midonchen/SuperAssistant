@@ -23,6 +23,18 @@ class SuperAssistantApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFE5BE45),
+          brightness: Brightness.dark,
+        ),
+        cardTheme: const CardThemeData(
+          elevation: 0,
+          margin: EdgeInsets.zero,
+        ),
+        useMaterial3: true,
+      ),
+      themeMode: ThemeMode.system,
       initialRoute: AppRoutes.auth,
       routes: AppRoutes.routes,
     );

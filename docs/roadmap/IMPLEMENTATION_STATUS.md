@@ -388,10 +388,16 @@
   - Added 2 API regression tests (admin overview access, non-admin 403)
   - Verified: 52/52 API tests PASS, `npm run check:all` PASS, admin `tsc --noEmit` PASS
 
+- Phase 2.4 dark mode (part 51):
+  - Added Flutter `darkTheme` (Material 3, seed `#E5BE45`) + `themeMode: ThemeMode.system`
+  - Fixed hardcoded light-only colors for dark-mode readability (home error banner, progress tracks, skeleton, voice idle badge + wave bars)
+  - Added admin `prefers-color-scheme: dark` CSS (theme variables, buttons, inputs, table borders) + `color-scheme: dark`
+  - Verified: `npm run check:all` PASS, admin `tsc --noEmit` PASS
+
 ## Not Yet Implemented (next iterations)
 
 Phase 2.3 报告导出/分享（share_plus + 截图）待开发（移动端依赖未引入）。
-Phase 2.4 暗色模式、Phase 2.5 iOS Widget、Phase 2.6 商业化埋点与权益门控待开发。
+Phase 2.5 iOS Widget、Phase 2.6 商业化埋点与权益门控待开发。
 
 ## Local Runbook
 

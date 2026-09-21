@@ -97,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(color: const Color(0xFFFFEFE8), borderRadius: BorderRadius.circular(10)),
+      decoration: BoxDecoration(color: Theme.of(context).colorScheme.errorContainer, borderRadius: BorderRadius.circular(10)),
       child: Row(
         children: [
           const Icon(Icons.error_outline, color: Color(0xFFC9410A)),
@@ -187,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 4),
                   Text('${item.currentStock.toStringAsFixed(1)} ${item.unit}'),
                   const Spacer(),
-                  LinearProgressIndicator(value: item.ratio, color: statusColor(item.status), backgroundColor: Colors.black12),
+                  LinearProgressIndicator(value: item.ratio, color: statusColor(item.status), backgroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.12)),
                 ],
               ),
             ),
@@ -234,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       height: height,
       width: double.infinity,
-      decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.12), borderRadius: BorderRadius.circular(16)),
     );
   }
 }

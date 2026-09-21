@@ -206,7 +206,7 @@ class _VoiceModalScreenState extends State<VoiceModalScreen> {
       VoiceState.failure => const Color(0xFFC9410A),
       VoiceState.lowConfidence => const Color(0xFFE5BE45),
       VoiceState.success => const Color(0xFF2E8B57),
-      _ => Colors.black54,
+      _ => Theme.of(context).colorScheme.onSurface.withOpacity(0.54),
     };
     return Text(text, style: TextStyle(color: color, fontWeight: FontWeight.w700));
   }
@@ -222,7 +222,7 @@ class _VoiceModalScreenState extends State<VoiceModalScreen> {
           width: 6,
           height: h,
           decoration: BoxDecoration(
-            color: active ? const Color(0xFFE5BE45) : Colors.black12,
+            color: active ? const Color(0xFFE5BE45) : Theme.of(context).colorScheme.onSurface.withOpacity(0.12),
             borderRadius: BorderRadius.circular(3),
           ),
         );
