@@ -405,6 +405,15 @@
   - Added 3 API regression tests in `services/api/tests/test_subscriptions.py`
   - Verified: 55/55 API tests PASS, `npm run check:all` PASS, admin `tsc --noEmit` PASS, admin `next build` PASS
 
+- Phase 2 staging deployment (part 53):
+  - Deployed parts 46–52 to staging ECS (`http://agint.sonmuu.com:8000`): categories, households, reports, dark mode, subscriptions
+  - Added CORS + admin `NEXT_PUBLIC_API_BASE_URL` build arg; added `admin` compose service (Next.js, :3000)
+  - Applied migrations 0007–0010 on staging Postgres; fixed `categories.is_system` boolean server_default (Postgres-only type bug)
+  - Rebuilt api/worker/beat/admin images and recreated the full stack (6 containers healthy, worker `celery ready`)
+  - Verified closed-loop demo end-to-end on staging: login → categories → inventory → report → subscription gate (402) → admin households/reports/users
+  - Added `scripts/demo_smoke.py` for repeatable demo validation
+  - Note: admin web UI (:3000) reachable inside the server; external access pending Aliyun security-group port 3000
+
 ## Not Yet Implemented (next iterations)
 
 Phase 2.3 报告导出/分享（share_plus + 截图）待开发（移动端依赖未引入）。
