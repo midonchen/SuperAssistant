@@ -12,6 +12,7 @@ class AppStore extends ChangeNotifier {
   static const _kRefreshTokenKey = 'mobile.auth.refresh_token';
   static const _kSessionIdKey = 'mobile.auth.session_id';
   static const _kDeviceIdKey = 'mobile.auth.device_id';
+  static const _kUserIdKey = 'mobile.auth.user_id';
   static const _kPendingOfflineOpsKey = 'mobile.sync.pending_offline_ops';
 
   AppStore._internal() {
@@ -35,6 +36,8 @@ class AppStore extends ChangeNotifier {
   String _lastError = '';
   int _idSeed = 1;
   String _deviceId = 'ios-local-device-001';
+  String _currentUserId = '';
+  Household? _household;
 
   int shoppingCycle = 7;
   bool notifyEnabled = true;
@@ -50,6 +53,8 @@ class AppStore extends ChangeNotifier {
   bool get isAuthenticated => _api.hasToken;
   bool get hasSession => _api.hasToken || _api.hasRefreshToken;
   String get deviceId => _deviceId;
+  String get currentUserId => _currentUserId;
+  Household? get household => _household;
   int get pendingOfflineReplayCount => _pendingOfflineOps.length;
 
   InventoryItem? findItem(ItemKey key) {
@@ -260,6 +265,7 @@ class AppStore extends ChangeNotifier {
     _secureStorage.delete(key: _kRefreshTokenKey);
     _secureStorage.delete(key: _kSessionIdKey);
     _secureStorage.delete(key: _kDeviceIdKey);
+    _secureStorage.delete(key: _kUserIdKey);
   }
 
   Future<void> initializeSession() async {
@@ -276,6 +282,7 @@ class AppStore extends ChangeNotifier {
       final refreshToken = await _secureStorage.read(key: _kRefreshTokenKey) ?? '';
       final sessionId = await _secureStorage.read(key: _kSessionIdKey) ?? '';
       _deviceId = await _secureStorage.read(key: _kDeviceIdKey) ?? _deviceId;
+      _currentUserId = await _secureStorage.read(key: _kUserIdKey) ?? '';
 
       if (refreshToken.isNotEmpty || accessToken.isNotEmpty) {
         _api.restoreSession(
@@ -316,6 +323,8 @@ class AppStore extends ChangeNotifier {
     try {
       _deviceId = deviceId;
       await _api.login(phone, code, deviceId);
+      _currentUserId = _api.userId;
+      await _secureStorage.write(key: _kUserIdKey, value: _currentUserId);
       await refreshAll();
       return true;
     } catch (e) {
@@ -356,6 +365,11 @@ class AppStore extends ChangeNotifier {
         _suggestions.add(suggestion);
       } else {
         generateSuggestion(mode: 'AUTO', silent: true);
+      }
+      try {
+        _household = await _api.fetchHousehold();
+      } catch (_) {
+        // best-effort: household fetch failure should not block inventory refresh
       }
       await _flushPendingOfflineReplayJobs();
     } catch (e) {
@@ -646,6 +660,59 @@ class AppStore extends ChangeNotifier {
     } finally {
       _loading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> refreshHousehold() async {
+    if (!await _ensureAuthenticated()) {
+      return;
+    }
+    try {
+      _household = await _api.fetchHousehold();
+      notifyListeners();
+    } catch (e) {
+      _setError(e.toString());
+    }
+  }
+
+  Future<bool> createHousehold(String name) async {
+    if (!await _ensureAuthenticated()) {
+      return false;
+    }
+    try {
+      _household = await _api.createHousehold(name);
+      await refreshAll();
+      return true;
+    } catch (e) {
+      _setError(e.toString());
+      return false;
+    }
+  }
+
+  Future<String?> createInvitation({String role = 'MEMBER'}) async {
+    if (!await _ensureAuthenticated()) {
+      return null;
+    }
+    try {
+      final invitation = await _api.createInvitation(role: role);
+      return invitation.inviteCode;
+    } catch (e) {
+      _setError(e.toString());
+      return null;
+    }
+  }
+
+  Future<bool> joinHousehold(String inviteCode) async {
+    if (!await _ensureAuthenticated()) {
+      return false;
+    }
+    try {
+      _household = await _api.joinHousehold(inviteCode);
+      await refreshAll();
+      return true;
+    } catch (e) {
+      _setError(e.toString());
+      return false;
     }
   }
 }

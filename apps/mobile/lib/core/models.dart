@@ -405,3 +405,134 @@ Color statusColor(InventoryStatus status) {
       return const Color(0xFF9A9A9A);
   }
 }
+
+enum HouseholdRole { owner, admin, member, viewer }
+
+HouseholdRole householdRoleFromApi(String value) {
+  switch (value) {
+    case 'OWNER':
+      return HouseholdRole.owner;
+    case 'ADMIN':
+      return HouseholdRole.admin;
+    case 'MEMBER':
+      return HouseholdRole.member;
+    case 'VIEWER':
+      return HouseholdRole.viewer;
+    default:
+      return HouseholdRole.member;
+  }
+}
+
+String householdRoleToApi(HouseholdRole role) {
+  switch (role) {
+    case HouseholdRole.owner:
+      return 'OWNER';
+    case HouseholdRole.admin:
+      return 'ADMIN';
+    case HouseholdRole.member:
+      return 'MEMBER';
+    case HouseholdRole.viewer:
+      return 'VIEWER';
+  }
+}
+
+String householdRoleLabel(HouseholdRole role) {
+  switch (role) {
+    case HouseholdRole.owner:
+      return '所有者';
+    case HouseholdRole.admin:
+      return '管理员';
+    case HouseholdRole.member:
+      return '成员';
+    case HouseholdRole.viewer:
+      return '只读';
+  }
+}
+
+class HouseholdMember {
+  final String userId;
+  final String phoneMasked;
+  final HouseholdRole role;
+  final DateTime joinedAt;
+
+  HouseholdMember({
+    required this.userId,
+    required this.phoneMasked,
+    required this.role,
+    required this.joinedAt,
+  });
+
+  factory HouseholdMember.fromJson(Map<String, dynamic> json) {
+    return HouseholdMember(
+      userId: (json['user_id'] as String?) ?? '',
+      phoneMasked: (json['phone_masked'] as String?) ?? '',
+      role: householdRoleFromApi((json['role'] as String?) ?? 'MEMBER'),
+      joinedAt: DateTime.tryParse((json['joined_at'] as String?) ?? '') ?? DateTime.now(),
+    );
+  }
+}
+
+class Household {
+  final String householdId;
+  final String name;
+  final String createdBy;
+  final List<HouseholdMember> members;
+  final DateTime createdAt;
+
+  Household({
+    required this.householdId,
+    required this.name,
+    required this.createdBy,
+    required this.members,
+    required this.createdAt,
+  });
+
+  factory Household.fromJson(Map<String, dynamic> json) {
+    final rawMembers = (json['members'] as List<dynamic>? ?? []).whereType<Map<String, dynamic>>().toList();
+    return Household(
+      householdId: (json['household_id'] as String?) ?? '',
+      name: (json['name'] as String?) ?? '',
+      createdBy: (json['created_by'] as String?) ?? '',
+      members: rawMembers.map(HouseholdMember.fromJson).toList(),
+      createdAt: DateTime.tryParse((json['created_at'] as String?) ?? '') ?? DateTime.now(),
+    );
+  }
+
+  HouseholdMember? findMember(String userId) {
+    for (final member in members) {
+      if (member.userId == userId) {
+        return member;
+      }
+    }
+    return null;
+  }
+}
+
+class HouseholdInvitation {
+  final String invitationId;
+  final String householdId;
+  final String inviteCode;
+  final String status;
+  final DateTime expiresAt;
+  final DateTime createdAt;
+
+  HouseholdInvitation({
+    required this.invitationId,
+    required this.householdId,
+    required this.inviteCode,
+    required this.status,
+    required this.expiresAt,
+    required this.createdAt,
+  });
+
+  factory HouseholdInvitation.fromJson(Map<String, dynamic> json) {
+    return HouseholdInvitation(
+      invitationId: (json['invitation_id'] as String?) ?? '',
+      householdId: (json['household_id'] as String?) ?? '',
+      inviteCode: (json['invite_code'] as String?) ?? '',
+      status: (json['status'] as String?) ?? 'PENDING',
+      expiresAt: DateTime.tryParse((json['expires_at'] as String?) ?? '') ?? DateTime.now(),
+      createdAt: DateTime.tryParse((json['created_at'] as String?) ?? '') ?? DateTime.now(),
+    );
+  }
+}

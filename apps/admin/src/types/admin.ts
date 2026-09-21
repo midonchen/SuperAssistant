@@ -100,3 +100,19 @@ export type SecurityEventRow = {
   details: Record<string, unknown>;
   created_at: string;
 };
+
+export type HouseholdMemberRow = {
+  user_id: string;
+  phone_masked: string;
+  role: "OWNER" | "ADMIN" | "MEMBER" | "VIEWER";
+  joined_at: string | null;
+};
+
+export type HouseholdRow = {
+  household_id: string;
+  name: string;
+  created_by: string;
+  created_at: string;
+  member_count: number;
+  members: HouseholdMemberRow[];
+};

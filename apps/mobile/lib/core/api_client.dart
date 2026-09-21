@@ -57,6 +57,7 @@ class ApiClient {
   String _refreshToken = '';
   String _sessionId = '';
   String _deviceId = 'ios-local-device-001';
+  String _userId = '';
   Future<bool>? _refreshInFlight;
   void Function(LoginSession session)? onSessionChanged;
   void Function()? onSessionCleared;
@@ -67,6 +68,7 @@ class ApiClient {
   String get refreshToken => _refreshToken;
   String get sessionId => _sessionId;
   String get deviceId => _deviceId;
+  String get userId => _userId;
 
   void restoreSession(LoginSession session) {
     _accessToken = session.accessToken;
@@ -285,6 +287,10 @@ class ApiClient {
     final accessToken = (data['access_token'] as String?) ?? '';
     final refreshToken = (data['refresh_token'] as String?) ?? '';
     final sessionId = (data['session_id'] as String?) ?? '';
+    final profile = data['user_profile'];
+    if (profile is Map<String, dynamic>) {
+      _userId = (profile['user_id'] as String?) ?? '';
+    }
     _applySession(
       accessToken: accessToken,
       refreshToken: refreshToken,
@@ -421,5 +427,51 @@ class ApiClient {
         'entities': entities.map((entity) => entity.toConfirmJson()).toList(),
       },
     );
+  }
+
+  Future<Household> fetchHousehold() async {
+    final data = await _request('/households/me', method: 'GET', auth: true);
+    final household = data['household'];
+    if (household is Map<String, dynamic>) {
+      return Household.fromJson(household);
+    }
+    throw ApiRequestException(
+      statusCode: 200,
+      code: 'SYS_500_INVALID_RESPONSE',
+      message: 'invalid household payload',
+    );
+  }
+
+  Future<Household> createHousehold(String name) async {
+    final data = await _request(
+      '/households',
+      method: 'POST',
+      auth: true,
+      write: true,
+      body: {'name': name},
+    );
+    return Household.fromJson(data['household'] as Map<String, dynamic>);
+  }
+
+  Future<HouseholdInvitation> createInvitation({String role = 'MEMBER'}) async {
+    final data = await _request(
+      '/households/invitations',
+      method: 'POST',
+      auth: true,
+      write: true,
+      body: {'role': role},
+    );
+    return HouseholdInvitation.fromJson(data['invitation'] as Map<String, dynamic>);
+  }
+
+  Future<Household> joinHousehold(String inviteCode) async {
+    final data = await _request(
+      '/households/join',
+      method: 'POST',
+      auth: true,
+      write: true,
+      body: {'invite_code': inviteCode},
+    );
+    return Household.fromJson(data['household'] as Map<String, dynamic>);
   }
 }

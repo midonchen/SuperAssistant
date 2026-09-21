@@ -5,6 +5,7 @@ import type {
   ApprovalRequest,
   AuditTask,
   DashboardSummary,
+  HouseholdRow,
   LoginResult,
   SecurityEventRow,
   UserRow,
@@ -173,4 +174,8 @@ export async function getSecurityEvents(
   params.set("limit", String(limit));
   const suffix = params.size > 0 ? `?${params.toString()}` : "";
   return apiRequest<{ list: SecurityEventRow[]; total: number }>(`/admin/security/events${suffix}`, { token });
+}
+
+export async function getHouseholds(token: string): Promise<{ list: HouseholdRow[]; total: number }> {
+  return apiRequest<{ list: HouseholdRow[]; total: number }>("/admin/households", { token });
 }

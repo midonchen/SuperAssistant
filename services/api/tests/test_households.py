@@ -176,3 +176,39 @@ def test_categories_shared_within_household(alice_client, bob_client):
     assert resp.status_code == 200
     names = {c["name"] for c in resp.json()["data"]["categories"]}
     assert "Test Fruit" in names
+
+
+def test_admin_can_list_households(client):
+    alice_resp = client.post(
+        "/api/v1/auth/sms/login",
+        json={"phone": "+861****0001", "code": "123456", "device_id": "device-alice-admin-hh"},
+        headers=make_headers(idempotency_key="alice-login-admin-hh"),
+    )
+    assert alice_resp.status_code == 200
+
+    admin_login = client.post(
+        "/api/v1/auth/sms/login",
+        json={"phone": "13900139000", "code": "123456", "device_id": "web-admin-hh"},
+        headers=make_headers(idempotency_key="admin-login-hh"),
+    )
+    admin_token = admin_login.json()["data"]["access_token"]
+
+    resp = client.get("/api/v1/admin/households", headers=make_headers(token=admin_token))
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["total"] >= 1
+    assert "household_id" in data["list"][0]
+    assert "member_count" in data["list"][0]
+    assert "members" in data["list"][0]
+
+
+def test_non_admin_cannot_list_households(client):
+    alice_resp = client.post(
+        "/api/v1/auth/sms/login",
+        json={"phone": "+861****0001", "code": "123456", "device_id": "device-alice-nonadmin-hh"},
+        headers=make_headers(idempotency_key="alice-login-nonadmin-hh"),
+    )
+    token = alice_resp.json()["data"]["access_token"]
+    resp = client.get("/api/v1/admin/households", headers=make_headers(token=token))
+    assert resp.status_code == 403
+    assert resp.json()["code"] == "AUTH_403_FORBIDDEN"

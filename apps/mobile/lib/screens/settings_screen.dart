@@ -91,6 +91,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Card(
+            child: ListTile(
+              leading: const Icon(Icons.family_restroom_outlined),
+              title: const Text('家庭管理'),
+              subtitle: Text(store.household?.name ?? '管理家庭成员与邀请'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.pushNamed(context, AppRoutes.household),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(

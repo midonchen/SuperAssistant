@@ -244,3 +244,35 @@ class HouseholdStoreMixin(StoreBase):
         with SessionLocal() as db:
             rows = db.scalars(select(HouseholdModel.id)).all()
             return [str(row) for row in rows]
+
+    def list_households_admin(self) -> list[dict]:
+        """Admin-facing household roster with members and roles."""
+        with SessionLocal() as db:
+            households = db.scalars(select(HouseholdModel).order_by(HouseholdModel.created_at.desc())).all()
+            memberships = db.scalars(select(HouseholdMembershipModel)).all()
+            users = {row.id: row for row in db.scalars(select(UserModel)).all()}
+            members_by_household: dict[str, list[HouseholdMembershipModel]] = {}
+            for member in memberships:
+                members_by_household.setdefault(member.household_id, []).append(member)
+            result: list[dict] = []
+            for household in households:
+                members = members_by_household.get(household.id, [])
+                result.append(
+                    {
+                        "household_id": household.id,
+                        "name": household.name,
+                        "created_by": household.created_by,
+                        "created_at": _naive_utc(household.created_at).isoformat(),
+                        "member_count": len(members),
+                        "members": [
+                            {
+                                "user_id": member.user_id,
+                                "phone_masked": users[member.user_id].phone_masked if member.user_id in users else "",
+                                "role": member.role,
+                                "joined_at": _naive_utc(member.created_at).isoformat() if member.created_at else None,
+                            }
+                            for member in members
+                        ],
+                    }
+                )
+            return result

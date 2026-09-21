@@ -367,9 +367,19 @@
   - Added 5 API regression tests in `services/api/tests/test_reports.py`
   - Verified: 48/48 API tests PASS, `npm run check:all` PASS, `alembic upgrade head` PASS
 
+- Phase 2.2 mobile + admin collaboration UI (part 49):
+  - Added mobile models `Household` / `HouseholdMember` / `HouseholdInvitation` + role helpers
+  - Added mobile API client methods (`fetchHousehold` / `createHousehold` / `createInvitation` / `joinHousehold`) and `userId` capture
+  - Added AppStore household state (refresh/create/join/invite) with secure-storage user-id persistence
+  - Added `HouseholdScreen`（家庭管理页）: member roster, invite-code generation, join-by-code, create-household
+  - Wired `/household` route + Settings entry point
+  - Added `GET /admin/households` backend endpoint (admin-gated) + `list_households_admin` store method
+  - Added Admin Households page + nav item + API client + types
+  - Added 2 API regression tests (admin roster access, non-admin 403)
+  - Verified: 50/50 API tests PASS, `npm run check:all` PASS, admin `tsc --noEmit` PASS
+
 ## Not Yet Implemented (next iterations)
 
-Phase 2.2 移动端（家庭管理页 / 邀请处理页 / AppStore household 化）与 Admin Households 页待开发（后端优先，与 2.1 模式一致）。
 Phase 2.3 移动端报告页 / Admin 报告概览页待开发（后端优先，与 2.1 模式一致）。
 
 ## Local Runbook
