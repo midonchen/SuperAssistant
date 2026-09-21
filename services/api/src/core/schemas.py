@@ -290,5 +290,12 @@ class MeetingActionItemUpdateRequest(BaseModel):
     done: bool = Field(...)
 
 
+class WeeklyReport(BaseModel):
+    report_id: str
+    week_start: str
+    content: str
+    generated_at: datetime
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)

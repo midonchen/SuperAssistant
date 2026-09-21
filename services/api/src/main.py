@@ -21,6 +21,7 @@ from modules.push.api.routes import router as push_router
 from modules.reports.api.routes import router as reports_router
 from modules.tasks.api.routes import router as tasks_router
 from modules.voice.api.routes import router as voice_router
+from modules.weekly_reports.api.routes import router as weekly_reports_router
 
 
 @asynccontextmanager
@@ -81,4 +82,5 @@ app.include_router(reports_router, prefix="/api/v1")
 app.include_router(tasks_router, prefix="/api/v1")
 app.include_router(calendar_router, prefix="/api/v1")
 app.include_router(meetings_router, prefix="/api/v1")
+app.include_router(weekly_reports_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")

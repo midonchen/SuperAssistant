@@ -470,6 +470,14 @@ components:
         transcript: { type: string }
         started_at: { type: string, format: date-time, nullable: true }
         ended_at: { type: string, format: date-time, nullable: true }
+    WeeklyReport:
+      type: object
+      required: [report_id, week_start, content, generated_at]
+      properties:
+        report_id: { type: string, format: uuid }
+        week_start: { type: string }
+        content: { type: string }
+        generated_at: { type: string, format: date-time }
 paths:
   /auth/sms/send:
     post:
@@ -1171,6 +1179,45 @@ paths:
           name: action_item_id
           required: true
           schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /weekly-reports:
+    get:
+      summary: List weekly reports
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+  /weekly-reports/generate:
+    post:
+      summary: Generate weekly report
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: query
+          name: week_start
+          schema: { type: string, pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' }
+      responses:
+        '200': { description: success }
+  /weekly-reports/{week_start}:
+    get:
+      summary: Get a weekly report
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - in: path
+          name: week_start
+          required: true
+          schema: { type: string }
       responses:
         '200': { description: success }
         '404': { description: not found }

@@ -467,6 +467,15 @@
   - Updated OpenAPI + 3 regression tests
   - Verified: 69/69 API tests PASS, `npm run check:all` PASS
 
+- v2.0 weekly report generation (part 61):
+  - Added `weekly_reports` table (migration 0014, unique user_id+week_start)
+  - Added `AIPipeline.generate_weekly_report` (DeepSeek markdown report; heuristic fallback)
+  - Added `WeeklyReportStoreMixin` + `/weekly-reports` routes (list / generate upsert / get)
+  - Aggregates DONE + overdue + pending tasks and this week's meetings
+  - Updated OpenAPI + 2 regression tests
+  - Verified: 71/71 API tests PASS, `npm run check:all` PASS
+  - v2.0 工作与日程后端 4 项 P1 功能全部落地（任务 AI 排序 / 日历整合 / 会议摘要 / 周报生成）
+
 ## Not Yet Implemented (next iterations)
 
 Phase 2.3 移动端分享（share_plus）待开发（服务端 PDF 导出已完成）。

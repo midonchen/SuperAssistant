@@ -719,5 +719,51 @@ class AIPipeline:
                     break
         return summary, items
 
+    def generate_weekly_report(self, week_start: str, tasks: list[dict], meetings: list[dict]) -> str:
+        """Aggregate weekly tasks + meetings into a report. Falls back to heuristic."""
+        try:
+            content = self._ai_weekly_report(week_start, tasks, meetings)
+            if content:
+                return content
+        except Exception as exc:
+            logger.warning("weekly report generation failed, fallback to heuristic: %s", exc)
+        return self._heuristic_weekly_report(week_start, tasks, meetings)
+
+    def _ai_weekly_report(self, week_start: str, tasks: list[dict], meetings: list[dict]) -> str | None:
+        api_key = os.getenv("DEEPSEEK_API_KEY", "").strip()
+        if not api_key:
+            return None
+        model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat").strip() or "deepseek-chat"
+        endpoint = os.getenv("DEEPSEEK_CHAT_ENDPOINT", "https://api.deepseek.com/v1/chat/completions").strip()
+        task_lines = "\n".join(f"- {t['title']}（{t['status']}，截止 {t.get('due_at') or '无'}）" for t in tasks) or "- 无"
+        meeting_lines = "\n".join(f"- {m['title']}：{m.get('summary') or '无摘要'}" for m in meetings) or "- 无"
+        prompt = (
+            "你是周报助手。根据以下本周任务和会议，生成一份简洁中文周报（markdown，含：本周完成、逾期未完成、进行中、会议纪要、下周计划）。\n"
+            f"本周：{week_start}\n任务：\n{task_lines}\n会议：\n{meeting_lines}"
+        )
+        with httpx.Client(timeout=30.0) as client:
+            response = client.post(
+                endpoint,
+                headers={"Authorization": f"Bearer {api_key}", "content-type": "application/json"},
+                json={"model": model, "temperature": 0, "messages": [{"role": "user", "content": prompt}]},
+            )
+            response.raise_for_status()
+            content = response.json()["choices"][0]["message"]["content"].strip()
+            return content or None
+
+    def _heuristic_weekly_report(self, week_start: str, tasks: list[dict], meetings: list[dict]) -> str:
+        done = [t for t in tasks if t["status"] == "已完成"]
+        overdue = [t for t in tasks if t["status"] == "已逾期"]
+        pending = [t for t in tasks if t["status"] == "进行中"]
+        lines = [f"# 周报 {week_start}", "", "## 本周完成"]
+        lines += [f"- {t['title']}" for t in done] or ["- 无"]
+        lines += ["", "## 逾期未完成"]
+        lines += [f"- {t['title']}" for t in overdue] or ["- 无"]
+        lines += ["", "## 进行中"]
+        lines += [f"- {t['title']}" for t in pending] or ["- 无"]
+        lines += ["", "## 会议纪要"]
+        lines += [f"- {m['title']}：{m.get('summary') or '无摘要'}" for m in meetings] or ["- 无"]
+        return "\n".join(lines)
+
 
 ai_pipeline = AIPipeline()

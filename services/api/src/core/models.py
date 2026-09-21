@@ -299,3 +299,14 @@ class MeetingActionItemModel(Base):
     assignee: Mapped[str | None] = mapped_column(String(128), nullable=True)
     done: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class WeeklyReportModel(Base):
+    __tablename__ = "weekly_reports"
+    __table_args__ = (UniqueConstraint("user_id", "week_start", name="uq_weekly_reports_user_week"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    week_start: Mapped[str] = mapped_column(String(10), index=True)
+    content: Mapped[str] = mapped_column(Text, default="")
+    generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)

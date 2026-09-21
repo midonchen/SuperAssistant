@@ -16,6 +16,7 @@ from core.store.subscriptions import SubscriptionStoreMixin
 from core.store.suggestions import SuggestionStoreMixin
 from core.store.tasks import TaskStoreMixin
 from core.store.users import UserStoreMixin
+from core.store.weekly_reports import WeeklyReportStoreMixin
 
 
 @dataclass
@@ -32,6 +33,7 @@ class Store(
     TaskStoreMixin,
     CalendarStoreMixin,
     MeetingStoreMixin,
+    WeeklyReportStoreMixin,
     PushStoreMixin,
     AuditStoreMixin,
 ):
