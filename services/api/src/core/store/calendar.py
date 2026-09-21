@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy import select
 
 from core.db import SessionLocal
-from core.models import TaskModel
+from core.models import MeetingModel, TaskModel
 from core.schemas import CalendarEvent
 from core.store.base import StoreBase
 
@@ -42,4 +42,28 @@ class CalendarStoreMixin(StoreBase):
                         priority=row.priority,
                     )
                 )
+            mstmt = (
+                select(MeetingModel)
+                .where(
+                    MeetingModel.user_id == user_id,
+                    MeetingModel.started_at >= start,
+                    MeetingModel.started_at < end,
+                )
+                .order_by(MeetingModel.started_at.asc())
+            )
+            for row in db.scalars(mstmt).all():
+                events.append(
+                    CalendarEvent(
+                        event_id=f"meeting:{row.id}",
+                        source="meeting",
+                        title=row.title,
+                        start_at=row.started_at,
+                        end_at=row.ended_at,
+                        task_id=None,
+                        meeting_id=row.id,
+                        status=None,
+                        priority=None,
+                    )
+                )
+        events.sort(key=lambda e: e.start_at)
         return events

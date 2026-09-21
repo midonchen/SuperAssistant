@@ -15,6 +15,7 @@ from modules.calendar.api.routes import router as calendar_router
 from modules.categories.api.routes import router as categories_router
 from modules.households.api.routes import router as households_router
 from modules.inventory.api.routes import router as inventory_router
+from modules.meetings.api.routes import router as meetings_router
 from modules.ocr.api.routes import router as ocr_router
 from modules.push.api.routes import router as push_router
 from modules.reports.api.routes import router as reports_router
@@ -79,4 +80,5 @@ app.include_router(push_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")
 app.include_router(tasks_router, prefix="/api/v1")
 app.include_router(calendar_router, prefix="/api/v1")
+app.include_router(meetings_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")

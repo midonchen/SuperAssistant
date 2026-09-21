@@ -8,6 +8,7 @@ from core.store.calendar import CalendarStoreMixin
 from core.store.categories import CategoryStoreMixin
 from core.store.households import HouseholdStoreMixin
 from core.store.inventory import InventoryStoreMixin
+from core.store.meetings import MeetingStoreMixin
 from core.store.offline import OfflineStoreMixin
 from core.store.push import PushStoreMixin
 from core.store.reports import ReportStoreMixin
@@ -30,6 +31,7 @@ class Store(
     AnalyticsStoreMixin,
     TaskStoreMixin,
     CalendarStoreMixin,
+    MeetingStoreMixin,
     PushStoreMixin,
     AuditStoreMixin,
 ):

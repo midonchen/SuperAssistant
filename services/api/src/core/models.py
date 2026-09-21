@@ -273,3 +273,29 @@ class TaskModel(Base):
     status: Mapped[str] = mapped_column(String(16), default="TODO", index=True)  # TODO/IN_PROGRESS/DONE
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class MeetingModel(Base):
+    __tablename__ = "meetings"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    title: Mapped[str] = mapped_column(String(256))
+    transcript: Mapped[str] = mapped_column(Text, default="")
+    summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class MeetingActionItemModel(Base):
+    __tablename__ = "meeting_action_items"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    meeting_id: Mapped[str] = mapped_column(String(36), ForeignKey("meetings.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    text: Mapped[str] = mapped_column(Text)
+    assignee: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    done: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)

@@ -251,12 +251,43 @@ class CalendarEvent(BaseModel):
     start_at: datetime
     end_at: datetime | None = None
     task_id: str | None = None
+    meeting_id: str | None = None
     status: str | None = None
     priority: int | None = None
 
 
 class CalendarEventList(BaseModel):
     events: list[CalendarEvent]
+
+
+class MeetingActionItem(BaseModel):
+    action_item_id: str
+    meeting_id: str
+    text: str
+    assignee: str | None = None
+    done: bool = False
+
+
+class Meeting(BaseModel):
+    meeting_id: str
+    title: str
+    transcript: str
+    summary: str | None = None
+    started_at: datetime
+    ended_at: datetime | None = None
+    action_items: list[MeetingActionItem] = []
+    created_at: datetime
+
+
+class MeetingCreateRequest(BaseModel):
+    title: str = Field(..., min_length=1, max_length=256)
+    transcript: str = Field(..., min_length=1)
+    started_at: datetime | None = None
+    ended_at: datetime | None = None
+
+
+class MeetingActionItemUpdateRequest(BaseModel):
+    done: bool = Field(...)
 
 
 def utc_now() -> datetime:

@@ -667,5 +667,57 @@ class AIPipeline:
                     result.append((str(row["task_id"]), str(row.get("reason", "AI 排序"))))
             return result
 
+    def summarize_meeting(self, title: str, transcript: str) -> tuple[str, list[dict]]:
+        """Generate a meeting summary + action items. Returns (summary, [{text, assignee}]). Falls back to heuristic."""
+        try:
+            result = self._ai_meeting_summary(title, transcript)
+            if result:
+                return result
+        except Exception as exc:
+            logger.warning("meeting summarization failed, fallback to heuristic: %s", exc)
+        return self._heuristic_meeting_summary(transcript)
+
+    def _ai_meeting_summary(self, title: str, transcript: str) -> tuple[str, list[dict]] | None:
+        api_key = os.getenv("DEEPSEEK_API_KEY", "").strip()
+        if not api_key:
+            return None
+        model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat").strip() or "deepseek-chat"
+        endpoint = os.getenv("DEEPSEEK_CHAT_ENDPOINT", "https://api.deepseek.com/v1/chat/completions").strip()
+        prompt = (
+            "你是会议纪要助手。请根据以下会议标题和转写内容，生成一份简洁中文摘要，并提取待办事项。"
+            '只返回 JSON：{"summary":"...","action_items":[{"text":"...","assignee":"..."}]}（assignee 未知则省略）。\n'
+            f"会议标题：{title}\n转写内容：\n{transcript[:6000]}"
+        )
+        with httpx.Client(timeout=30.0) as client:
+            response = client.post(
+                endpoint,
+                headers={"Authorization": f"Bearer {api_key}", "content-type": "application/json"},
+                json={"model": model, "temperature": 0, "messages": [{"role": "user", "content": prompt}]},
+            )
+            response.raise_for_status()
+            content = response.json()["choices"][0]["message"]["content"]
+            data = json.loads(content)
+            summary = str(data.get("summary", "")).strip()
+            items: list[dict] = []
+            for row in data.get("action_items", []) or []:
+                if isinstance(row, dict) and row.get("text"):
+                    items.append({"text": str(row["text"]).strip(), "assignee": row.get("assignee") or None})
+            if not summary:
+                return None
+            return summary, items
+
+    def _heuristic_meeting_summary(self, transcript: str) -> tuple[str, list[dict]]:
+        summary = transcript[:200].strip() + ("…" if len(transcript) > 200 else "")
+        items: list[dict] = []
+        for line in transcript.splitlines():
+            stripped = line.strip()
+            for prefix in ("TODO", "待办", "行动项", "Action", "- [ ]"):
+                if stripped.startswith(prefix):
+                    text = stripped[len(prefix):].strip(" :-[]：，,")
+                    if text:
+                        items.append({"text": text, "assignee": None})
+                    break
+        return summary, items
+
 
 ai_pipeline = AIPipeline()

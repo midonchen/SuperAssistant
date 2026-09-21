@@ -459,6 +459,14 @@
   - Updated OpenAPI + 2 regression tests
   - Verified: 66/66 API tests PASS, `npm run check:all` PASS
 
+- v2.0 meeting summary (part 60):
+  - Added `meetings` + `meeting_action_items` tables (migration 0013)
+  - Added `AIPipeline.summarize_meeting` (DeepSeek summary + action items; heuristic fallback parses 待办/行动项/TODO lines)
+  - Added `MeetingStoreMixin` + `/meetings` routes (list/create/get + PATCH action-items/{id})
+  - Wired meetings into calendar aggregation (`source=meeting`, `CalendarEvent.meeting_id`)
+  - Updated OpenAPI + 3 regression tests
+  - Verified: 69/69 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 Phase 2.3 移动端分享（share_plus）待开发（服务端 PDF 导出已完成）。

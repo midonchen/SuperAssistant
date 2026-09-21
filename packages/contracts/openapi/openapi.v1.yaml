@@ -436,8 +436,40 @@ components:
         start_at: { type: string, format: date-time }
         end_at: { type: string, format: date-time, nullable: true }
         task_id: { type: string, format: uuid, nullable: true }
+        meeting_id: { type: string, format: uuid, nullable: true }
         status: { type: string, nullable: true }
         priority: { type: integer, nullable: true }
+    MeetingActionItem:
+      type: object
+      required: [action_item_id, meeting_id, text, done]
+      properties:
+        action_item_id: { type: string, format: uuid }
+        meeting_id: { type: string, format: uuid }
+        text: { type: string }
+        assignee: { type: string, nullable: true }
+        done: { type: boolean }
+    Meeting:
+      type: object
+      required: [meeting_id, title, transcript, started_at, created_at]
+      properties:
+        meeting_id: { type: string, format: uuid }
+        title: { type: string }
+        transcript: { type: string }
+        summary: { type: string, nullable: true }
+        started_at: { type: string, format: date-time }
+        ended_at: { type: string, format: date-time, nullable: true }
+        action_items:
+          type: array
+          items: { $ref: '#/components/schemas/MeetingActionItem' }
+        created_at: { type: string, format: date-time }
+    MeetingCreateRequest:
+      type: object
+      required: [title, transcript]
+      properties:
+        title: { type: string }
+        transcript: { type: string }
+        started_at: { type: string, format: date-time, nullable: true }
+        ended_at: { type: string, format: date-time, nullable: true }
 paths:
   /auth/sms/send:
     post:
@@ -1086,6 +1118,62 @@ paths:
                   events:
                     type: array
                     items: { $ref: '#/components/schemas/CalendarEvent' }
+  /meetings:
+    get:
+      summary: List meetings
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create meeting (auto summary + action items)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MeetingCreateRequest' }
+      responses:
+        '200': { description: success }
+  /meetings/{meeting_id}:
+    get:
+      summary: Get a meeting
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - in: path
+          name: meeting_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /meetings/action-items/{action_item_id}:
+    patch:
+      summary: Mark action item done
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: action_item_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
   /tasks/{task_id}:
     patch:
       summary: Update a task
