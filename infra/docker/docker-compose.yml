@@ -49,6 +49,8 @@ services:
       args:
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://agint.sonmuu.com:8000/api/v1}
         NEXT_PUBLIC_APP_VERSION: ${NEXT_PUBLIC_APP_VERSION:-1.1.0}
+    environment:
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
     ports:
       - "3000:3000"
     depends_on:

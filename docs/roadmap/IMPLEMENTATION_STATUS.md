@@ -440,6 +440,11 @@
   - Updated OpenAPI contract + 1 regression test
   - Verified: 63/63 API tests PASS, `npm run check:all` PASS
 
+- Admin web password protection (part 57):
+  - Added HTTP Basic Auth gate to admin layout (`ADMIN_PASSWORD` env, username `admin`, force-dynamic rendering)
+  - Added `ADMIN_PASSWORD` to compose admin service + `.env.example` placeholder
+  - Verified: admin `tsc --noEmit` PASS, admin `next build` PASS (all routes dynamic)
+
 ## Not Yet Implemented (next iterations)
 
 Phase 2.3 移动端分享（share_plus）待开发（服务端 PDF 导出已完成）。
