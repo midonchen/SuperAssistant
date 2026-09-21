@@ -7,6 +7,7 @@ import type {
   DashboardSummary,
   HouseholdRow,
   LoginResult,
+  ReportOverviewRow,
   SecurityEventRow,
   UserRow,
 } from "../types/admin";
@@ -178,4 +179,8 @@ export async function getSecurityEvents(
 
 export async function getHouseholds(token: string): Promise<{ list: HouseholdRow[]; total: number }> {
   return apiRequest<{ list: HouseholdRow[]; total: number }>("/admin/households", { token });
+}
+
+export async function getReportOverview(token: string): Promise<{ list: ReportOverviewRow[]; total: number }> {
+  return apiRequest<{ list: ReportOverviewRow[]; total: number }>("/admin/reports/overview", { token });
 }

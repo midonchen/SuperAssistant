@@ -536,3 +536,89 @@ class HouseholdInvitation {
     );
   }
 }
+
+class MonthlyReportEntry {
+  final String itemKey;
+  final String itemName;
+  final String unit;
+  final double consumedQty;
+  final double wastedQty;
+  final double? turnoverDays;
+
+  MonthlyReportEntry({
+    required this.itemKey,
+    required this.itemName,
+    required this.unit,
+    required this.consumedQty,
+    required this.wastedQty,
+    this.turnoverDays,
+  });
+
+  factory MonthlyReportEntry.fromJson(Map<String, dynamic> json) {
+    return MonthlyReportEntry(
+      itemKey: (json['item_key'] as String?) ?? '',
+      itemName: (json['item_name'] as String?) ?? '',
+      unit: (json['unit'] as String?) ?? '',
+      consumedQty: (json['consumed_qty'] as num?)?.toDouble() ?? 0,
+      wastedQty: (json['wasted_qty'] as num?)?.toDouble() ?? 0,
+      turnoverDays: (json['turnover_days'] as num?)?.toDouble(),
+    );
+  }
+}
+
+class ConsumptionReport {
+  final String reportId;
+  final String householdId;
+  final String month;
+  final DateTime generatedAt;
+  final double totalConsumedQty;
+  final double totalWastedQty;
+  final List<MonthlyReportEntry> topConsumed;
+  final List<MonthlyReportEntry> wasted;
+  final List<MonthlyReportEntry> turnover;
+  final List<SuggestionItem> suggestedPurchase;
+
+  ConsumptionReport({
+    required this.reportId,
+    required this.householdId,
+    required this.month,
+    required this.generatedAt,
+    required this.totalConsumedQty,
+    required this.totalWastedQty,
+    required this.topConsumed,
+    required this.wasted,
+    required this.turnover,
+    required this.suggestedPurchase,
+  });
+
+  factory ConsumptionReport.fromJson(Map<String, dynamic> json) {
+    final topConsumed = (json['top_consumed'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map(MonthlyReportEntry.fromJson)
+        .toList();
+    final wasted = (json['wasted'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map(MonthlyReportEntry.fromJson)
+        .toList();
+    final turnover = (json['turnover'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map(MonthlyReportEntry.fromJson)
+        .toList();
+    final suggested = (json['suggested_purchase'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map(SuggestionItem.fromJson)
+        .toList();
+    return ConsumptionReport(
+      reportId: (json['report_id'] as String?) ?? '',
+      householdId: (json['household_id'] as String?) ?? '',
+      month: (json['month'] as String?) ?? '',
+      generatedAt: DateTime.tryParse((json['generated_at'] as String?) ?? '') ?? DateTime.now(),
+      totalConsumedQty: (json['total_consumed_qty'] as num?)?.toDouble() ?? 0,
+      totalWastedQty: (json['total_wasted_qty'] as num?)?.toDouble() ?? 0,
+      topConsumed: topConsumed,
+      wasted: wasted,
+      turnover: turnover,
+      suggestedPurchase: suggested,
+    );
+  }
+}

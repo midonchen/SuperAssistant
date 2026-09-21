@@ -7,7 +7,13 @@ from sqlalchemy import select
 
 from core.db import SessionLocal
 from core.errors import ApiException
-from core.models import ActivityLogModel, ConsumptionReportModel, InventoryItemModel
+from core.models import (
+    ActivityLogModel,
+    ConsumptionReportModel,
+    HouseholdMembershipModel,
+    HouseholdModel,
+    InventoryItemModel,
+)
 from core.schemas import (
     ActionType,
     ConsumptionReport,
@@ -162,3 +168,43 @@ class ReportStoreMixin(StoreBase):
         for household_id in household_ids:
             self.generate_monthly_report(household_id, month)
         return {"processed_households": len(household_ids), "month": month}
+
+    def admin_report_overview(self) -> list[dict]:
+        """Per-household aggregated consumption metrics for the admin overview page."""
+        with SessionLocal() as db:
+            households = db.scalars(select(HouseholdModel).order_by(HouseholdModel.created_at.desc())).all()
+            reports = db.scalars(select(ConsumptionReportModel)).all()
+            memberships = db.scalars(select(HouseholdMembershipModel)).all()
+
+            member_count_by_household: dict[str, int] = {}
+            for membership in memberships:
+                member_count_by_household[membership.household_id] = (
+                    member_count_by_household.get(membership.household_id, 0) + 1
+                )
+            reports_by_household: dict[str, list[ConsumptionReportModel]] = {}
+            for report in reports:
+                reports_by_household.setdefault(report.household_id, []).append(report)
+
+            result: list[dict] = []
+            for household in households:
+                household_reports = reports_by_household.get(household.id, [])
+                total_consumed = round(
+                    sum(float(report.payload.get("total_consumed_qty") or 0) for report in household_reports),
+                    3,
+                )
+                total_wasted = round(
+                    sum(float(report.payload.get("total_wasted_qty") or 0) for report in household_reports),
+                    3,
+                )
+                result.append(
+                    {
+                        "household_id": household.id,
+                        "name": household.name,
+                        "member_count": member_count_by_household.get(household.id, 0),
+                        "report_count": len(household_reports),
+                        "total_consumed_qty": total_consumed,
+                        "total_wasted_qty": total_wasted,
+                        "latest_month": max((report.month for report in household_reports), default=None),
+                    }
+                )
+            return result

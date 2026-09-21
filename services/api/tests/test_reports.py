@@ -84,3 +84,44 @@ def test_invalid_month(alice):
     client, token, user_id, household_id = alice
     resp = client.get("/api/v1/reports/consumption/monthly?month=2026-13", headers=make_headers(token=token))
     assert resp.status_code == 400
+
+
+def test_admin_report_overview(client):
+    alice_resp = client.post(
+        "/api/v1/auth/sms/login",
+        json={"phone": "+861****0001", "code": "123456", "device_id": "device-alice-reports-admin"},
+        headers=make_headers(idempotency_key="alice-login-reports-admin"),
+    )
+    alice_token = alice_resp.json()["data"]["access_token"]
+    month = _current_month()
+    client.get(f"/api/v1/reports/consumption/monthly?month={month}", headers=make_headers(token=alice_token))
+
+    admin_login = client.post(
+        "/api/v1/auth/sms/login",
+        json={"phone": "13900139000", "code": "123456", "device_id": "web-admin-reports"},
+        headers=make_headers(idempotency_key="admin-login-reports"),
+    )
+    admin_token = admin_login.json()["data"]["access_token"]
+
+    resp = client.get("/api/v1/admin/reports/overview", headers=make_headers(token=admin_token))
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["total"] >= 1
+    assert any(row["report_count"] >= 1 for row in data["list"])
+    for row in data["list"]:
+        assert "household_id" in row
+        assert "member_count" in row
+        assert "total_consumed_qty" in row
+        assert "total_wasted_qty" in row
+
+
+def test_non_admin_cannot_view_report_overview(client):
+    alice_resp = client.post(
+        "/api/v1/auth/sms/login",
+        json={"phone": "+861****0001", "code": "123456", "device_id": "device-alice-reports-nonadmin"},
+        headers=make_headers(idempotency_key="alice-login-reports-nonadmin"),
+    )
+    token = alice_resp.json()["data"]["access_token"]
+    resp = client.get("/api/v1/admin/reports/overview", headers=make_headers(token=token))
+    assert resp.status_code == 403
+    assert resp.json()["code"] == "AUTH_403_FORBIDDEN"

@@ -474,4 +474,18 @@ class ApiClient {
     );
     return Household.fromJson(data['household'] as Map<String, dynamic>);
   }
+
+  Future<ConsumptionReport> fetchMonthlyReport({String? month}) async {
+    final suffix = (month != null && month.isNotEmpty) ? '?month=$month' : '';
+    final data = await _request('/reports/consumption/monthly$suffix', method: 'GET', auth: true);
+    final report = data['report'];
+    if (report is Map<String, dynamic>) {
+      return ConsumptionReport.fromJson(report);
+    }
+    throw ApiRequestException(
+      statusCode: 200,
+      code: 'SYS_500_INVALID_RESPONSE',
+      message: 'invalid report payload',
+    );
+  }
 }

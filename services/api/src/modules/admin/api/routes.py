@@ -68,6 +68,12 @@ async def list_households(request: Request, user_id: str = Depends(require_admin
     return success(request, {"list": rows, "total": len(rows)})
 
 
+@router.get("/reports/overview")
+async def report_overview(request: Request, user_id: str = Depends(require_admin)):
+    rows = store.admin_report_overview()
+    return success(request, {"list": rows, "total": len(rows)})
+
+
 @router.post("/users/{target_user_id}/session/revoke")
 async def revoke_user_session(
     target_user_id: str,

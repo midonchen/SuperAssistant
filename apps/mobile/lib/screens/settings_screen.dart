@@ -101,6 +101,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 12),
           Card(
+            child: ListTile(
+              leading: const Icon(Icons.bar_chart_outlined),
+              title: const Text('月度消费报告'),
+              subtitle: const Text('消耗统计、周转天数、浪费预警'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.pushNamed(context, AppRoutes.report),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(

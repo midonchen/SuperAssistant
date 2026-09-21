@@ -10,6 +10,7 @@ import '../screens/ocr_modal_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../screens/manual_fill_screen.dart';
 import '../screens/household_screen.dart';
+import '../screens/report_screen.dart';
 import '../widgets/auth_guard.dart';
 
 class AppRoutes {
@@ -20,6 +21,7 @@ class AppRoutes {
   static const log = '/log';
   static const settings = '/settings';
   static const household = '/household';
+  static const report = '/report';
   static const voice = '/voice-modal';
   static const ocr = '/ocr-modal';
   static const manualFill = '/manual-fill';
@@ -37,6 +39,7 @@ class AppRoutes {
     log: (_) => _protected(const LogScreen()),
     settings: (_) => _protected(const SettingsScreen()),
     household: (_) => _protected(const HouseholdScreen()),
+    report: (_) => _protected(const ReportScreen()),
     voice: (_) => _protected(const VoiceModalScreen()),
     ocr: (_) => _protected(const OcrModalScreen()),
     manualFill: (_) => _protected(const ManualFillScreen()),

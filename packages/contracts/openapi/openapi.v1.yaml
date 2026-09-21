@@ -933,6 +933,17 @@ paths:
       responses:
         '200': { description: success }
         '403': { description: forbidden (admin role required) }
+  /admin/reports/overview:
+    get:
+      summary: Per-household consumption report overview
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+        '403': { description: forbidden (admin role required) }
   /admin/households:
     get:
       summary: List households with members

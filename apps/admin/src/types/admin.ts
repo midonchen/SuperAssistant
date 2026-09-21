@@ -116,3 +116,13 @@ export type HouseholdRow = {
   member_count: number;
   members: HouseholdMemberRow[];
 };
+
+export type ReportOverviewRow = {
+  household_id: string;
+  name: string;
+  member_count: number;
+  report_count: number;
+  total_consumed_qty: number;
+  total_wasted_qty: number;
+  latest_month: string | null;
+};

@@ -38,6 +38,7 @@ class AppStore extends ChangeNotifier {
   String _deviceId = 'ios-local-device-001';
   String _currentUserId = '';
   Household? _household;
+  ConsumptionReport? _report;
 
   int shoppingCycle = 7;
   bool notifyEnabled = true;
@@ -55,6 +56,7 @@ class AppStore extends ChangeNotifier {
   String get deviceId => _deviceId;
   String get currentUserId => _currentUserId;
   Household? get household => _household;
+  ConsumptionReport? get report => _report;
   int get pendingOfflineReplayCount => _pendingOfflineOps.length;
 
   InventoryItem? findItem(ItemKey key) {
@@ -713,6 +715,25 @@ class AppStore extends ChangeNotifier {
     } catch (e) {
       _setError(e.toString());
       return false;
+    }
+  }
+
+  Future<ConsumptionReport?> fetchMonthlyReport({String? month}) async {
+    if (!await _ensureAuthenticated()) {
+      return null;
+    }
+    _lastError = '';
+    _loading = true;
+    notifyListeners();
+    try {
+      _report = await _api.fetchMonthlyReport(month: month);
+      return _report;
+    } catch (e) {
+      _setError(e.toString());
+      return null;
+    } finally {
+      _loading = false;
+      notifyListeners();
     }
   }
 }

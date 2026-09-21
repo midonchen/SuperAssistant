@@ -378,9 +378,20 @@
   - Added 2 API regression tests (admin roster access, non-admin 403)
   - Verified: 50/50 API tests PASS, `npm run check:all` PASS, admin `tsc --noEmit` PASS
 
+- Phase 2.3 mobile + admin report UI (part 50):
+  - Added mobile models `MonthlyReportEntry` / `ConsumptionReport`
+  - Added mobile API client `fetchMonthlyReport` + AppStore `fetchMonthlyReport` state
+  - Added `ReportScreen`（月度消费报告）: month navigation, consumption/waste summary, Top 10, turnover days, waste breakdown, suggested purchase list
+  - Wired `/report` route + Settings entry point
+  - Added `GET /admin/reports/overview` backend endpoint (admin-gated) + `admin_report_overview` store method
+  - Added Admin Reports page + nav item + API client + types
+  - Added 2 API regression tests (admin overview access, non-admin 403)
+  - Verified: 52/52 API tests PASS, `npm run check:all` PASS, admin `tsc --noEmit` PASS
+
 ## Not Yet Implemented (next iterations)
 
-Phase 2.3 移动端报告页 / Admin 报告概览页待开发（后端优先，与 2.1 模式一致）。
+Phase 2.3 报告导出/分享（share_plus + 截图）待开发（移动端依赖未引入）。
+Phase 2.4 暗色模式、Phase 2.5 iOS Widget、Phase 2.6 商业化埋点与权益门控待开发。
 
 ## Local Runbook
 
