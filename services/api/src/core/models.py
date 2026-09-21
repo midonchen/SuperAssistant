@@ -225,3 +225,15 @@ class HouseholdInvitationModel(Base):
     status: Mapped[str] = mapped_column(String(16), default="PENDING")  # PENDING, ACCEPTED, EXPIRED
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class ConsumptionReportModel(Base):
+    __tablename__ = "consumption_reports"
+    __table_args__ = (UniqueConstraint("household_id", "month", name="uq_consumption_report_household_month"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    household_id: Mapped[str] = mapped_column(String(36), ForeignKey("households.id"), index=True)
+    month: Mapped[str] = mapped_column(String(7), index=True)  # YYYY-MM
+    payload: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)

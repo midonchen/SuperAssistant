@@ -15,6 +15,7 @@ from modules.households.api.routes import router as households_router
 from modules.inventory.api.routes import router as inventory_router
 from modules.ocr.api.routes import router as ocr_router
 from modules.push.api.routes import router as push_router
+from modules.reports.api.routes import router as reports_router
 from modules.voice.api.routes import router as voice_router
 
 
@@ -65,4 +66,5 @@ app.include_router(inventory_router, prefix="/api/v1")
 app.include_router(voice_router, prefix="/api/v1")
 app.include_router(ocr_router, prefix="/api/v1")
 app.include_router(push_router, prefix="/api/v1")
+app.include_router(reports_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")

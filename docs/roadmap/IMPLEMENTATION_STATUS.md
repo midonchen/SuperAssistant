@@ -356,10 +356,21 @@
   - Added 7 API regression tests in `services/api/tests/test_households.py`
   - Verified: 43/43 API tests PASS, `npm run check:all` PASS, `alembic upgrade head` PASS
 
+- Phase 2.3 monthly consumption report baseline (part 48):
+  - Added `consumption_reports` snapshot table + Alembic migration `20260331_0009`
+  - Added `ReportStoreMixin` (`generate_monthly_report` / `get_monthly_report` / `generate_reports_for_all`)
+  - Aggregated monthly consumption (SUBTRACT, non-decay) and waste (AUTO_DECAY) from `activity_logs`
+  - Computed per-item turnover days from `inventory_items.daily_avg_rate`; pulled purchase list from latest suggestion
+  - Added `GET /reports/consumption/monthly` (optional `month=YYYY-MM`, defaults to previous month)
+  - Added Celery monthly job `run_monthly_report_task` (beat: 1st of month 00:00) with pre-generated snapshot reuse
+  - Updated OpenAPI contract: `ConsumptionReport` / `MonthlyReportEntry` schemas and `/reports/consumption/monthly` path
+  - Added 5 API regression tests in `services/api/tests/test_reports.py`
+  - Verified: 48/48 API tests PASS, `npm run check:all` PASS, `alembic upgrade head` PASS
+
 ## Not Yet Implemented (next iterations)
 
 Phase 2.2 移动端（家庭管理页 / 邀请处理页 / AppStore household 化）与 Admin Households 页待开发（后端优先，与 2.1 模式一致）。
-Phase 2.3 月度消费报告待开发。
+Phase 2.3 移动端报告页 / Admin 报告概览页待开发（后端优先，与 2.1 模式一致）。
 
 ## Local Runbook
 

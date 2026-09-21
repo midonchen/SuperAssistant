@@ -125,6 +125,28 @@ class PurchaseSuggestion(BaseModel):
     status: str
 
 
+class MonthlyReportEntry(BaseModel):
+    item_key: str
+    item_name: str
+    unit: str
+    consumed_qty: float
+    wasted_qty: float
+    turnover_days: float | None = None
+
+
+class ConsumptionReport(BaseModel):
+    report_id: str
+    household_id: str
+    month: str
+    generated_at: datetime
+    total_consumed_qty: float
+    total_wasted_qty: float
+    top_consumed: list[MonthlyReportEntry]
+    wasted: list[MonthlyReportEntry]
+    turnover: list[MonthlyReportEntry]
+    suggested_purchase: list[PurchaseSuggestionItem]
+
+
 class Category(BaseModel):
     category_id: str
     name: str

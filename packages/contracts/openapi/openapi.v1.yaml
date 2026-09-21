@@ -316,6 +316,63 @@ components:
         created_at:
           type: string
           format: date-time
+    MonthlyReportEntry:
+      type: object
+      required: [item_key, item_name, unit, consumed_qty, wasted_qty]
+      properties:
+        item_key:
+          type: string
+        item_name:
+          type: string
+        unit:
+          type: string
+        consumed_qty:
+          type: number
+        wasted_qty:
+          type: number
+        turnover_days:
+          type: number
+          nullable: true
+    ConsumptionReport:
+      type: object
+      required: [report_id, household_id, month, generated_at, total_consumed_qty, total_wasted_qty, top_consumed, wasted, turnover, suggested_purchase]
+      properties:
+        report_id:
+          type: string
+          format: uuid
+        household_id:
+          type: string
+          format: uuid
+        month:
+          type: string
+        generated_at:
+          type: string
+          format: date-time
+        total_consumed_qty:
+          type: number
+        total_wasted_qty:
+          type: number
+        top_consumed:
+          type: array
+          items:
+            $ref: '#/components/schemas/MonthlyReportEntry'
+        wasted:
+          type: array
+          items:
+            $ref: '#/components/schemas/MonthlyReportEntry'
+        turnover:
+          type: array
+          items:
+            $ref: '#/components/schemas/MonthlyReportEntry'
+        suggested_purchase:
+          type: array
+          items:
+            type: object
+            properties:
+              item_key: { type: string }
+              suggested_qty: { type: number }
+              unit: { type: string }
+              reason: { type: string }
 paths:
   /auth/sms/send:
     post:
@@ -851,6 +908,20 @@ paths:
                 notify_time: { type: string }
       responses:
         '200': { description: success }
+  /reports/consumption/monthly:
+    get:
+      summary: Get monthly consumption report
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - in: query
+          name: month
+          schema: { type: string, pattern: '^[0-9]{4}-[0-9]{2}$' }
+      responses:
+        '200': { description: success }
+        '400': { description: invalid month }
   /admin/dashboard/summary:
     get:
       summary: Admin dashboard summary

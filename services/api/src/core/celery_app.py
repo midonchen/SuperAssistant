@@ -31,6 +31,10 @@ celery_app.conf.beat_schedule = {
         "task": "modules.push.domain.tasks.run_purchase_reminder_task",
         "schedule": crontab(minute=0, hour=20),
     },
+    "monthly-consumption-report": {
+        "task": "modules.reports.domain.tasks.run_monthly_report_task",
+        "schedule": crontab(minute=0, hour=0, day_of_month=1),
+    },
 }
 
-celery_app.autodiscover_tasks(["modules.inventory.domain", "modules.push.domain"])
+celery_app.autodiscover_tasks(["modules.inventory.domain", "modules.push.domain", "modules.reports.domain"])
