@@ -608,5 +608,64 @@ class AIPipeline:
             entities = self._parser_fallback.parse_entities(raw_text, parse_session_id)
         return OcrParseResult(session_id=parse_session_id, entities=entities, unknown_items=unknown_items)
 
+    def rank_tasks(self, tasks: list[dict]) -> tuple[str, list[dict]]:
+        """AI re-rank of tasks. Returns (method, tasks) where method is "ai"|"heuristic". Falls back to input order."""
+        if not tasks:
+            return "heuristic", tasks
+        try:
+            ranked = self._ai_rank(tasks)
+            if not ranked:
+                return "heuristic", tasks
+            by_id = {t["task_id"]: t for t in tasks}
+            reordered: list[dict] = []
+            for index, (task_id, reason) in enumerate(ranked):
+                source = by_id.get(task_id)
+                if source is None:
+                    continue
+                entry = dict(source)
+                entry["reason"] = reason
+                entry["score"] = round(100.0 - index * 5.0, 1)
+                reordered.append(entry)
+            seen = {t["task_id"] for t in reordered}
+            for task in tasks:
+                if task["task_id"] not in seen:
+                    reordered.append(task)
+            if len(reordered) == len(tasks):
+                return "ai", reordered
+        except Exception as exc:
+            logger.warning("task AI ranking failed, fallback to heuristic: %s", exc)
+        return "heuristic", tasks
+
+    def _ai_rank(self, tasks: list[dict]) -> list[tuple[str, str]]:
+        api_key = os.getenv("DEEPSEEK_API_KEY", "").strip()
+        if not api_key:
+            return []
+        model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat").strip() or "deepseek-chat"
+        endpoint = os.getenv("DEEPSEEK_CHAT_ENDPOINT", "https://api.deepseek.com/v1/chat/completions").strip()
+        lines = "\n".join(
+            f"- id:{t['task_id']} 标题:{t['title']} 截止:{t.get('due_at') or '无'} 优先级:{t.get('priority', 3)}（1最高4最低）"
+            for t in tasks
+        )
+        prompt = (
+            "你是任务优先级助手。请按截止时间和重要性将以下任务从高到低排序，"
+            '只返回 JSON：{"ranking":[{"task_id":"...","reason":"一句话理由"}]}。\n'
+            + lines
+        )
+        with httpx.Client(timeout=20.0) as client:
+            response = client.post(
+                endpoint,
+                headers={"Authorization": f"Bearer {api_key}", "content-type": "application/json"},
+                json={"model": model, "temperature": 0, "messages": [{"role": "user", "content": prompt}]},
+            )
+            response.raise_for_status()
+            content = response.json()["choices"][0]["message"]["content"]
+            data = json.loads(content)
+            ranking = data.get("ranking", [])
+            result: list[tuple[str, str]] = []
+            for row in ranking:
+                if isinstance(row, dict) and row.get("task_id"):
+                    result.append((str(row["task_id"]), str(row.get("reason", "AI 排序"))))
+            return result
+
 
 ai_pipeline = AIPipeline()

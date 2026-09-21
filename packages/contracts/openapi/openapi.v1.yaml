@@ -1038,7 +1038,17 @@ paths:
         - $ref: '#/components/parameters/XPlatform'
         - $ref: '#/components/parameters/IdempotencyKey'
       responses:
-        '200': { description: success }
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  method: { type: string, enum: [ai, heuristic] }
+                  tasks:
+                    type: array
+                    items: { $ref: '#/components/schemas/PrioritizedTask' }
   /tasks/{task_id}:
     patch:
       summary: Update a task

@@ -445,6 +445,13 @@
   - Added `ADMIN_PASSWORD` to compose admin service + `.env.example` placeholder
   - Verified: admin `tsc --noEmit` PASS, admin `next build` PASS (all routes dynamic)
 
+- v2.0 task AI prioritization (part 58):
+  - Added `AIPipeline.rank_tasks` + `_ai_rank` (DeepSeek chat completion, temperature 0, returns ordered task_id + reason)
+  - Wired into `TaskStoreMixin.prioritize_tasks`: AI re-rank with heuristic fallback (no key → heuristic)
+  - `/tasks/prioritize` now returns `{method: "ai"|"heuristic", tasks: [...]}`
+  - Updated OpenAPI + 1 regression test + 1 pipeline unit test
+  - Verified: 64/64 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 Phase 2.3 移动端分享（share_plus）待开发（服务端 PDF 导出已完成）。

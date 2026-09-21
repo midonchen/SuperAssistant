@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy import select
 
+from core.ai_pipeline import ai_pipeline
 from core.db import SessionLocal
 from core.errors import ApiException
 from core.models import TaskModel
@@ -81,8 +82,8 @@ class TaskStoreMixin(StoreBase):
             db.delete(row)
             db.commit()
 
-    def prioritize_tasks(self, user_id: str) -> list[PrioritizedTask]:
-        """Rank TODO tasks by urgency: deadline proximity + manual priority. Heuristic baseline for AI ranking."""
+    def prioritize_tasks(self, user_id: str) -> tuple[str, list[PrioritizedTask]]:
+        """Rank TODO tasks by urgency: deadline proximity + manual priority. AI re-ranks with heuristic fallback."""
         tasks = self.list_tasks(user_id, status="TODO")
         now = utc_now()
         scored: list[PrioritizedTask] = []
@@ -118,4 +119,18 @@ class TaskStoreMixin(StoreBase):
                 )
             )
         scored.sort(key=lambda t: t.score, reverse=True)
-        return scored
+        task_dicts = [
+            {
+                "task_id": t.task_id,
+                "title": t.title,
+                "due_at": t.due_at.isoformat() if t.due_at else None,
+                "priority": t.priority,
+                "status": t.status,
+                "score": t.score,
+                "reason": t.reason,
+            }
+            for t in scored
+        ]
+        method, ranked_dicts = ai_pipeline.rank_tasks(task_dicts)
+        ranked = [PrioritizedTask(**d) for d in ranked_dicts]
+        return method, ranked

@@ -28,8 +28,8 @@ async def create_task(payload: TaskCreateRequest, request: Request, user_id: str
 
 @router.post("/prioritize")
 async def prioritize_tasks(request: Request, user_id: str = Depends(require_bearer)):
-    ranked = store.prioritize_tasks(user_id)
-    return success(request, {"tasks": [t.model_dump(mode="json") for t in ranked]})
+    method, ranked = store.prioritize_tasks(user_id)
+    return success(request, {"method": method, "tasks": [t.model_dump(mode="json") for t in ranked]})
 
 
 @router.patch("/{task_id}")
