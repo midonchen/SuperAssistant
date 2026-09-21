@@ -19,19 +19,19 @@ from core.store.base import StoreBase
 
 
 class InventoryStoreMixin(StoreBase):
-    def list_items(self, user_id: UUID, status: str | None = None) -> list[InventoryItem]:
+    def list_items(self, household_id: str, status: str | None = None) -> list[InventoryItem]:
         with SessionLocal() as db:
-            stmt = select(InventoryItemModel).where(InventoryItemModel.user_id == str(user_id))
+            stmt = select(InventoryItemModel).where(InventoryItemModel.household_id == household_id)
             if status:
                 stmt = stmt.where(InventoryItemModel.status == status)
             rows = db.scalars(stmt).all()
             return [self._inventory_item(row) for row in rows]
 
-    def get_item(self, user_id: UUID, item_key: str) -> InventoryItem:
+    def get_item(self, household_id: str, item_key: str) -> InventoryItem:
         with SessionLocal() as db:
             row = db.scalar(
                 select(InventoryItemModel).where(
-                    InventoryItemModel.user_id == str(user_id),
+                    InventoryItemModel.household_id == household_id,
                     InventoryItemModel.item_key == item_key,
                 )
             )
@@ -39,11 +39,11 @@ class InventoryStoreMixin(StoreBase):
                 raise KeyError("item not found")
             return self._inventory_item(row)
 
-    def apply_operation(self, user_id: UUID, item_key: str, op: Operation, value: float, source: ActionType) -> ActivityLog:
+    def apply_operation(self, household_id: str, user_id: UUID, item_key: str, op: Operation, value: float, source: ActionType) -> ActivityLog:
         with SessionLocal() as db:
             row = db.scalar(
                 select(InventoryItemModel).where(
-                    InventoryItemModel.user_id == str(user_id),
+                    InventoryItemModel.household_id == household_id,
                     InventoryItemModel.item_key == item_key,
                 )
             )
@@ -66,6 +66,7 @@ class InventoryStoreMixin(StoreBase):
             row.status = self._status_for(row.current_stock, row.warning_threshold)
 
             log_row = ActivityLogModel(
+                household_id=household_id,
                 user_id=str(user_id),
                 item_key=item_key,
                 action_type=source.value,
@@ -80,7 +81,7 @@ class InventoryStoreMixin(StoreBase):
             db.refresh(log_row)
             return self._activity(log_row)
 
-    def apply_batch_operations(self, user_id: UUID, operations: list[dict], from_replay: bool = False) -> dict:
+    def apply_batch_operations(self, household_id: str, user_id: UUID, operations: list[dict], from_replay: bool = False) -> dict:
         updated: dict[str, dict] = {}
         activity_ids: list[str] = []
 
@@ -96,7 +97,7 @@ class InventoryStoreMixin(StoreBase):
             client_version = raw.get("client_version")
 
             if client_version is not None:
-                item = self.get_item(user_id, item_key)
+                item = self.get_item(household_id, item_key)
                 if item.server_version != int(client_version):
                     raise ApiException(
                         409,
@@ -110,9 +111,9 @@ class InventoryStoreMixin(StoreBase):
                         retriable=True,
                     )
 
-            log = self.apply_operation(user_id, item_key, operation, value, source)
+            log = self.apply_operation(household_id, user_id, item_key, operation, value, source)
             activity_ids.append(str(log.activity_id))
-            item = self.get_item(user_id, item_key)
+            item = self.get_item(household_id, item_key)
             updated[item_key] = {
                 "item_key": item.item_key,
                 "current_stock": item.current_stock,
@@ -126,17 +127,17 @@ class InventoryStoreMixin(StoreBase):
         return {"updated_items": list(updated.values()), "activity_ids": activity_ids}
 
     def run_auto_decay_for_all(self) -> dict:
-        user_ids = self.list_user_ids()
+        household_ids = self.list_household_ids()
         affected_items = 0
-        for user_id in user_ids:
-            for item in self.list_items(user_id):
+        for household_id in household_ids:
+            for item in self.list_items(household_id):
                 before = item.current_stock
                 decay = max(0.0, item.daily_avg_rate)
                 after = max(0.0, round(before - decay, 3))
                 with SessionLocal() as db:
                     row = db.scalar(
                         select(InventoryItemModel).where(
-                            InventoryItemModel.user_id == str(user_id),
+                            InventoryItemModel.household_id == household_id,
                             InventoryItemModel.item_key == item.item_key,
                         )
                     )
@@ -148,7 +149,8 @@ class InventoryStoreMixin(StoreBase):
                     row.status = self._status_for(after, row.warning_threshold)
                     db.add(
                         ActivityLogModel(
-                            user_id=str(user_id),
+                            household_id=household_id,
+                            user_id=row.user_id,
                             item_key=item.item_key,
                             action_type=ActionType.AUTO_DECAY.value,
                             operation=Operation.SUBTRACT.value,
@@ -160,12 +162,12 @@ class InventoryStoreMixin(StoreBase):
                     )
                     db.commit()
                     affected_items += 1
-        return {"processed_users": len(user_ids), "affected_items": affected_items}
+        return {"processed_households": len(household_ids), "affected_items": affected_items}
 
-    def list_logs(self, user_id: UUID, page: int, page_size: int, item_key: str | None = None) -> tuple[list[ActivityLog], int]:
+    def list_logs(self, household_id: str, page: int, page_size: int, item_key: str | None = None) -> tuple[list[ActivityLog], int]:
         with SessionLocal() as db:
-            stmt = select(ActivityLogModel).where(ActivityLogModel.user_id == str(user_id))
-            count_stmt = select(func.count()).select_from(ActivityLogModel).where(ActivityLogModel.user_id == str(user_id))
+            stmt = select(ActivityLogModel).where(ActivityLogModel.household_id == household_id)
+            count_stmt = select(func.count()).select_from(ActivityLogModel).where(ActivityLogModel.household_id == household_id)
             if item_key is not None:
                 stmt = stmt.where(ActivityLogModel.item_key == item_key)
                 count_stmt = count_stmt.where(ActivityLogModel.item_key == item_key)

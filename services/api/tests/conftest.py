@@ -28,10 +28,10 @@ HEADERS = {
 }
 
 
-def make_headers(idempotent: bool = False, token: str | None = None) -> dict[str, str]:
+def make_headers(idempotent: bool = False, token: str | None = None, idempotency_key: str | None = None) -> dict[str, str]:
     headers = dict(HEADERS)
-    if idempotent:
-        headers["Idempotency-Key"] = "test-idempotency-key"
+    if idempotent or idempotency_key:
+        headers["Idempotency-Key"] = idempotency_key or "test-idempotency-key"
     if token:
         headers["Authorization"] = f"Bearer {token}"
     return headers

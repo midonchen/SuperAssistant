@@ -8,11 +8,12 @@ from core.store.base import StoreBase
 
 
 class OfflineStoreMixin(StoreBase):
-    def enqueue_offline_replay_ops(self, user_id: UUID, offline_ops: list[dict]) -> dict:
+    def enqueue_offline_replay_ops(self, household_id: str, user_id: UUID, offline_ops: list[dict]) -> dict:
         queued = 0
         for row in offline_ops:
             payload = {
                 "job_id": row.get("op_id", str(uuid4())),
+                "household_id": household_id,
                 "user_id": str(user_id),
                 "created_at": row.get("created_at"),
                 "retry_count": int(row.get("retry_count", 0)),
@@ -32,10 +33,11 @@ class OfflineStoreMixin(StoreBase):
 
         for job in jobs:
             try:
+                household_id = job["household_id"]
                 user_id = UUID(job["user_id"])
                 payload = job.get("payload", {})
                 operations = payload.get("operations", [])
-                result = self.apply_batch_operations(user_id, operations, from_replay=True)
+                result = self.apply_batch_operations(household_id, user_id, operations, from_replay=True)
                 processed += 1
                 applied_ops += len(result["activity_ids"])
             except ApiException as exc:

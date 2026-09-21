@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from core.store.audit import AuditStoreMixin
 from core.store.categories import CategoryStoreMixin
+from core.store.households import HouseholdStoreMixin
 from core.store.inventory import InventoryStoreMixin
 from core.store.offline import OfflineStoreMixin
 from core.store.push import PushStoreMixin
@@ -16,6 +17,7 @@ class Store(
     UserStoreMixin,
     InventoryStoreMixin,
     CategoryStoreMixin,
+    HouseholdStoreMixin,
     OfflineStoreMixin,
     SuggestionStoreMixin,
     PushStoreMixin,

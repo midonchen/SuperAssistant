@@ -4,7 +4,7 @@ import re
 import uuid
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 
 from core.db import SessionLocal
 from core.errors import ApiException
@@ -14,12 +14,12 @@ from core.store.base import ITEM_META, StoreBase
 
 
 class CategoryStoreMixin(StoreBase):
-    def _ensure_system_categories(self, user_id: str) -> None:
+    def _ensure_system_categories(self, household_id: str) -> None:
         with SessionLocal() as db:
             existing = {
                 row.item_key
                 for row in db.scalars(
-                    select(CategoryModel).where(CategoryModel.user_id == user_id)
+                    select(CategoryModel).where(CategoryModel.household_id == household_id)
                 ).all()
             }
             for key, (name, unit, _max_stock, _warning) in ITEM_META.items():
@@ -28,7 +28,8 @@ class CategoryStoreMixin(StoreBase):
                 db.add(
                     CategoryModel(
                         id=str(uuid.uuid4()),
-                        user_id=user_id,
+                        household_id=household_id,
+                        user_id="",
                         item_key=key,
                         name=name,
                         icon=None,
@@ -39,22 +40,22 @@ class CategoryStoreMixin(StoreBase):
                 )
             db.commit()
 
-    def list_categories(self, user_id: UUID) -> list[Category]:
-        self._ensure_system_categories(str(user_id))
+    def list_categories(self, household_id: str) -> list[Category]:
+        self._ensure_system_categories(household_id)
         with SessionLocal() as db:
             rows = db.scalars(
                 select(CategoryModel)
-                .where(CategoryModel.user_id == str(user_id))
+                .where(CategoryModel.household_id == household_id)
                 .order_by(CategoryModel.is_system.desc(), CategoryModel.name.asc())
             ).all()
             return [self._category(row) for row in rows]
 
-    def get_category(self, user_id: UUID, category_id: str) -> Category:
+    def get_category(self, household_id: str, category_id: str) -> Category:
         with SessionLocal() as db:
             row = db.scalar(
                 select(CategoryModel).where(
                     CategoryModel.id == category_id,
-                    CategoryModel.user_id == str(user_id),
+                    CategoryModel.household_id == household_id,
                 )
             )
             if row is None:
@@ -67,12 +68,12 @@ class CategoryStoreMixin(StoreBase):
             base = "CUSTOM"
         return f"{base}_{uuid.uuid4().hex[:6]}"
 
-    def create_category(self, user_id: UUID, request: CategoryCreateRequest) -> Category:
+    def create_category(self, household_id: str, user_id: UUID, request: CategoryCreateRequest) -> Category:
         item_key = self._derive_item_key(request.name)
         with SessionLocal() as db:
             existing = db.scalar(
                 select(CategoryModel).where(
-                    CategoryModel.user_id == str(user_id),
+                    CategoryModel.household_id == household_id,
                     CategoryModel.item_key == item_key,
                 )
             )
@@ -80,6 +81,7 @@ class CategoryStoreMixin(StoreBase):
                 raise ApiException(409, "BIZ_409_CONFLICT", "category item_key conflict", retriable=True)
             row = CategoryModel(
                 id=str(uuid.uuid4()),
+                household_id=household_id,
                 user_id=str(user_id),
                 item_key=item_key,
                 name=request.name,
@@ -93,12 +95,12 @@ class CategoryStoreMixin(StoreBase):
             db.refresh(row)
             return self._category(row)
 
-    def update_category(self, user_id: UUID, category_id: str, request: CategoryUpdateRequest) -> Category:
+    def update_category(self, household_id: str, category_id: str, request: CategoryUpdateRequest) -> Category:
         with SessionLocal() as db:
             row = db.scalar(
                 select(CategoryModel).where(
                     CategoryModel.id == category_id,
-                    CategoryModel.user_id == str(user_id),
+                    CategoryModel.household_id == household_id,
                 )
             )
             if row is None:
@@ -118,12 +120,12 @@ class CategoryStoreMixin(StoreBase):
             db.refresh(row)
             return self._category(row)
 
-    def delete_category(self, user_id: UUID, category_id: str) -> None:
+    def delete_category(self, household_id: str, category_id: str) -> None:
         with SessionLocal() as db:
             row = db.scalar(
                 select(CategoryModel).where(
                     CategoryModel.id == category_id,
-                    CategoryModel.user_id == str(user_id),
+                    CategoryModel.household_id == household_id,
                 )
             )
             if row is None:
@@ -135,7 +137,7 @@ class CategoryStoreMixin(StoreBase):
                     select(func.count())
                     .select_from(ActivityLogModel)
                     .where(
-                        ActivityLogModel.user_id == str(user_id),
+                        ActivityLogModel.household_id == household_id,
                         ActivityLogModel.item_key == row.item_key,
                         ActivityLogModel.action_type != "AUTO_DECAY",
                     )
@@ -146,7 +148,7 @@ class CategoryStoreMixin(StoreBase):
                 raise ApiException(409, "BIZ_409_CONFLICT", "category has activity history and cannot be deleted", retriable=False)
             inventory_item = db.scalar(
                 select(InventoryItemModel).where(
-                    InventoryItemModel.user_id == str(user_id),
+                    InventoryItemModel.household_id == household_id,
                     InventoryItemModel.item_key == row.item_key,
                 )
             )
@@ -155,11 +157,11 @@ class CategoryStoreMixin(StoreBase):
             db.delete(row)
             db.commit()
 
-    def get_category_meta(self, user_id: UUID, item_key: str) -> dict | None:
+    def get_category_meta(self, household_id: str, item_key: str) -> dict | None:
         with SessionLocal() as db:
             row = db.scalar(
                 select(CategoryModel).where(
-                    CategoryModel.user_id == str(user_id),
+                    CategoryModel.household_id == household_id,
                     CategoryModel.item_key == item_key,
                 )
             )
@@ -175,23 +177,23 @@ class CategoryStoreMixin(StoreBase):
                 "warning_threshold": row.decay_template.get("warning_threshold", 10.0) if row.decay_template else 10.0,
             }
 
-    def create_inventory_for_category(self, user_id: UUID, category_id: str) -> None:
+    def create_inventory_for_category(self, household_id: str, user_id: UUID, category_id: str) -> None:
         with SessionLocal() as db:
             category = db.scalar(
                 select(CategoryModel).where(
                     CategoryModel.id == category_id,
-                    CategoryModel.user_id == str(user_id),
+                    CategoryModel.household_id == household_id,
                 )
             )
             if category is None:
                 raise KeyError("category not found")
             item_key = category.item_key
-            meta = self.get_category_meta(user_id, item_key)
+            meta = self.get_category_meta(household_id, item_key)
             if meta is None:
                 raise KeyError("category meta not found")
             existing = db.scalar(
                 select(InventoryItemModel).where(
-                    InventoryItemModel.user_id == str(user_id),
+                    InventoryItemModel.household_id == household_id,
                     InventoryItemModel.item_key == item_key,
                 )
             )
@@ -202,6 +204,7 @@ class CategoryStoreMixin(StoreBase):
             now = utc_now()
             db.add(
                 InventoryItemModel(
+                    household_id=household_id,
                     user_id=str(user_id),
                     item_key=item_key,
                     item_name=meta["name"],

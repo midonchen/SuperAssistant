@@ -68,11 +68,13 @@ class StoreBase:
             shopping_day=user.shopping_day,
             shopping_cycle=user.shopping_cycle,
             role=user.role,
+            household_id=user.household_id,
             onboarded=user.onboarded,
         )
 
     def _inventory_item(self, row: InventoryItemModel) -> InventoryItem:
         return InventoryItem(
+            household_id=row.household_id,
             item_key=row.item_key,
             item_name=row.item_name,
             unit=row.unit,
@@ -89,6 +91,7 @@ class StoreBase:
     def _activity(self, row: ActivityLogModel) -> ActivityLog:
         return ActivityLog(
             activity_id=UUID(row.id),
+            household_id=row.household_id,
             item_key=row.item_key,
             action_type=ActionType(row.action_type),
             operation=Operation(row.operation),
@@ -104,6 +107,7 @@ class StoreBase:
     def _suggestion(self, suggestion: SuggestionModel, items: list[SuggestionItemModel]) -> PurchaseSuggestion:
         return PurchaseSuggestion(
             suggestion_id=UUID(suggestion.id),
+            household_id=suggestion.household_id,
             generated_at=suggestion.generated_at,
             mode=suggestion.mode,
             status=suggestion.status,

@@ -7,11 +7,19 @@ from pydantic import BaseModel
 
 from core.ai_pipeline import ai_pipeline
 from core.auth_dep import require_bearer
-from core.response import success
+from core.errors import ApiException
+from core.response import failure, success
 from core.schemas import ActionType, ParsedEntity
 from core.store import store
 
 router = APIRouter(prefix="/ai", tags=["ocr"])
+
+
+def _current_household_id(user_id: str) -> str:
+    household_id = store.get_user_household_id(user_id)
+    if household_id is None:
+        raise ApiException(403, "AUTH_403_FORBIDDEN", "user has no household")
+    return household_id
 
 
 class OcrParseRequest(BaseModel):
@@ -39,11 +47,14 @@ async def parse_ocr(payload: OcrParseRequest, request: Request, user_id: str = D
 
 @router.post("/parse/confirm")
 async def confirm_parse(payload: ConfirmRequest, request: Request, user_id: str = Depends(require_bearer)):
+    household_id = _current_household_id(user_id)
+    if not store.can_write_inventory(user_id, household_id):
+        return failure(request, 403, "AUTH_403_FORBIDDEN", "insufficient household role")
     uid = UUID(user_id)
     for entity in payload.entities:
-        store.apply_operation(uid, entity.item_key, entity.operation, entity.normalized_value, ActionType.MANUAL)
+        store.apply_operation(household_id, uid, entity.item_key, entity.operation, entity.normalized_value, ActionType.MANUAL)
 
-    items = store.list_items(uid)
+    items = store.list_items(household_id)
     return success(
         request,
         {

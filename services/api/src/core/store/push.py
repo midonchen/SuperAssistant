@@ -5,7 +5,7 @@ from uuid import UUID
 from sqlalchemy import func, select
 
 from core.db import SessionLocal
-from core.models import PushDeliveryModel, PushDeviceModel, PushPreferenceModel, UserModel
+from core.models import HouseholdMembershipModel, PushDeliveryModel, PushDeviceModel, PushPreferenceModel, UserModel
 from core.schemas import utc_now
 from core.store.base import StoreBase
 
@@ -68,14 +68,28 @@ class PushStoreMixin(StoreBase):
         sent = 0
         failed = 0
         skipped = 0
-        user_ids = self.list_user_ids()
-        for user_id in user_ids:
-            preference = self.get_push_preference(user_id)
-            if not preference["enabled"]:
+        household_ids = self.list_household_ids()
+        for household_id in household_ids:
+            # Use any household member with a push preference; default to enabled.
+            with SessionLocal() as db:
+                memberships = db.scalars(
+                    select(HouseholdMembershipModel).where(HouseholdMembershipModel.household_id == household_id)
+                ).all()
+                member_ids = [member.user_id for member in memberships]
+                preferences = db.scalars(
+                    select(PushPreferenceModel).where(PushPreferenceModel.user_id.in_(member_ids))
+                ).all()
+                enabled = any(p.enabled for p in preferences) if preferences else True
+                devices = db.scalars(
+                    select(PushDeviceModel).where(PushDeviceModel.user_id.in_(member_ids))
+                ).all()
+                user_id = member_ids[0] if member_ids else None
+
+            if not enabled:
                 with SessionLocal() as db:
                     db.add(
                         PushDeliveryModel(
-                            user_id=str(user_id),
+                            user_id=user_id or "",
                             suggestion_id=None,
                             status="SKIPPED",
                             attempt_count=1,
@@ -88,13 +102,11 @@ class PushStoreMixin(StoreBase):
                 skipped += 1
                 continue
 
-            with SessionLocal() as db:
-                devices = db.scalars(select(PushDeviceModel).where(PushDeviceModel.user_id == str(user_id))).all()
             if not devices:
                 with SessionLocal() as db:
                     db.add(
                         PushDeliveryModel(
-                            user_id=str(user_id),
+                            user_id=user_id or "",
                             suggestion_id=None,
                             status="FAILED",
                             attempt_count=1,
@@ -107,11 +119,11 @@ class PushStoreMixin(StoreBase):
                 failed += 1
                 continue
 
-            suggestion = self.get_latest_suggestion(user_id) or self.build_suggestion(user_id, mode="AUTO")
+            suggestion = self.get_latest_suggestion(household_id) or self.build_suggestion(household_id, UUID(user_id), mode="AUTO")
             with SessionLocal() as db:
                 db.add(
                     PushDeliveryModel(
-                        user_id=str(user_id),
+                        user_id=user_id or "",
                         suggestion_id=str(suggestion.suggestion_id),
                         status="SENT",
                         attempt_count=1,
@@ -123,7 +135,7 @@ class PushStoreMixin(StoreBase):
                 db.commit()
             sent += 1
 
-        return {"processed_users": len(user_ids), "sent": sent, "failed": failed, "skipped": skipped}
+        return {"processed_households": len(household_ids), "sent": sent, "failed": failed, "skipped": skipped}
 
     def get_push_delivery_stats(self) -> dict:
         with SessionLocal() as db:

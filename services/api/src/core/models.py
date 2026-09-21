@@ -25,6 +25,7 @@ class UserModel(Base):
     shopping_day: Mapped[int] = mapped_column(Integer, default=6)
     shopping_cycle: Mapped[int] = mapped_column(Integer, default=7)
     role: Mapped[str] = mapped_column(String(16), default="USER", index=True)
+    household_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("households.id"), nullable=True, index=True)
     onboarded: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
@@ -43,9 +44,10 @@ class SessionModel(Base):
 
 class InventoryItemModel(Base):
     __tablename__ = "inventory_items"
-    __table_args__ = (UniqueConstraint("user_id", "item_key", name="uq_inventory_user_item"),)
+    __table_args__ = (UniqueConstraint("household_id", "item_key", name="uq_inventory_household_item"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    household_id: Mapped[str] = mapped_column(String(36), ForeignKey("households.id"), index=True)
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
     item_key: Mapped[str] = mapped_column(String(16), index=True)
     item_name: Mapped[str] = mapped_column(String(32))
@@ -64,6 +66,7 @@ class ActivityLogModel(Base):
     __tablename__ = "activity_logs"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    household_id: Mapped[str] = mapped_column(String(36), ForeignKey("households.id"), index=True)
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
     item_key: Mapped[str] = mapped_column(String(16), index=True)
     action_type: Mapped[str] = mapped_column(String(24))
@@ -81,6 +84,7 @@ class SuggestionModel(Base):
     __tablename__ = "purchase_suggestions"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    household_id: Mapped[str] = mapped_column(String(36), ForeignKey("households.id"), index=True)
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
     generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, index=True)
     mode: Mapped[str] = mapped_column(String(16))
@@ -175,9 +179,10 @@ class ApprovalRequestModel(Base):
 
 class CategoryModel(Base):
     __tablename__ = "categories"
-    __table_args__ = (UniqueConstraint("user_id", "item_key", name="uq_category_user_item_key"),)
+    __table_args__ = (UniqueConstraint("household_id", "item_key", name="uq_category_household_item_key"),)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    household_id: Mapped[str] = mapped_column(String(36), ForeignKey("households.id"), index=True)
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
     item_key: Mapped[str] = mapped_column(String(16), index=True)
     name: Mapped[str] = mapped_column(String(32))
@@ -187,3 +192,36 @@ class CategoryModel(Base):
     is_system: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class HouseholdModel(Base):
+    __tablename__ = "households"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name: Mapped[str] = mapped_column(String(64))
+    created_by: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class HouseholdMembershipModel(Base):
+    __tablename__ = "household_memberships"
+    __table_args__ = (UniqueConstraint("household_id", "user_id", name="uq_household_membership"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    household_id: Mapped[str] = mapped_column(String(36), ForeignKey("households.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    role: Mapped[str] = mapped_column(String(16), default="MEMBER")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class HouseholdInvitationModel(Base):
+    __tablename__ = "household_invitations"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    household_id: Mapped[str] = mapped_column(String(36), ForeignKey("households.id"), index=True)
+    inviter_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    invite_code: Mapped[str] = mapped_column(String(16), unique=True, index=True)
+    role: Mapped[str] = mapped_column(String(16), default="MEMBER")  # ADMIN, MEMBER, VIEWER
+    status: Mapped[str] = mapped_column(String(16), default="PENDING")  # PENDING, ACCEPTED, EXPIRED
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)

@@ -344,9 +344,22 @@
   - Added 10 API regression tests in `services/api/tests/test_categories.py`
   - Verified: 36/36 API tests PASS, `npm run check:all` PASS, `alembic upgrade head` PASS
 
+- Phase 2.2 household collaboration baseline (part 47):
+  - Added `households`, `household_memberships`, `household_invitations` tables + Alembic migration `20260331_0008`
+  - Added household roles OWNER/ADMIN/MEMBER/VIEWER (orthogonal to platform admin RBAC)
+  - Auto-created personal household + OWNER membership on user registration
+  - Added invitation flow: `GET /households/me`, `POST /households`, `POST /households/invitations`, `POST /households/join`
+  - Scoped inventory/suggestions/activity_logs/categories/offline replay by `household_id`
+  - Added household write-permission gate (`can_write_inventory`); VIEWER read-only on mutation routes
+  - Offline replay queue carries `household_id` and re-applies with household scoping
+  - Updated OpenAPI contract: `household_id` fields, `Household`/`HouseholdMember`/`HouseholdInvitation` schemas, `/households` paths
+  - Added 7 API regression tests in `services/api/tests/test_households.py`
+  - Verified: 43/43 API tests PASS, `npm run check:all` PASS, `alembic upgrade head` PASS
+
 ## Not Yet Implemented (next iterations)
 
-Phase 2.2 家庭成员协作待开发。
+Phase 2.2 移动端（家庭管理页 / 邀请处理页 / AppStore household 化）与 Admin Households 页待开发（后端优先，与 2.1 模式一致）。
+Phase 2.3 月度消费报告待开发。
 
 ## Local Runbook
 

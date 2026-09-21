@@ -64,10 +64,12 @@ class UserProfile(BaseModel):
     shopping_day: int
     shopping_cycle: int
     role: str
+    household_id: str | None = None
     onboarded: bool
 
 
 class InventoryItem(BaseModel):
+    household_id: str
     item_key: str
     item_name: str
     unit: str
@@ -83,6 +85,7 @@ class InventoryItem(BaseModel):
 
 class ActivityLog(BaseModel):
     activity_id: UUID
+    household_id: str
     item_key: str
     action_type: ActionType
     operation: Operation
@@ -115,6 +118,7 @@ class PurchaseSuggestionItem(BaseModel):
 
 class PurchaseSuggestion(BaseModel):
     suggestion_id: UUID
+    household_id: str
     generated_at: datetime
     mode: str
     items: list[PurchaseSuggestionItem]
@@ -143,6 +147,42 @@ class CategoryUpdateRequest(BaseModel):
     icon: str | None = Field(default=None, max_length=64)
     unit_type: str | None = Field(default=None, min_length=1, max_length=16)
     decay_template: dict[str, Any] | None = None
+
+
+class HouseholdMember(BaseModel):
+    user_id: UUID
+    phone_masked: str
+    role: str
+    joined_at: datetime
+
+
+class Household(BaseModel):
+    household_id: str
+    name: str
+    created_by: UUID
+    members: list[HouseholdMember]
+    created_at: datetime
+
+
+class HouseholdInvitation(BaseModel):
+    invitation_id: str
+    household_id: str
+    invite_code: str
+    status: str
+    expires_at: datetime
+    created_at: datetime
+
+
+class HouseholdCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=64)
+
+
+class HouseholdInviteRequest(BaseModel):
+    role: str = Field(default="MEMBER")
+
+
+class HouseholdJoinRequest(BaseModel):
+    invite_code: str = Field(..., min_length=4, max_length=16)
 
 
 def utc_now() -> datetime:

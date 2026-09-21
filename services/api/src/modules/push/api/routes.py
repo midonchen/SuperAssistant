@@ -6,10 +6,18 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
 from core.auth_dep import require_bearer
-from core.response import success
+from core.errors import ApiException
+from core.response import failure, success
 from core.store import store
 
 router = APIRouter(prefix="", tags=["push"])
+
+
+def _current_household_id(user_id: str) -> str:
+    household_id = store.get_user_household_id(user_id)
+    if household_id is None:
+        raise ApiException(403, "AUTH_403_FORBIDDEN", "user has no household")
+    return household_id
 
 
 class SuggestionRequest(BaseModel):
@@ -28,17 +36,21 @@ class PushPreferenceRequest(BaseModel):
 
 @router.post("/suggestions/generate")
 async def generate_suggestion(payload: SuggestionRequest, request: Request, user_id: str = Depends(require_bearer)):
-    uid = UUID(user_id)
-    suggestion = store.build_suggestion(uid, mode=payload.mode)
+    household_id = _current_household_id(user_id)
+    if not store.can_write_inventory(user_id, household_id):
+        return failure(request, 403, "AUTH_403_FORBIDDEN", "insufficient household role")
+    suggestion = store.build_suggestion(household_id, UUID(user_id), mode=payload.mode)
     return success(request, {"suggestion_id": str(suggestion.suggestion_id), "items": [x.model_dump(mode="json") for x in suggestion.items]})
 
 
 @router.get("/suggestions/latest")
 async def latest_suggestion(request: Request, user_id: str = Depends(require_bearer)):
-    uid = UUID(user_id)
-    suggestion = store.get_latest_suggestion(uid)
+    household_id = _current_household_id(user_id)
+    suggestion = store.get_latest_suggestion(household_id)
     if not suggestion:
-        suggestion = store.build_suggestion(uid, mode="AUTO")
+        if not store.can_write_inventory(user_id, household_id):
+            return failure(request, 403, "AUTH_403_FORBIDDEN", "insufficient household role")
+        suggestion = store.build_suggestion(household_id, UUID(user_id), mode="AUTO")
     return success(request, {"suggestion": suggestion.model_dump(mode="json")})
 
 

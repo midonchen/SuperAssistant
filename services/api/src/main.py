@@ -11,6 +11,7 @@ from core.response import failure
 from modules.admin.api.routes import router as admin_router
 from modules.auth.api.routes import router as auth_router
 from modules.categories.api.routes import router as categories_router
+from modules.households.api.routes import router as households_router
 from modules.inventory.api.routes import router as inventory_router
 from modules.ocr.api.routes import router as ocr_router
 from modules.push.api.routes import router as push_router
@@ -58,6 +59,7 @@ async def healthz():
 
 
 app.include_router(auth_router, prefix="/api/v1")
+app.include_router(households_router, prefix="/api/v1")
 app.include_router(categories_router, prefix="/api/v1")
 app.include_router(inventory_router, prefix="/api/v1")
 app.include_router(voice_router, prefix="/api/v1")

@@ -91,11 +91,16 @@ components:
         role:
           type: string
           enum: [USER, ADMIN, AUDITOR]
+        household_id:
+          type: string
+          format: uuid
+          nullable: true
         onboarded:
           type: boolean
     InventoryItem:
       type: object
       required:
+        - household_id
         - item_key
         - item_name
         - unit
@@ -108,6 +113,9 @@ components:
         - last_updated
         - server_version
       properties:
+        household_id:
+          type: string
+          format: uuid
         item_key:
           type: string
         item_name:
@@ -137,6 +145,7 @@ components:
       type: object
       required:
         - activity_id
+        - household_id
         - item_key
         - action_type
         - operation
@@ -146,6 +155,9 @@ components:
         - timestamp
       properties:
         activity_id:
+          type: string
+          format: uuid
+        household_id:
           type: string
           format: uuid
         item_key:
@@ -201,6 +213,9 @@ components:
         suggestion_id:
           type: string
           format: uuid
+        household_id:
+          type: string
+          format: uuid
         generated_at:
           type: string
           format: date-time
@@ -243,6 +258,61 @@ components:
           additionalProperties: true
         is_system:
           type: boolean
+        created_at:
+          type: string
+          format: date-time
+    HouseholdMember:
+      type: object
+      required: [user_id, phone_masked, role, joined_at]
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        phone_masked:
+          type: string
+        role:
+          type: string
+          enum: [OWNER, ADMIN, MEMBER, VIEWER]
+        joined_at:
+          type: string
+          format: date-time
+    Household:
+      type: object
+      required: [household_id, name, created_by, members, created_at]
+      properties:
+        household_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        created_by:
+          type: string
+          format: uuid
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/HouseholdMember'
+        created_at:
+          type: string
+          format: date-time
+    HouseholdInvitation:
+      type: object
+      required: [invitation_id, household_id, invite_code, status, expires_at, created_at]
+      properties:
+        invitation_id:
+          type: string
+          format: uuid
+        household_id:
+          type: string
+          format: uuid
+        invite_code:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, ACCEPTED, EXPIRED]
+        expires_at:
+          type: string
+          format: date-time
         created_at:
           type: string
           format: date-time
@@ -429,6 +499,80 @@ paths:
         '403': { description: forbidden (system category) }
         '404': { description: not found }
         '409': { description: conflict (category has activity history) }
+  /households/me:
+    get:
+      summary: Get current household
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /households:
+    post:
+      summary: Create a household
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, minLength: 1, maxLength: 64 }
+      responses:
+        '200': { description: success }
+        '409': { description: conflict (must leave current household first) }
+  /households/invitations:
+    post:
+      summary: Create a household invitation
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role: { type: string, enum: [ADMIN, MEMBER, VIEWER], default: MEMBER }
+      responses:
+        '200': { description: success }
+        '403': { description: forbidden (OWNER/ADMIN role required) }
+  /households/join:
+    post:
+      summary: Join a household by invite code
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [invite_code]
+              properties:
+                invite_code: { type: string, minLength: 4, maxLength: 16 }
+      responses:
+        '200': { description: success }
+        '404': { description: not found (invalid invite code) }
+        '410': { description: gone (invitation expired) }
   /inventory/items:
     get:
       summary: Get inventory list

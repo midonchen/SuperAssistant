@@ -7,6 +7,8 @@ from sqlalchemy import Select, func, select
 from core.db import SessionLocal
 from core.models import (
     CategoryModel,
+    HouseholdMembershipModel,
+    HouseholdModel,
     InventoryItemModel,
     SecurityEventModel,
     SessionModel,
@@ -37,10 +39,27 @@ class UserStoreMixin(StoreBase):
                 )
                 db.add(user)
                 db.flush()
+                household = HouseholdModel(
+                    id=str(uuid4()),
+                    name=f"{phone[:3]}****{phone[-4:]}的家庭",
+                    created_by=user.id,
+                )
+                db.add(household)
+                db.flush()
+                db.add(
+                    HouseholdMembershipModel(
+                        id=str(uuid4()),
+                        household_id=household.id,
+                        user_id=user.id,
+                        role="OWNER",
+                    )
+                )
+                user.household_id = household.id
                 now = utc_now()
                 for key, (name, unit, max_stock, warning_threshold) in ITEM_META.items():
                     db.add(
                         InventoryItemModel(
+                            household_id=household.id,
                             user_id=user.id,
                             item_key=key,
                             item_name=name,
@@ -58,6 +77,7 @@ class UserStoreMixin(StoreBase):
                     db.add(
                         CategoryModel(
                             id=str(uuid4()),
+                            household_id=household.id,
                             user_id=user.id,
                             item_key=key,
                             name=name,

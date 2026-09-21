@@ -524,10 +524,10 @@ def test_push_preference_and_jobs(client):
     assert pref.json()["data"]["preference"]["enabled"] is True
 
     decay_result = store.run_auto_decay_for_all()
-    assert decay_result["processed_users"] >= 1
+    assert decay_result["processed_households"] >= 1
 
     reminder_result = store.run_purchase_reminders_for_all()
-    assert reminder_result["processed_users"] >= 1
+    assert reminder_result["processed_households"] >= 1
 
     stats = store.get_push_delivery_stats()
     assert stats["sent"] + stats["failed"] + stats["skipped"] >= 1
