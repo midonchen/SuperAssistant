@@ -128,3 +128,18 @@ export type ReportOverviewRow = {
   total_wasted_qty: number;
   latest_month: string | null;
 };
+
+export type AnalyticsEventRow = {
+  event_id: number;
+  user_id: string | null;
+  household_id: string | null;
+  event_type: string;
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
+export type AnalyticsSnapshot = {
+  summary: Record<string, number>;
+  list: AnalyticsEventRow[];
+  total: number;
+};

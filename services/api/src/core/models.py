@@ -248,3 +248,14 @@ class SubscriptionTierModel(Base):
     monthly_price: Mapped[float] = mapped_column(Float, default=0.0)
     limits: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # None = unlimited
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class AnalyticsEventModel(Base):
+    __tablename__ = "analytics_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
+    household_id: Mapped[str | None] = mapped_column(String(36), index=True, nullable=True)
+    event_type: Mapped[str] = mapped_column(String(32), index=True)
+    payload: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, index=True)

@@ -156,6 +156,7 @@ class HouseholdStoreMixin(StoreBase):
             raise KeyError("household not found")
         self._require_household_role(user_id, household_id, {"OWNER", "ADMIN"})
         if not self.can_use_feature(user_id, "household_members", self._count_household_members(household_id)):
+            self.record_event(user_id, "subscription_gate_hit", {"feature": "household_members"}, household_id)
             raise ApiException(402, "BIZ_402_UPGRADE_REQUIRED", "free tier household member limit reached")
         if role not in {"ADMIN", "MEMBER", "VIEWER"}:
             raise ApiException(400, "VAL_400_INVALID_PARAM", "invalid household role")

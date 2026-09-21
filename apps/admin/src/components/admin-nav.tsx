@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { href: "/users", label: "Users" },
   { href: "/households", label: "Households" },
   { href: "/reports", label: "Reports" },
+  { href: "/analytics", label: "Analytics" },
   { href: "/approvals", label: "Approvals" },
   { href: "/audit", label: "Audit" },
   { href: "/security", label: "Security" },

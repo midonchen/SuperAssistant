@@ -414,11 +414,20 @@
   - Added `scripts/demo_smoke.py` for repeatable demo validation
   - Note: admin web UI (:3000) reachable inside the server; external access pending Aliyun security-group port 3000
 
+- Phase 2.6 server-side analytics (part 54):
+  - Added `analytics_events` table + migration `20260331_0011`
+  - Added `AnalyticsStoreMixin` (`record_event` / `analytics_snapshot`)
+  - Recorded key behaviors: `category_created`, `invitation_created`, `household_joined`, `report_viewed`, `subscription_gate_hit`
+  - Added `GET /admin/analytics` (admin-gated, summary + recent events)
+  - Added Admin Analytics page + nav item + API client + types
+  - Added 3 API regression tests in `services/api/tests/test_analytics.py`
+  - Verified: 58/58 API tests PASS, `npm run check:all` PASS, admin `tsc --noEmit` PASS, admin `next build` PASS
+
 ## Not Yet Implemented (next iterations)
 
 Phase 2.3 报告导出/分享（share_plus + 截图）待开发（移动端依赖未引入）。
 Phase 2.5 iOS Widget 待开发（P2，纯 iOS 原生）。
-Phase 2.6 移动端升级提示 UI 与埋点待开发（服务器端权益门控已完成）。
+Phase 2.6 移动端升级提示 UI 待开发（权益门控 + 埋点已在服务器端完成）。
 
 ## Local Runbook
 

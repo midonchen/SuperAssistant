@@ -74,6 +74,17 @@ async def report_overview(request: Request, user_id: str = Depends(require_admin
     return success(request, {"list": rows, "total": len(rows)})
 
 
+@router.get("/analytics")
+async def analytics_snapshot(
+    request: Request,
+    user_id: str = Depends(require_admin),
+    event_type: str | None = Query(default=None),
+    limit: int = Query(default=100, ge=1, le=500),
+):
+    snapshot = store.analytics_snapshot(event_type=event_type, limit=limit)
+    return success(request, snapshot)
+
+
 @router.post("/users/{target_user_id}/session/revoke")
 async def revoke_user_session(
     target_user_id: str,

@@ -35,4 +35,5 @@ async def get_monthly_consumption_report(
     household_id = _current_household_id(user_id)
     report_month = month or _previous_month()
     report = store.get_monthly_report(household_id, report_month)
+    store.record_event(user_id, "report_viewed", {"month": report_month}, household_id)
     return success(request, {"report": report.model_dump(mode="json")})

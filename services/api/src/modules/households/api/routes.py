@@ -42,6 +42,7 @@ async def create_invitation(
         invitation = store.create_invitation(user_id, role=payload.role)
     except KeyError:
         return failure(request, 404, "BIZ_404_NOT_FOUND", "household not found")
+    store.record_event(user_id, "invitation_created", {"role": payload.role}, invitation.household_id)
     return success(request, {"invitation": invitation.model_dump(mode="json")})
 
 
@@ -55,4 +56,5 @@ async def join_household(
         household = store.join_household(user_id, payload.invite_code)
     except KeyError:
         return failure(request, 404, "BIZ_404_NOT_FOUND", "user not found")
+    store.record_event(user_id, "household_joined", {"household_id": household.household_id}, household.household_id)
     return success(request, {"household": household.model_dump(mode="json")})

@@ -1,6 +1,7 @@
 import { API_BASE_URL, APP_VERSION } from "./config";
 import type {
   ApiError,
+  AnalyticsSnapshot,
   ApiResponse,
   ApprovalRequest,
   AuditTask,
@@ -183,4 +184,16 @@ export async function getHouseholds(token: string): Promise<{ list: HouseholdRow
 
 export async function getReportOverview(token: string): Promise<{ list: ReportOverviewRow[]; total: number }> {
   return apiRequest<{ list: ReportOverviewRow[]; total: number }>("/admin/reports/overview", { token });
+}
+
+export async function getAnalytics(token: string, eventType?: string, limit?: number): Promise<AnalyticsSnapshot> {
+  const params = new URLSearchParams();
+  if (eventType) {
+    params.set("event_type", eventType);
+  }
+  if (limit) {
+    params.set("limit", String(limit));
+  }
+  const suffix = params.size > 0 ? `?${params.toString()}` : "";
+  return apiRequest<AnalyticsSnapshot>(`/admin/analytics${suffix}`, { token });
 }

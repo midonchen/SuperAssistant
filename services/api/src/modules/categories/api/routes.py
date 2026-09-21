@@ -38,6 +38,7 @@ async def create_category(
         return failure(request, 403, "AUTH_403_FORBIDDEN", "insufficient household role")
     category = store.create_category(household_id, UUID(user_id), payload)
     store.create_inventory_for_category(household_id, UUID(user_id), category.category_id)
+    store.record_event(user_id, "category_created", {"category_id": category.category_id, "name": category.name}, household_id)
     return success(request, {"category": category.model_dump(mode="json")})
 
 

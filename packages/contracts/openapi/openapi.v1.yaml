@@ -936,6 +936,23 @@ paths:
       responses:
         '200': { description: success }
         '403': { description: forbidden (admin role required) }
+  /admin/analytics:
+    get:
+      summary: Analytics event summary and recent events
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - in: query
+          name: event_type
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 500 }
+      responses:
+        '200': { description: success }
+        '403': { description: forbidden (admin role required) }
   /admin/reports/overview:
     get:
       summary: Per-household consumption report overview
