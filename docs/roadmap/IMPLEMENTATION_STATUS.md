@@ -423,11 +423,22 @@
   - Added 3 API regression tests in `services/api/tests/test_analytics.py`
   - Verified: 58/58 API tests PASS, `npm run check:all` PASS, admin `tsc --noEmit` PASS, admin `next build` PASS
 
+- v2.0 work module backend start (part 55):
+  - Added `tasks` table + migration `20260331_0012` (user_id/title/description/due_at/priority/status)
+  - Added `TaskStoreMixin` (list/create/update/delete) + `prioritize_tasks` heuristic ranking
+  - Added `/tasks` routes: GET/POST (list/create), PATCH/DELETE by id, POST `/tasks/prioritize`
+  - Task isolation by `user_id`; prioritization scores by deadline urgency + manual priority
+  - Updated OpenAPI contract: `Task` / `PrioritizedTask` schemas + `/tasks` paths
+  - Added 4 API regression tests in `services/api/tests/test_tasks.py`
+  - Added `docs/roadmap/V2_0_WORK_SCHEDULE_MEMO.md` planning memo
+  - Verified: 62/62 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 Phase 2.3 报告导出/分享（share_plus + 截图）待开发（移动端依赖未引入）。
 Phase 2.5 iOS Widget 待开发（P2，纯 iOS 原生）。
 Phase 2.6 移动端升级提示 UI 待开发（权益门控 + 埋点已在服务器端完成）。
+v2.0 任务 AI 排序、日历整合、会议摘要、工作周报待开发（任务域已起步，见 V2_0_WORK_SCHEDULE_MEMO.md）。
 
 ## Local Runbook
 

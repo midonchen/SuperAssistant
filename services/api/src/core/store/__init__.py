@@ -12,6 +12,7 @@ from core.store.push import PushStoreMixin
 from core.store.reports import ReportStoreMixin
 from core.store.subscriptions import SubscriptionStoreMixin
 from core.store.suggestions import SuggestionStoreMixin
+from core.store.tasks import TaskStoreMixin
 from core.store.users import UserStoreMixin
 
 
@@ -26,6 +27,7 @@ class Store(
     ReportStoreMixin,
     SubscriptionStoreMixin,
     AnalyticsStoreMixin,
+    TaskStoreMixin,
     PushStoreMixin,
     AuditStoreMixin,
 ):

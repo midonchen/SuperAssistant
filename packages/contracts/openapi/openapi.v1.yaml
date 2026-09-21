@@ -376,6 +376,56 @@ components:
               suggested_qty: { type: number }
               unit: { type: string }
               reason: { type: string }
+    Task:
+      type: object
+      required: [task_id, title, priority, status, created_at, updated_at]
+      properties:
+        task_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        due_at:
+          type: string
+          format: date-time
+          nullable: true
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 4
+        status:
+          type: string
+          enum: [TODO, IN_PROGRESS, DONE]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    PrioritizedTask:
+      type: object
+      required: [task_id, title, priority, status, score, reason]
+      properties:
+        task_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        priority:
+          type: integer
+        due_at:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+        score:
+          type: number
+        reason:
+          type: string
 paths:
   /auth/sms/send:
     post:
@@ -925,6 +975,95 @@ paths:
       responses:
         '200': { description: success }
         '400': { description: invalid month }
+  /tasks:
+    get:
+      summary: List tasks
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - in: query
+          name: status
+          schema: { type: string, enum: [TODO, IN_PROGRESS, DONE] }
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create a task
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title: { type: string, minLength: 1, maxLength: 128 }
+                description: { type: string, nullable: true }
+                due_at: { type: string, format: date-time, nullable: true }
+                priority: { type: integer, minimum: 1, maximum: 4 }
+      responses:
+        '200': { description: success }
+  /tasks/prioritize:
+    post:
+      summary: Rank TODO tasks by priority
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200': { description: success }
+  /tasks/{task_id}:
+    patch:
+      summary: Update a task
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: task_id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string, minLength: 1, maxLength: 128 }
+                description: { type: string, nullable: true }
+                due_at: { type: string, format: date-time, nullable: true }
+                priority: { type: integer, minimum: 1, maximum: 4 }
+                status: { type: string, enum: [TODO, IN_PROGRESS, DONE] }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+    delete:
+      summary: Delete a task
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: task_id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
   /admin/dashboard/summary:
     get:
       summary: Admin dashboard summary

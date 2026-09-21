@@ -208,5 +208,41 @@ class HouseholdJoinRequest(BaseModel):
     invite_code: str = Field(..., min_length=4, max_length=16)
 
 
+class Task(BaseModel):
+    task_id: str
+    title: str
+    description: str | None = None
+    due_at: datetime | None = None
+    priority: int = 3
+    status: str = "TODO"
+    created_at: datetime
+    updated_at: datetime
+
+
+class TaskCreateRequest(BaseModel):
+    title: str = Field(..., min_length=1, max_length=128)
+    description: str | None = None
+    due_at: datetime | None = None
+    priority: int = Field(default=3, ge=1, le=4)
+
+
+class TaskUpdateRequest(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=128)
+    description: str | None = None
+    due_at: datetime | None = None
+    priority: int | None = Field(default=None, ge=1, le=4)
+    status: str | None = None
+
+
+class PrioritizedTask(BaseModel):
+    task_id: str
+    title: str
+    priority: int
+    due_at: datetime | None = None
+    status: str
+    score: float
+    reason: str
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)

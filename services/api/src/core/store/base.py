@@ -9,6 +9,7 @@ from core.models import (
     InventoryItemModel,
     SuggestionItemModel,
     SuggestionModel,
+    TaskModel,
     UserModel,
 )
 from core.schemas import (
@@ -21,6 +22,7 @@ from core.schemas import (
     Operation,
     PurchaseSuggestion,
     PurchaseSuggestionItem,
+    Task,
     UserProfile,
 )
 
@@ -132,6 +134,18 @@ class StoreBase:
             decay_template=row.decay_template,
             is_system=row.is_system,
             created_at=row.created_at,
+        )
+
+    def _task(self, row: TaskModel) -> Task:
+        return Task(
+            task_id=row.id,
+            title=row.title,
+            description=row.description,
+            due_at=row.due_at,
+            priority=row.priority,
+            status=row.status,
+            created_at=row.created_at,
+            updated_at=row.updated_at,
         )
 
     def _status_for(self, current_stock: float, warning_threshold: float) -> str:
