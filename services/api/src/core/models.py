@@ -26,6 +26,7 @@ class UserModel(Base):
     shopping_cycle: Mapped[int] = mapped_column(Integer, default=7)
     role: Mapped[str] = mapped_column(String(16), default="USER", index=True)
     household_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("households.id"), nullable=True, index=True)
+    subscription_tier_id: Mapped[str] = mapped_column(String(16), ForeignKey("subscription_tiers.id"), default="free", index=True)
     onboarded: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
@@ -237,3 +238,13 @@ class ConsumptionReportModel(Base):
     payload: Mapped[dict] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class SubscriptionTierModel(Base):
+    __tablename__ = "subscription_tiers"
+
+    id: Mapped[str] = mapped_column(String(16), primary_key=True)  # "free", "pro"
+    name: Mapped[str] = mapped_column(String(32))
+    monthly_price: Mapped[float] = mapped_column(Float, default=0.0)
+    limits: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # None = unlimited
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)

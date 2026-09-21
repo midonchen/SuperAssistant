@@ -86,6 +86,7 @@ export default function UsersPage() {
                 <th>Phone</th>
                 <th>Timezone</th>
                 <th>Role</th>
+                <th>Tier</th>
                 <th>Onboarded</th>
                 <th>Action</th>
               </tr>
@@ -97,6 +98,7 @@ export default function UsersPage() {
                   <td>{row.phone_masked}</td>
                   <td>{row.timezone}</td>
                   <td>{row.role}</td>
+                  <td>{row.subscription_tier}</td>
                   <td>{row.onboarded ? "Yes" : "No"}</td>
                   <td>
                     <button onClick={() => void handleRevoke(row.user_id)}>Request Revoke</button>
@@ -105,7 +107,7 @@ export default function UsersPage() {
               ))}
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6}>No data</td>
+                  <td colSpan={7}>No data</td>
                 </tr>
               ) : null}
             </tbody>

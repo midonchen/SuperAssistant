@@ -95,6 +95,9 @@ components:
           type: string
           format: uuid
           nullable: true
+        subscription_tier:
+          type: string
+          enum: [free, pro]
         onboarded:
           type: boolean
     InventoryItem:

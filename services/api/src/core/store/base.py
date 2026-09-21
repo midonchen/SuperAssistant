@@ -69,6 +69,7 @@ class StoreBase:
             shopping_cycle=user.shopping_cycle,
             role=user.role,
             household_id=user.household_id,
+            subscription_tier=user.subscription_tier_id or "free",
             onboarded=user.onboarded,
         )
 

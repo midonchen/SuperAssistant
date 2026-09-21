@@ -65,6 +65,7 @@ class UserProfile(BaseModel):
     shopping_cycle: int
     role: str
     household_id: str | None = None
+    subscription_tier: str = "free"
     onboarded: bool
 
 

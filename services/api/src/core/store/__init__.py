@@ -9,6 +9,7 @@ from core.store.inventory import InventoryStoreMixin
 from core.store.offline import OfflineStoreMixin
 from core.store.push import PushStoreMixin
 from core.store.reports import ReportStoreMixin
+from core.store.subscriptions import SubscriptionStoreMixin
 from core.store.suggestions import SuggestionStoreMixin
 from core.store.users import UserStoreMixin
 
@@ -22,6 +23,7 @@ class Store(
     OfflineStoreMixin,
     SuggestionStoreMixin,
     ReportStoreMixin,
+    SubscriptionStoreMixin,
     PushStoreMixin,
     AuditStoreMixin,
 ):

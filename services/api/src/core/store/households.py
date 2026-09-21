@@ -139,11 +139,24 @@ class HouseholdStoreMixin(StoreBase):
             db.commit()
             return self.get_household(user_id)
 
+    def _count_household_members(self, household_id: str) -> int:
+        with SessionLocal() as db:
+            return int(
+                db.scalar(
+                    select(func.count())
+                    .select_from(HouseholdMembershipModel)
+                    .where(HouseholdMembershipModel.household_id == household_id)
+                )
+                or 0
+            )
+
     def create_invitation(self, user_id: str, role: str = "MEMBER") -> HouseholdInvitation:
         household_id = self.get_user_household_id(user_id)
         if household_id is None:
             raise KeyError("household not found")
         self._require_household_role(user_id, household_id, {"OWNER", "ADMIN"})
+        if not self.can_use_feature(user_id, "household_members", self._count_household_members(household_id)):
+            raise ApiException(402, "BIZ_402_UPGRADE_REQUIRED", "free tier household member limit reached")
         if role not in {"ADMIN", "MEMBER", "VIEWER"}:
             raise ApiException(400, "VAL_400_INVALID_PARAM", "invalid household role")
         with SessionLocal() as db:

@@ -394,10 +394,22 @@
   - Added admin `prefers-color-scheme: dark` CSS (theme variables, buttons, inputs, table borders) + `color-scheme: dark`
   - Verified: `npm run check:all` PASS, admin `tsc --noEmit` PASS
 
+- Phase 2.6 server-side entitlement gating + admin deploy prep (part 52):
+  - Added `subscription_tiers` table + migration `20260331_0010` (seeded Free/Pro)
+  - Added `users.subscription_tier_id` + `subscription_tier` on `UserProfile`
+  - Added `SubscriptionStoreMixin` (`get_subscription_tier` / `get_tier_limits` / `can_use_feature`)
+  - Gated custom-category count (free=3) and household-member count (free=2) with `BIZ_402_UPGRADE_REQUIRED`
+  - Added CORS middleware for browser-based admin calls
+  - Added Admin user-list subscription tier column + types
+  - Added Admin Dockerfile + .dockerignore + compose `admin` service (`NEXT_PUBLIC_API_BASE_URL` build arg)
+  - Added 3 API regression tests in `services/api/tests/test_subscriptions.py`
+  - Verified: 55/55 API tests PASS, `npm run check:all` PASS, admin `tsc --noEmit` PASS, admin `next build` PASS
+
 ## Not Yet Implemented (next iterations)
 
 Phase 2.3 报告导出/分享（share_plus + 截图）待开发（移动端依赖未引入）。
-Phase 2.5 iOS Widget、Phase 2.6 商业化埋点与权益门控待开发。
+Phase 2.5 iOS Widget 待开发（P2，纯 iOS 原生）。
+Phase 2.6 移动端升级提示 UI 与埋点待开发（服务器端权益门控已完成）。
 
 ## Local Runbook
 

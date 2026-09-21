@@ -57,6 +57,8 @@ export type UserRow = {
   shopping_day: number;
   shopping_cycle: number;
   role: "USER" | "ADMIN" | "AUDITOR";
+  household_id?: string | null;
+  subscription_tier: string;
   onboarded: boolean;
 };
 

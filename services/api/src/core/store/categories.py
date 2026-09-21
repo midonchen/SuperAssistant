@@ -68,7 +68,23 @@ class CategoryStoreMixin(StoreBase):
             base = "CUSTOM"
         return f"{base}_{uuid.uuid4().hex[:6]}"
 
+    def _count_custom_categories(self, household_id: str) -> int:
+        with SessionLocal() as db:
+            return int(
+                db.scalar(
+                    select(func.count())
+                    .select_from(CategoryModel)
+                    .where(
+                        CategoryModel.household_id == household_id,
+                        CategoryModel.is_system.is_(False),
+                    )
+                )
+                or 0
+            )
+
     def create_category(self, household_id: str, user_id: UUID, request: CategoryCreateRequest) -> Category:
+        if not self.can_use_feature(str(user_id), "custom_categories", self._count_custom_categories(household_id)):
+            raise ApiException(402, "BIZ_402_UPGRADE_REQUIRED", "free tier custom category limit reached")
         item_key = self._derive_item_key(request.name)
         with SessionLocal() as db:
             existing = db.scalar(
