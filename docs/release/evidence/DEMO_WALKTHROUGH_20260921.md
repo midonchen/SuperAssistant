@@ -6,12 +6,13 @@
 
 ## 走查闭环
 
-录入 → 库存 → 采购建议 → 月度报告 → 权益门控 → Admin 治理
+录入 → 库存 → 采购建议 → 月度报告 → 权益门控 → 埋点 → Admin 治理
 
-## 实测输出（2026-09-21，真实执行）
+## 实测输出（2026-09-21，真实执行，脚本每次用新手机号、幂等可重复）
 
 ```
-1 LOGIN: HTTP 200 tier=free household=7e66e774...
+RUN phone=13889973296
+1 LOGIN: HTTP 200 tier=free household=b6622041...
 2 CATEGORIES: HTTP 200 count=6 all_system=True
 3 CREATE CATEGORY: HTTP 200 name=酸奶
 4 INVENTORY: HTTP 200 count=7 has_酸奶=True
@@ -20,9 +21,10 @@
 7a CREATE CATEGORY #2: HTTP 200
 7a CREATE CATEGORY #3: HTTP 200
 7b 4TH CATEGORY (expect 402): HTTP 402 code=BIZ_402_UPGRADE_REQUIRED
-8a ADMIN HOUSEHOLDS: HTTP 200 total=1
-8b ADMIN REPORTS: HTTP 200 total=1 first_report_count=1
-8c ADMIN USERS: HTTP 200 total=2 first_tier=free
+8a ADMIN HOUSEHOLDS: HTTP 200 total=2
+8b ADMIN REPORTS: HTTP 200 total=2
+8c ADMIN USERS: HTTP 200 total=3 first_tier=free
+8d ADMIN ANALYTICS: HTTP 200 summary={'subscription_gate_hit': 2, 'report_viewed': 1, 'category_created': 3}
 ```
 
 ## 逐步说明
@@ -34,7 +36,8 @@
 5. `POST /inventory/operations/batch` → 入库 10 个鸡蛋。
 6. `GET /reports/consumption/monthly?month=2026-09` → 月度报告（消耗按 SUBTRACT 聚合；本例仅入库故为 0，做一次消耗操作即产生 Top 消耗）。
 7. 免费权益门控：第 4 个自定义品类返回 `402 BIZ_402_UPGRADE_REQUIRED`。
-8. Admin 登录 → `GET /admin/households`、`GET /admin/reports/overview`、`GET /admin/users`（含订阅等级）全部 200。
+8. Admin 登录 → `GET /admin/households`、`GET /admin/reports/overview`、`GET /admin/users`（含订阅等级）、`GET /admin/analytics`（埋点汇总）全部 200。
+9. 埋点：`category_created` / `report_viewed` / `subscription_gate_hit` 自动记录，Admin Analytics 页可查。
 
 ## 家庭协作补充走查（可选）
 
@@ -45,5 +48,5 @@
 
 ## 待办（演示外）
 
-- Admin 网页外部访问：需在阿里云安全组放行 3000 端口（当前仅服务器内 localhost:3000 可达）。
-- 报告导出/分享、iOS Widget、移动端升级提示与埋点（见 IMPLEMENTATION_STATUS.md）。
+- Admin 网页已可外部访问（http://agint.sonmuu.com:3000，3000 端口已放行）。
+- 报告导出/分享、iOS Widget、移动端升级提示（见 IMPLEMENTATION_STATUS.md）。
