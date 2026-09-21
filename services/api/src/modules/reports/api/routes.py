@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query, Request, Response
 
 from core.auth_dep import require_bearer
 from core.errors import ApiException
+from core.report_pdf import build_report_pdf
 from core.response import success
 from core.store import store
 
@@ -37,3 +38,21 @@ async def get_monthly_consumption_report(
     report = store.get_monthly_report(household_id, report_month)
     store.record_event(user_id, "report_viewed", {"month": report_month}, household_id)
     return success(request, {"report": report.model_dump(mode="json")})
+
+
+@router.get("/consumption/monthly/export")
+async def export_monthly_consumption_report(
+    request: Request,
+    user_id: str = Depends(require_bearer),
+    month: str | None = Query(default=None, pattern=r"^\d{4}-\d{2}$"),
+):
+    household_id = _current_household_id(user_id)
+    report_month = month or _previous_month()
+    report = store.get_monthly_report(household_id, report_month)
+    store.record_event(user_id, "report_exported", {"month": report_month}, household_id)
+    pdf = build_report_pdf(report)
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="report-{report_month}.pdf"'},
+    )

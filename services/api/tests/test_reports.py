@@ -125,3 +125,16 @@ def test_non_admin_cannot_view_report_overview(client):
     resp = client.get("/api/v1/admin/reports/overview", headers=make_headers(token=token))
     assert resp.status_code == 403
     assert resp.json()["code"] == "AUTH_403_FORBIDDEN"
+
+
+def test_report_pdf_export(client):
+    alice_resp = client.post(
+        "/api/v1/auth/sms/login",
+        json={"phone": "+861****0001", "code": "123456", "device_id": "device-alice-pdf"},
+        headers=make_headers(idempotency_key="alice-login-pdf"),
+    )
+    token = alice_resp.json()["data"]["access_token"]
+    resp = client.get("/api/v1/reports/consumption/monthly/export", headers=make_headers(token=token))
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith("application/pdf")
+    assert resp.content[:4] == b"%PDF"

@@ -433,9 +433,16 @@
   - Added `docs/roadmap/V2_0_WORK_SCHEDULE_MEMO.md` planning memo
   - Verified: 62/62 API tests PASS, `npm run check:all` PASS
 
+- Phase 2.3 report server-side PDF export (part 56):
+  - Added `reportlab` dependency + `core/report_pdf.py` (Chinese-capable PDF via STSong-Light CID font)
+  - Added `GET /reports/consumption/monthly/export` returning PDF with Content-Disposition attachment
+  - Records `report_exported` analytics event
+  - Updated OpenAPI contract + 1 regression test
+  - Verified: 63/63 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
-Phase 2.3 报告导出/分享（share_plus + 截图）待开发（移动端依赖未引入）。
+Phase 2.3 移动端分享（share_plus）待开发（服务端 PDF 导出已完成）。
 Phase 2.5 iOS Widget 待开发（P2，纯 iOS 原生）。
 Phase 2.6 移动端升级提示 UI 待开发（权益门控 + 埋点已在服务器端完成）。
 v2.0 任务 AI 排序、日历整合、会议摘要、工作周报待开发（任务域已起步，见 V2_0_WORK_SCHEDULE_MEMO.md）。

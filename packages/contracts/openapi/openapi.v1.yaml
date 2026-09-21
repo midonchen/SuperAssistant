@@ -975,6 +975,24 @@ paths:
       responses:
         '200': { description: success }
         '400': { description: invalid month }
+  /reports/consumption/monthly/export:
+    get:
+      summary: Export monthly consumption report as PDF
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - in: query
+          name: month
+          schema: { type: string, pattern: '^[0-9]{4}-[0-9]{2}$' }
+      responses:
+        '200':
+          description: success
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+        '400': { description: invalid month }
   /tasks:
     get:
       summary: List tasks
