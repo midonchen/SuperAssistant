@@ -244,5 +244,20 @@ class PrioritizedTask(BaseModel):
     reason: str
 
 
+class CalendarEvent(BaseModel):
+    event_id: str
+    source: str
+    title: str
+    start_at: datetime
+    end_at: datetime | None = None
+    task_id: str | None = None
+    status: str | None = None
+    priority: int | None = None
+
+
+class CalendarEventList(BaseModel):
+    events: list[CalendarEvent]
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)

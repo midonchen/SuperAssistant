@@ -426,6 +426,18 @@ components:
           type: number
         reason:
           type: string
+    CalendarEvent:
+      type: object
+      required: [event_id, source, title, start_at]
+      properties:
+        event_id: { type: string }
+        source: { type: string, enum: [task, meeting] }
+        title: { type: string }
+        start_at: { type: string, format: date-time }
+        end_at: { type: string, format: date-time, nullable: true }
+        task_id: { type: string, format: uuid, nullable: true }
+        status: { type: string, nullable: true }
+        priority: { type: integer, nullable: true }
 paths:
   /auth/sms/send:
     post:
@@ -1049,6 +1061,31 @@ paths:
                   tasks:
                     type: array
                     items: { $ref: '#/components/schemas/PrioritizedTask' }
+  /calendar/events:
+    get:
+      summary: List calendar events (task deadlines aggregated)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - in: query
+          name: start_date
+          schema: { type: string, pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' }
+        - in: query
+          name: end_date
+          schema: { type: string, pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' }
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items: { $ref: '#/components/schemas/CalendarEvent' }
   /tasks/{task_id}:
     patch:
       summary: Update a task

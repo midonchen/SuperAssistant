@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from core.store.audit import AuditStoreMixin
 from core.store.analytics import AnalyticsStoreMixin
+from core.store.calendar import CalendarStoreMixin
 from core.store.categories import CategoryStoreMixin
 from core.store.households import HouseholdStoreMixin
 from core.store.inventory import InventoryStoreMixin
@@ -28,6 +29,7 @@ class Store(
     SubscriptionStoreMixin,
     AnalyticsStoreMixin,
     TaskStoreMixin,
+    CalendarStoreMixin,
     PushStoreMixin,
     AuditStoreMixin,
 ):

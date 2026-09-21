@@ -11,6 +11,7 @@ from core.middleware import HeaderValidationMiddleware
 from core.response import failure
 from modules.admin.api.routes import router as admin_router
 from modules.auth.api.routes import router as auth_router
+from modules.calendar.api.routes import router as calendar_router
 from modules.categories.api.routes import router as categories_router
 from modules.households.api.routes import router as households_router
 from modules.inventory.api.routes import router as inventory_router
@@ -77,4 +78,5 @@ app.include_router(ocr_router, prefix="/api/v1")
 app.include_router(push_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")
 app.include_router(tasks_router, prefix="/api/v1")
+app.include_router(calendar_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")

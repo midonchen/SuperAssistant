@@ -452,6 +452,13 @@
   - Updated OpenAPI + 1 regression test + 1 pipeline unit test
   - Verified: 64/64 API tests PASS, `npm run check:all` PASS
 
+- v2.0 calendar integration (part 59):
+  - Added `CalendarEvent` schema + `CalendarStoreMixin.list_calendar_events` (aggregates task deadlines into a unified event list)
+  - Added `GET /calendar/events` (`start_date`/`end_date`, default current month; excludes DONE tasks)
+  - Unified event shape (`source=task`, ready for meetings later)
+  - Updated OpenAPI + 2 regression tests
+  - Verified: 66/66 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 Phase 2.3 移动端分享（share_plus）待开发（服务端 PDF 导出已完成）。
