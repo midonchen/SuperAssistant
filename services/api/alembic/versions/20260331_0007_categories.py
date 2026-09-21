@@ -25,7 +25,7 @@ def upgrade() -> None:
         sa.Column("icon", sa.String(length=64), nullable=True),
         sa.Column("unit_type", sa.String(length=16), nullable=False),
         sa.Column("decay_template", sa.JSON(), nullable=True),
-        sa.Column("is_system", sa.Boolean(), nullable=False, server_default=sa.text("0")),
+        sa.Column("is_system", sa.Boolean(), nullable=False, server_default=sa.false()),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id"),
