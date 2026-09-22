@@ -56,6 +56,15 @@ services:
     depends_on:
       - api
 
+  mobile-web:
+    build:
+      context: ../../apps/mobile-web
+      dockerfile: Dockerfile
+    ports:
+      - "4000:80"
+    depends_on:
+      - api
+
   worker:
     build:
       context: ../../services/api

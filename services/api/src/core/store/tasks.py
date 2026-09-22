@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from core.ai_pipeline import ai_pipeline
 from core.db import SessionLocal
@@ -36,7 +36,14 @@ class TaskStoreMixin(StoreBase):
                 raise KeyError("task not found")
             return self._task(row)
 
+    def _count_tasks(self, user_id: str) -> int:
+        with SessionLocal() as db:
+            return db.scalar(select(func.count()).select_from(TaskModel).where(TaskModel.user_id == user_id)) or 0
+
     def create_task(self, user_id: str, request: TaskCreateRequest) -> Task:
+        if not self.can_use_feature(user_id, "tasks", self._count_tasks(user_id)):
+            self.record_event(user_id, "subscription_gate_hit", {"feature": "tasks"})
+            raise ApiException(402, "BIZ_402_UPGRADE_REQUIRED", "free tier task limit reached")
         with SessionLocal() as db:
             row = TaskModel(
                 id=str(uuid.uuid4()),

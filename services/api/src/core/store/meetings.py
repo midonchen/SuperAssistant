@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from core.ai_pipeline import ai_pipeline
 from core.db import SessionLocal
+from core.errors import ApiException
 from core.models import MeetingActionItemModel, MeetingModel
 from core.schemas import Meeting, MeetingActionItem, MeetingCreateRequest, utc_now
 from core.store.base import StoreBase
@@ -33,7 +34,14 @@ class MeetingStoreMixin(StoreBase):
             created_at=row.created_at,
         )
 
+    def _count_meetings(self, user_id: str) -> int:
+        with SessionLocal() as db:
+            return db.scalar(select(func.count()).select_from(MeetingModel).where(MeetingModel.user_id == user_id)) or 0
+
     def create_meeting(self, user_id: str, request: MeetingCreateRequest) -> Meeting:
+        if not self.can_use_feature(user_id, "meetings", self._count_meetings(user_id)):
+            self.record_event(user_id, "subscription_gate_hit", {"feature": "meetings"})
+            raise ApiException(402, "BIZ_402_UPGRADE_REQUIRED", "free tier meeting limit reached")
         summary, items = ai_pipeline.summarize_meeting(request.title, request.transcript)
         with SessionLocal() as db:
             meeting = MeetingModel(

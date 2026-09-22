@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query, Request, Response
 
 from core.auth_dep import require_bearer
+from core.ical import build_ical
 from core.response import success
+from core.schemas import utc_now
 from core.store import store
 
 router = APIRouter(prefix="/calendar", tags=["calendar"])
@@ -31,3 +33,17 @@ async def list_calendar_events(
     end_dt = datetime.combine(end, time.min, tzinfo=timezone.utc)
     events = store.list_calendar_events(user_id, start_dt, end_dt)
     return success(request, {"events": [e.model_dump(mode="json") for e in events]})
+
+
+@router.get("/ical")
+async def export_ical(request: Request, user_id: str = Depends(require_bearer)):
+    now = utc_now()
+    start = now - timedelta(days=30)
+    end = now + timedelta(days=365)
+    events = store.list_calendar_events(user_id, start, end)
+    ical = build_ical(events, now)
+    return Response(
+        content=ical,
+        media_type="text/calendar",
+        headers={"Content-Disposition": 'attachment; filename="calendar.ics"'},
+    )

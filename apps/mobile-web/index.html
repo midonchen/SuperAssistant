@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SuperAssistant</title>
+<style>
+:root {
+  --bg: #0f1115; --card: #1a1d24; --text: #e8eaf0; --muted: #8b93a3;
+  --gold: #e5be45; --green: #34c77b; --red: #e5534b; --blue: #4d9fff; --line: #262a33;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, "PingFang SC", "Noto Sans SC", sans-serif; min-height: 100vh; }
+.hidden { display: none !important; }
+/* Login */
+#login { display: flex; flex-direction: column; justify-content: center; min-height: 100vh; padding: 24px; gap: 14px; }
+#login h1 { color: var(--gold); font-size: 22px; text-align: center; margin-bottom: 8px; }
+#login input { background: var(--card); border: 1px solid var(--line); color: var(--text); padding: 14px; border-radius: 12px; font-size: 16px; }
+#login button { background: var(--gold); color: #111; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; }
+.hint { color: var(--muted); font-size: 12px; text-align: center; }
+/* App shell */
+#app { display: flex; flex-direction: column; min-height: 100vh; }
+header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 5; }
+header h2 { font-size: 17px; }
+header .gold { color: var(--gold); }
+main { flex: 1; padding: 14px 16px 84px; }
+nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: var(--card); border-top: 1px solid var(--line); }
+nav button { flex: 1; background: none; border: none; color: var(--muted); padding: 12px 4px; font-size: 13px; display: flex; flex-direction: column; gap: 2px; align-items: center; }
+nav button.active { color: var(--gold); }
+nav .ic { font-size: 18px; }
+/* Cards */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+.card .title { font-size: 15px; font-weight: 600; word-break: break-all; }
+.card .meta { color: var(--muted); font-size: 12px; margin-top: 4px; line-height: 1.5; }
+.card .actions { margin-top: 10px; display: flex; gap: 8px; }
+.card .actions button { background: #2a2f3a; color: var(--text); border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; }
+.card .actions button.danger { color: var(--red); }
+.card .actions button.primary { background: var(--gold); color: #111; font-weight: 600; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; background: #2a2f3a; color: var(--muted); white-space: nowrap; }
+.badge.DONE { color: var(--green); } .badge.OVERDUE, .badge.已逾期 { color: var(--red); }
+.badge.ai { color: var(--gold); } .badge.heuristic { color: var(--blue); }
+.section { margin: 16px 0 8px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.empty { color: var(--muted); text-align: center; padding: 32px 0; font-size: 13px; }
+/* Inputs & toolbar */
+.toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
+.toolbar input, .toolbar select, textarea { flex: 1; background: var(--card); border: 1px solid var(--line); color: var(--text); padding: 12px; border-radius: 10px; font-size: 14px; }
+.toolbar button { background: var(--gold); color: #111; border: none; padding: 0 16px; border-radius: 10px; font-weight: 600; font-size: 14px; }
+textarea { width: 100%; min-height: 80px; resize: vertical; margin-bottom: 8px; font-family: inherit; }
+.summary { white-space: pre-wrap; font-size: 13px; line-height: 1.6; color: var(--text); background: #15181e; border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+#toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #2a2f3a; color: var(--text); padding: 10px 18px; border-radius: 20px; font-size: 13px; z-index: 99; max-width: 90%; }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <h1>SuperAssistant</h1>
+  <input id="phone" type="tel" placeholder="手机号" value="">
+  <input id="code" type="text" placeholder="验证码（演示用 123456）" value="123456">
+  <button onclick="doLogin()">登录</button>
+  <div class="hint">演示环境：任意手机号 + 验证码 123456</div>
+</div>
+
+<div id="app" class="hidden">
+  <header>
+    <h2><span class="gold">✦</span> SuperAssistant</h2>
+    <button style="background:none;border:none;color:var(--muted);font-size:13px;" onclick="logout()">退出</button>
+  </header>
+  <main id="main"></main>
+  <nav>
+    <button class="active" data-tab="tasks" onclick="switchTab('tasks')"><span class="ic">☑️</span>任务</button>
+    <button data-tab="calendar" onclick="switchTab('calendar')"><span class="ic">📅</span>日历</button>
+    <button data-tab="meetings" onclick="switchTab('meetings')"><span class="ic">🎙️</span>会议</button>
+    <button data-tab="reports" onclick="switchTab('reports')"><span class="ic">📊</span>周报</button>
+  </nav>
+</div>
+
+<div id="toast" class="hidden"></div>
+
+<script>
+const API = localStorage.getItem('sa_api_base') || 'http://agint.sonmuu.com:8000/api/v1';
+let token = localStorage.getItem('sa_token') || '';
+let tab = 'tasks';
+
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'), 2500); }
+function idem(){ return 'web-' + Date.now() + '-' + Math.random().toString(36).slice(2,7); }
+
+async function api(path, {method='GET', body, idemKey}={}) {
+  const h = {'X-Request-Id':'web','X-App-Version':'1.1.0','X-Platform':'web-mobile','Content-Type':'application/json'};
+  if (token) h['Authorization'] = 'Bearer ' + token;
+  if (idemKey) h['Idempotency-Key'] = idemKey;
+  const res = await fetch(API + path, {method, headers:h, body: body ? JSON.stringify(body) : undefined});
+  let data = {};
+  try { data = await res.json(); } catch(e) {}
+  if (!res.ok) throw new Error(data.message || data.code || ('HTTP ' + res.status));
+  return data.data;
+}
+
+async function doLogin() {
+  try {
+    const phone = document.getElementById('phone').value.trim();
+    const code = document.getElementById('code').value.trim() || '123456';
+    if (!phone) { toast('请输入手机号'); return; }
+    const data = await api('/auth/sms/login', {method:'POST', body:{phone, code, device_id:'web-mobile-'+phone}, idemKey:'login-'+Date.now()});
+    token = data.access_token;
+    localStorage.setItem('sa_token', token);
+    document.getElementById('login').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    switchTab('tasks');
+  } catch(e) { toast(e.message); }
+}
+
+function logout(){ token=''; localStorage.removeItem('sa_token'); location.reload(); }
+
+function switchTab(t){ tab=t; document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active', b.dataset.tab===t)); render(); }
+async function render(){
+  const m = document.getElementById('main');
+  try {
+    if (tab==='tasks') await renderTasks(m);
+    else if (tab==='calendar') await renderCalendar(m);
+    else if (tab==='meetings') await renderMeetings(m);
+    else if (tab==='reports') await renderReports(m);
+  } catch(e){ m.innerHTML = '<div class="empty">加载失败：' + esc(e.message) + '</div>'; }
+}
+
+/* ---------- Tasks ---------- */
+async function renderTasks(m){
+  m.innerHTML = `
+    <div class="toolbar">
+      <input id="t-title" placeholder="新任务标题">
+      <select id="t-priority"><option value="1">P1</option><option value="2">P2</option><option value="3" selected>P3</option><option value="4">P4</option></select>
+      <button onclick="addTask()">添加</button>
+    </div>
+    <div id="task-list" class="empty">加载中…</div>`;
+  await loadTasks();
+}
+async function loadTasks(){
+  const d = await api('/tasks/prioritize', {method:'POST', idemKey:idem()});
+  const el = document.getElementById('task-list');
+  const tag = d.method==='ai' ? '<span class="badge ai">AI 排序</span>' : '<span class="badge heuristic">启发式</span>';
+  if (!d.tasks.length){ el.innerHTML = '<div class="empty">暂无任务，先添加一个</div>'; return; }
+  el.innerHTML = d.tasks.map(t=>`
+    <div class="card">
+      <div class="row"><span class="title">${esc(t.title)}</span>${tag}</div>
+      <div class="meta">${esc(t.reason||'')} · 优先级 P${t.priority}${t.due_at?' · 截止 '+esc(t.due_at.slice(0,10)):''}</div>
+      <div class="actions">
+        ${t.status!=='DONE'?'<button class="primary" onclick="setTaskDone(\''+t.task_id+'\')">完成</button>':''}
+        <button class="danger" onclick="delTask(\''+t.task_id+'\')">删除</button>
+      </div>
+    </div>`).join('');
+}
+async function addTask(){
+  const title = document.getElementById('t-title').value.trim();
+  const priority = document.getElementById('t-priority').value;
+  if(!title){ toast('请输入标题'); return; }
+  try { await api('/tasks', {method:'POST', body:{title, priority:parseInt(priority)}, idemKey:idem()}); document.getElementById('t-title').value=''; await loadTasks(); }
+  catch(e){ toast(e.message); }
+}
+async function setTaskDone(id){ try { await api('/tasks/'+id, {method:'PATCH', body:{status:'DONE'}, idemKey:idem()}); await loadTasks(); } catch(e){ toast(e.message); } }
+async function delTask(id){ try { await api('/tasks/'+id, {method:'DELETE'}); await loadTasks(); } catch(e){ toast(e.message); } }
+
+/* ---------- Calendar ---------- */
+async function renderCalendar(m){
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = new Date(now.getFullYear(), now.getMonth()+1, 1);
+  const s = fmtDate(start), e = fmtDate(end);
+  const d = await api('/calendar/events?start_date='+s+'&end_date='+e);
+  m.innerHTML = `
+    <div class="row" style="margin-bottom:12px;">
+      <div class="section" style="margin:0;">${now.getFullYear()} 年 ${now.getMonth()+1} 月</div>
+      <button class="primary" style="background:var(--gold);color:#111;border:none;padding:8px 14px;border-radius:8px;font-weight:600;" onclick="downloadIcs()">下载日历 (.ics)</button>
+    </div>
+    <div id="cal-list"></div>`;
+  const el = document.getElementById('cal-list');
+  if(!d.events.length){ el.innerHTML = '<div class="empty">本月暂无日程</div>'; return; }
+  el.innerHTML = d.events.map(ev=>`
+    <div class="card">
+      <div class="row"><span class="title">${esc(ev.title)}</span><span class="badge">${ev.source==='meeting'?'会议':'任务'}</span></div>
+      <div class="meta">${esc(ev.start_at.slice(0,16).replace('T',' '))}</div>
+    </div>`).join('');
+}
+function fmtDate(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+async function downloadIcs(){
+  try {
+    const res = await fetch(API + '/calendar/ical', {headers:{'Authorization':'Bearer '+token, 'X-Request-Id':'web','X-App-Version':'1.1.0','X-Platform':'web-mobile'}});
+    if(!res.ok){ toast('导出失败'); return; }
+    const blob = await res.blob();
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'calendar.ics'; a.click();
+  } catch(e){ toast(e.message); }
+}
+
+/* ---------- Meetings ---------- */
+async function renderMeetings(m){
+  m.innerHTML = `
+    <div class="card">
+      <div class="section" style="margin:0 0 8px;">新建会议</div>
+      <input id="mt-title" placeholder="会议标题" style="width:100%;background:var(--bg);border:1px solid var(--line);color:var(--text);padding:12px;border-radius:10px;margin-bottom:8px;font-size:14px;">
+      <textarea id="mt-transcript" placeholder="粘贴会议转写文本…（支持 待办：xxx）"></textarea>
+      <button class="primary" style="background:var(--gold);color:#111;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addMeeting()">生成摘要</button>
+    </div>
+    <div id="meeting-list" class="empty">加载中…</div>`;
+  await loadMeetings();
+}
+async function loadMeetings(){
+  const d = await api('/meetings');
+  const el = document.getElementById('meeting-list');
+  if(!d.meetings.length){ el.innerHTML = '<div class="empty">暂无会议</div>'; return; }
+  el.innerHTML = d.meetings.map(mt=>`
+    <div class="card">
+      <div class="row"><span class="title">${esc(mt.title)}</span></div>
+      <div class="meta">${esc((mt.summary||'（无摘要）').slice(0,120))}</div>
+      ${mt.action_items.length?`<div class="section">待办</div>`+mt.action_items.map(a=>`
+        <div class="row" style="padding:6px 0;"><span style="font-size:13px;${a.done?'text-decoration:line-through;color:var(--muted);':''}">${esc(a.text)}${a.assignee?' · '+esc(a.assignee):''}</span>${a.done?'<span class="badge DONE">完成</span>':'<button class="primary" style="background:#2a2f3a;color:var(--text);border:none;padding:5px 10px;border-radius:6px;" onclick="doneItem(\''+a.action_item_id+'\')">完成</button>'}</div>`).join(''):''}
+    </div>`).join('');
+}
+async function addMeeting(){
+  const title = document.getElementById('mt-title').value.trim();
+  const transcript = document.getElementById('mt-transcript').value.trim();
+  if(!title || !transcript){ toast('请填写标题和转写内容'); return; }
+  try { await api('/meetings', {method:'POST', body:{title, transcript}, idemKey:idem()}); document.getElementById('mt-title').value=''; document.getElementById('mt-transcript').value=''; await loadMeetings(); }
+  catch(e){ toast(e.message); }
+}
+async function doneItem(id){ try { await api('/meetings/action-items/'+id, {method:'PATCH', body:{done:true}, idemKey:idem()}); await loadMeetings(); } catch(e){ toast(e.message); } }
+
+/* ---------- Weekly Reports ---------- */
+async function renderReports(m){
+  m.innerHTML = `
+    <div class="toolbar">
+      <input id="wr-week" type="date">
+      <button onclick="genReport()">生成周报</button>
+    </div>
+    <div id="report-list" class="empty">加载中…</div>`;
+  await loadReports();
+}
+async function loadReports(){
+  const d = await api('/weekly-reports');
+  const el = document.getElementById('report-list');
+  if(!d.reports.length){ el.innerHTML = '<div class="empty">暂无周报，点击「生成周报」</div>'; return; }
+  el.innerHTML = d.reports.map(r=>`
+    <div class="card">
+      <div class="row"><span class="title">周报 ${esc(r.week_start)}</span><span class="badge">${esc(r.generated_at.slice(0,10))}</span></div>
+      <div class="summary" style="margin-top:10px;">${esc(r.content)}</div>
+    </div>`).join('');
+}
+async function genReport(){
+  const week = document.getElementById('wr-week').value;
+  try { await api('/weekly-reports/generate' + (week?'?week_start='+week:''), {method:'POST', idemKey:idem()}); await loadReports(); }
+  catch(e){ toast(e.message); }
+}
+
+/* boot */
+if (token) {
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  switchTab('tasks');
+}
+</script>
+</body>
+</html>

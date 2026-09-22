@@ -7,7 +7,13 @@ from core.models import SubscriptionTierModel, UserModel
 from core.store.base import StoreBase
 
 
-DEFAULT_FREE_LIMITS: dict = {"custom_categories": 3, "household_members": 2}
+DEFAULT_FREE_LIMITS: dict = {
+    "custom_categories": 3,
+    "household_members": 2,
+    "tasks": 20,
+    "meetings": 10,
+    "weekly_reports": 5,
+}
 
 
 class SubscriptionStoreMixin(StoreBase):

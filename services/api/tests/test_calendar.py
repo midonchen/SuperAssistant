@@ -58,3 +58,18 @@ def test_calendar_excludes_done_tasks(client):
     r = client.get(f"/api/v1/calendar/events?start_date={start}&end_date={end}", headers=make_headers(token=token))
     assert r.status_code == 200
     assert r.json()["data"]["events"] == []
+
+
+def test_calendar_ical_export(client):
+    token = _login(client, "13800138602")
+    now = datetime.now(timezone.utc)
+    client.post(
+        "/api/v1/tasks",
+        json={"title": "交报告", "due_at": (now + timedelta(days=1)).isoformat()},
+        headers=make_headers(idempotency_key="i-1", token=token),
+    )
+    r = client.get("/api/v1/calendar/ical", headers=make_headers(token=token))
+    assert r.status_code == 200
+    assert r.headers["content-type"].startswith("text/calendar")
+    assert "BEGIN:VCALENDAR" in r.text
+    assert "SUMMARY:交报告" in r.text

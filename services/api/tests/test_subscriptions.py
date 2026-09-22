@@ -66,3 +66,49 @@ def test_free_tier_household_member_limit(client):
     )
     assert invite2.status_code == 402
     assert invite2.json()["code"] == "BIZ_402_UPGRADE_REQUIRED"
+
+
+def _free_limits(**overrides) -> dict:
+    base = {"custom_categories": 3, "household_members": 2, "tasks": 20, "meetings": 10, "weekly_reports": 5}
+    base.update(overrides)
+    return base
+
+
+def test_free_tier_task_limit(client, monkeypatch):
+    from core.store import subscriptions as sub_mod
+
+    monkeypatch.setattr(sub_mod, "DEFAULT_FREE_LIMITS", _free_limits(tasks=3))
+    token = _login(client, "13800138540")
+    for i in range(3):
+        r = client.post("/api/v1/tasks", json={"title": f"任务{i}"}, headers=make_headers(idempotency_key=f"gt-{i}", token=token))
+        assert r.status_code == 200, r.json()
+    r = client.post("/api/v1/tasks", json={"title": "超限"}, headers=make_headers(idempotency_key="gt-3", token=token))
+    assert r.status_code == 402
+    assert r.json()["code"] == "BIZ_402_UPGRADE_REQUIRED"
+
+
+def test_free_tier_meeting_limit(client, monkeypatch):
+    from core.store import subscriptions as sub_mod
+
+    monkeypatch.setattr(sub_mod, "DEFAULT_FREE_LIMITS", _free_limits(meetings=1))
+    token = _login(client, "13800138541")
+    r = client.post("/api/v1/meetings", json={"title": "会议1", "transcript": "内容"}, headers=make_headers(idempotency_key="gm-1", token=token))
+    assert r.status_code == 200, r.json()
+    r = client.post("/api/v1/meetings", json={"title": "会议2", "transcript": "内容"}, headers=make_headers(idempotency_key="gm-2", token=token))
+    assert r.status_code == 402
+    assert r.json()["code"] == "BIZ_402_UPGRADE_REQUIRED"
+
+
+def test_free_tier_weekly_report_limit(client, monkeypatch):
+    from core.store import subscriptions as sub_mod
+
+    monkeypatch.setattr(sub_mod, "DEFAULT_FREE_LIMITS", _free_limits(weekly_reports=1))
+    token = _login(client, "13800138542")
+    r = client.post("/api/v1/weekly-reports/generate", headers=make_headers(idempotency_key="wr-1", token=token))
+    assert r.status_code == 200
+    week = r.json()["data"]["report"]["week_start"]
+    r = client.post(f"/api/v1/weekly-reports/generate?week_start={week}", headers=make_headers(idempotency_key="wr-2", token=token))
+    assert r.status_code == 200  # upsert same week allowed
+    r = client.post("/api/v1/weekly-reports/generate?week_start=2020-01-06", headers=make_headers(idempotency_key="wr-3", token=token))
+    assert r.status_code == 402
+    assert r.json()["code"] == "BIZ_402_UPGRADE_REQUIRED"

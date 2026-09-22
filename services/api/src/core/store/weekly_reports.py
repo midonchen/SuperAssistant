@@ -3,10 +3,11 @@ from __future__ import annotations
 import uuid
 from datetime import date, datetime, time, timedelta, timezone
 
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 
 from core.ai_pipeline import ai_pipeline
 from core.db import SessionLocal
+from core.errors import ApiException
 from core.models import MeetingModel, TaskModel, WeeklyReportModel
 from core.schemas import WeeklyReport, utc_now
 from core.store.base import StoreBase
@@ -26,8 +27,23 @@ class WeeklyReportStoreMixin(StoreBase):
             generated_at=row.generated_at,
         )
 
+    def _count_weekly_reports(self, user_id: str) -> int:
+        with SessionLocal() as db:
+            return db.scalar(select(func.count()).select_from(WeeklyReportModel).where(WeeklyReportModel.user_id == user_id)) or 0
+
     def generate_weekly_report(self, user_id: str, week_start: str | None = None) -> WeeklyReport:
         start_date = date.fromisoformat(week_start) if week_start else _monday(utc_now())
+        week_key = start_date.isoformat()
+        with SessionLocal() as db:
+            existing = db.scalar(
+                select(WeeklyReportModel).where(
+                    WeeklyReportModel.user_id == user_id,
+                    WeeklyReportModel.week_start == week_key,
+                )
+            )
+        if existing is None and not self.can_use_feature(user_id, "weekly_reports", self._count_weekly_reports(user_id)):
+            self.record_event(user_id, "subscription_gate_hit", {"feature": "weekly_reports"})
+            raise ApiException(402, "BIZ_402_UPGRADE_REQUIRED", "free tier weekly report limit reached")
         end_date = start_date + timedelta(days=7)
         start_dt = datetime.combine(start_date, time.min, tzinfo=timezone.utc)
         end_dt = datetime.combine(end_date, time.min, tzinfo=timezone.utc)

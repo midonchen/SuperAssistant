@@ -1126,6 +1126,20 @@ paths:
                   events:
                     type: array
                     items: { $ref: '#/components/schemas/CalendarEvent' }
+  /calendar/ical:
+    get:
+      summary: Export calendar as iCalendar (.ics)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200':
+          description: success
+          content:
+            text/calendar:
+              schema: { type: string }
   /meetings:
     get:
       summary: List meetings

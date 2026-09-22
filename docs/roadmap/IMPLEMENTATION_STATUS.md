@@ -476,6 +476,13 @@
   - Verified: 71/71 API tests PASS, `npm run check:all` PASS
   - v2.0 工作与日程后端 4 项 P1 功能全部落地（任务 AI 排序 / 日历整合 / 会议摘要 / 周报生成）
 
+- v2.0 subscription gating + external calendar + mobile web (part 62):
+  - Free-tier limits: tasks 20 / meetings 10 / weekly_reports 5；create 时超限返回 402 + 埋点；周报同周重生成（upsert）不受限
+  - `GET /calendar/ical`：RFC 5545 .ics 导出（过去 30 天 ~ 未来 365 天），可导入 Google/Apple 日历
+  - `apps/mobile-web`：单页 HTML 移动端（任务/日历/会议/周报 四 tab，原生 JS 直连 API）+ nginx:alpine 服务（端口 4000）
+  - 更新 OpenAPI + 4 回归测试（任务/会议/周报门控 + ical 导出）
+  - Verified: 75/75 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 Phase 2.3 移动端分享（share_plus）待开发（服务端 PDF 导出已完成）。
