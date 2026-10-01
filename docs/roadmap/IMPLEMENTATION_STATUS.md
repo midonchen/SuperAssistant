@@ -494,6 +494,11 @@
   - `scripts/demo_smoke.py` 覆盖 v2.0（任务 AI 排序 / 会议摘要 / 日历+ical / 周报生成）
   - Verified: 77/77 API tests PASS, admin tsc/build PASS, `npm run check:all` PASS
 
+- Mobile web full-surface (part 65):
+  - 移动端 HTML 补齐「生活物资管理」：底栏改为 生活/采购/家庭/工作 四 tab，工作内含 任务/日历/会议/周报 子 tab
+  - 生活 = 库存列表+出入库 + 品类管理；采购 = 采购建议+月度报告；家庭 = 家庭信息+邀请/加入
+  - 至此 HTML 覆盖 v1.0/v1.5（物资）+ v2.0（工作）全部后端能力
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：

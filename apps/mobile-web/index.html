@@ -12,39 +12,41 @@
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body { background: var(--bg); color: var(--text); font-family: -apple-system, "PingFang SC", "Noto Sans SC", sans-serif; min-height: 100vh; }
 .hidden { display: none !important; }
-/* Login */
 #login { display: flex; flex-direction: column; justify-content: center; min-height: 100vh; padding: 24px; gap: 14px; }
 #login h1 { color: var(--gold); font-size: 22px; text-align: center; margin-bottom: 8px; }
 #login input { background: var(--card); border: 1px solid var(--line); color: var(--text); padding: 14px; border-radius: 12px; font-size: 16px; }
 #login button { background: var(--gold); color: #111; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; }
 .hint { color: var(--muted); font-size: 12px; text-align: center; }
-/* App shell */
 #app { display: flex; flex-direction: column; min-height: 100vh; }
 header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 5; }
 header h2 { font-size: 17px; }
 header .gold { color: var(--gold); }
 main { flex: 1; padding: 14px 16px 84px; }
 nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: var(--card); border-top: 1px solid var(--line); }
-nav button { flex: 1; background: none; border: none; color: var(--muted); padding: 12px 4px; font-size: 13px; display: flex; flex-direction: column; gap: 2px; align-items: center; }
+nav button { flex: 1; background: none; border: none; color: var(--muted); padding: 10px 4px; font-size: 12px; display: flex; flex-direction: column; gap: 2px; align-items: center; }
 nav button.active { color: var(--gold); }
 nav .ic { font-size: 18px; }
-/* Cards */
+.subnav { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; }
+.subnav button { background: #2a2f3a; color: var(--muted); border: none; padding: 7px 14px; border-radius: 18px; font-size: 13px; white-space: nowrap; }
+.subnav button.active { background: var(--gold); color: #111; font-weight: 600; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
 .card .title { font-size: 15px; font-weight: 600; word-break: break-all; }
 .card .meta { color: var(--muted); font-size: 12px; margin-top: 4px; line-height: 1.5; }
-.card .actions { margin-top: 10px; display: flex; gap: 8px; }
+.card .actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
 .card .actions button { background: #2a2f3a; color: var(--text); border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; }
 .card .actions button.danger { color: var(--red); }
 .card .actions button.primary { background: var(--gold); color: #111; font-weight: 600; }
 .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; background: #2a2f3a; color: var(--muted); white-space: nowrap; }
-.badge.DONE { color: var(--green); } .badge.OVERDUE, .badge.已逾期 { color: var(--red); }
+.badge.DONE, .badge.PLENTY { color: var(--green); }
+.badge.OVERDUE, .badge.已逾期, .badge.EMPTY { color: var(--red); }
+.badge.CRITICAL { color: var(--red); }
+.badge.WARNING { color: var(--gold); }
 .badge.ai { color: var(--gold); } .badge.heuristic { color: var(--blue); }
 .section { margin: 16px 0 8px; font-size: 13px; color: var(--muted); font-weight: 600; }
 .empty { color: var(--muted); text-align: center; padding: 32px 0; font-size: 13px; }
-/* Inputs & toolbar */
-.toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
-.toolbar input, .toolbar select, textarea { flex: 1; background: var(--card); border: 1px solid var(--line); color: var(--text); padding: 12px; border-radius: 10px; font-size: 14px; }
+.toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.toolbar input, .toolbar select, textarea { flex: 1; min-width: 0; background: var(--card); border: 1px solid var(--line); color: var(--text); padding: 12px; border-radius: 10px; font-size: 14px; }
 .toolbar button { background: var(--gold); color: #111; border: none; padding: 0 16px; border-radius: 10px; font-weight: 600; font-size: 14px; }
 textarea { width: 100%; min-height: 80px; resize: vertical; margin-bottom: 8px; font-family: inherit; }
 .summary { white-space: pre-wrap; font-size: 13px; line-height: 1.6; color: var(--text); background: #15181e; border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
@@ -68,10 +70,10 @@ textarea { width: 100%; min-height: 80px; resize: vertical; margin-bottom: 8px; 
   </header>
   <main id="main"></main>
   <nav>
-    <button class="active" data-tab="tasks" onclick="switchTab('tasks')"><span class="ic">☑️</span>任务</button>
-    <button data-tab="calendar" onclick="switchTab('calendar')"><span class="ic">📅</span>日历</button>
-    <button data-tab="meetings" onclick="switchTab('meetings')"><span class="ic">🎙️</span>会议</button>
-    <button data-tab="reports" onclick="switchTab('reports')"><span class="ic">📊</span>周报</button>
+    <button class="active" data-tab="life" onclick="switchTab('life')"><span class="ic">🏠</span>生活</button>
+    <button data-tab="shop" onclick="switchTab('shop')"><span class="ic">🛒</span>采购</button>
+    <button data-tab="family" onclick="switchTab('family')"><span class="ic">👨‍👩‍👧</span>家庭</button>
+    <button data-tab="work" onclick="switchTab('work')"><span class="ic">💼</span>工作</button>
   </nav>
 </div>
 
@@ -80,7 +82,8 @@ textarea { width: 100%; min-height: 80px; resize: vertical; margin-bottom: 8px; 
 <script>
 const API = localStorage.getItem('sa_api_base') || 'http://agint.sonmuu.com:8000/api/v1';
 let token = localStorage.getItem('sa_token') || '';
-let tab = 'tasks';
+let tab = 'life';
+let workTab = 'tasks';
 
 function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'), 2500); }
@@ -107,24 +110,168 @@ async function doLogin() {
     localStorage.setItem('sa_token', token);
     document.getElementById('login').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
-    switchTab('tasks');
+    switchTab('life');
   } catch(e) { toast(e.message); }
 }
 
 function logout(){ token=''; localStorage.removeItem('sa_token'); location.reload(); }
 
 function switchTab(t){ tab=t; document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active', b.dataset.tab===t)); render(); }
+function switchWorkTab(t){ workTab=t; document.querySelectorAll('.subnav button').forEach(b=>b.classList.toggle('active', b.dataset.w===t)); renderWork(document.getElementById('main')); }
+
 async function render(){
   const m = document.getElementById('main');
   try {
-    if (tab==='tasks') await renderTasks(m);
-    else if (tab==='calendar') await renderCalendar(m);
-    else if (tab==='meetings') await renderMeetings(m);
-    else if (tab==='reports') await renderReports(m);
+    if (tab==='life') await renderLife(m);
+    else if (tab==='shop') await renderShop(m);
+    else if (tab==='family') await renderFamily(m);
+    else if (tab==='work') await renderWork(m);
   } catch(e){ m.innerHTML = '<div class="empty">加载失败：' + esc(e.message) + '</div>'; }
 }
 
-/* ---------- Tasks ---------- */
+/* ============ 生活（库存 + 品类） ============ */
+async function renderLife(m){
+  m.innerHTML = `
+    <div class="section">库存</div>
+    <div id="inv-list" class="empty">加载中…</div>
+    <div class="section">品类</div>
+    <div class="toolbar">
+      <input id="cat-name" placeholder="新品类名">
+      <input id="cat-unit" placeholder="单位" style="max-width:70px;">
+      <button onclick="addCategory()">添加</button>
+    </div>
+    <div id="cat-list" class="empty"></div>`;
+  await loadInventory(); await loadCategories();
+}
+async function loadInventory(){
+  const d = await api('/inventory/items');
+  const el = document.getElementById('inv-list');
+  if(!d.items.length){ el.innerHTML = '<div class="empty">暂无库存，先添加品类再入库</div>'; return; }
+  el.innerHTML = d.items.map(i=>`
+    <div class="card">
+      <div class="row"><span class="title">${esc(i.item_name)}</span><span class="badge ${i.status}">${esc(i.status||'')}</span></div>
+      <div class="meta">库存 ${i.current_stock} ${esc(i.unit)} · 预警阈值 ${i.warning_threshold}</div>
+      <div class="actions">
+        <button class="primary" onclick="stockOp('${i.item_key}','${esc(i.unit)}','ADD')">入库</button>
+        <button onclick="stockOp('${i.item_key}','${esc(i.unit)}','SUBTRACT')">出库</button>
+      </div>
+    </div>`).join('');
+}
+async function stockOp(key, unit, op){
+  const qty = prompt((op==='ADD'?'入库':'出库')+'数量（'+unit+'）：', '1');
+  if(!qty) return;
+  try {
+    await api('/inventory/operations/batch', {method:'POST', body:{operations:[{item_key:key, operation:op, value:parseFloat(qty), unit, source:'MANUAL'}]}, idemKey:idem()});
+    await loadInventory();
+  } catch(e){ toast(e.message); }
+}
+async function loadCategories(){
+  const d = await api('/categories');
+  const el = document.getElementById('cat-list');
+  if(!d.categories.length){ el.innerHTML = '<div class="empty">无品类</div>'; return; }
+  el.innerHTML = d.categories.map(c=>`
+    <div class="card">
+      <div class="row"><span class="title">${esc(c.icon||'')} ${esc(c.name)}</span><span class="badge">${c.is_system?'系统':'自定义'}</span></div>
+      <div class="meta">单位 ${esc(c.unit_type)}</div>
+    </div>`).join('');
+}
+async function addCategory(){
+  const name = document.getElementById('cat-name').value.trim();
+  const unit = document.getElementById('cat-unit').value.trim() || '个';
+  if(!name){ toast('请输入品类名'); return; }
+  try { await api('/categories', {method:'POST', body:{name, icon:'📦', unit_type:unit}, idemKey:idem()}); document.getElementById('cat-name').value=''; document.getElementById('cat-unit').value=''; await loadCategories(); }
+  catch(e){ toast(e.message); }
+}
+
+/* ============ 采购（建议 + 报告） ============ */
+async function renderShop(m){
+  m.innerHTML = `
+    <div class="toolbar"><button onclick="genSuggestion()">生成采购建议</button></div>
+    <div id="sug-list" class="empty"></div>
+    <div class="section">本月消费报告</div>
+    <div id="report-box" class="empty"></div>`;
+  await loadSuggestion(); await loadReport();
+}
+async function loadSuggestion(){
+  try {
+    const d = await api('/suggestions/latest');
+    const s = d.suggestion;
+    const el = document.getElementById('sug-list');
+    if(!s.items || !s.items.length){ el.innerHTML = '<div class="empty">暂无采购建议，点击「生成」</div>'; return; }
+    el.innerHTML = '<div class="section">采购建议</div>' + s.items.map(i=>`
+      <div class="card">
+        <div class="row"><span class="title">${esc(i.item_key)}</span><span class="badge">${i.suggested_qty} ${esc(i.unit)}</span></div>
+        <div class="meta">${esc(i.reason||'')}</div>
+      </div>`).join('');
+  } catch(e){ toast(e.message); }
+}
+async function genSuggestion(){
+  try { await api('/suggestions/generate', {method:'POST', body:{mode:'AUTO'}, idemKey:idem()}); await loadSuggestion(); } catch(e){ toast(e.message); }
+}
+async function loadReport(){
+  const month = new Date().toISOString().slice(0,7);
+  try {
+    const d = await api('/reports/consumption/monthly?month='+month);
+    const r = d.report;
+    document.getElementById('report-box').innerHTML = `
+      <div class="card"><div class="meta">${esc(r.month)} · 总消耗 ${r.total_consumed_qty} · 总浪费 ${r.total_wasted_qty}</div></div>`;
+  } catch(e){ document.getElementById('report-box').innerHTML = '<div class="empty">暂无报告</div>'; }
+}
+
+/* ============ 家庭 ============ */
+async function renderFamily(m){
+  m.innerHTML = `
+    <div id="fam-info" class="empty">加载中…</div>
+    <div class="toolbar">
+      <input id="join-code" placeholder="输入邀请码加入家庭">
+      <button onclick="joinFamily()">加入</button>
+    </div>
+    <button class="primary" style="background:var(--gold);color:#111;border:none;padding:10px 16px;border-radius:10px;font-weight:600;margin-bottom:10px;" onclick="invite()">生成邀请码</button>
+    <div id="invite-box"></div>`;
+  await loadFamily();
+}
+async function loadFamily(){
+  try {
+    const d = await api('/households/me');
+    const h = d.household;
+    document.getElementById('fam-info').innerHTML = `
+      <div class="card">
+        <div class="row"><span class="title">${esc(h.name||'我的家')}</span><span class="badge">${(h.members||[]).length} 成员</span></div>
+        ${(h.members||[]).map(mm=>`<div class="meta">· ${esc(mm.phone_masked||'成员')}（${esc(mm.role||'')}）</div>`).join('')}
+      </div>`;
+  } catch(e){ document.getElementById('fam-info').innerHTML = '<div class="empty">暂无家庭</div>'; }
+}
+async function invite(){
+  try { const d = await api('/households/invitations', {method:'POST', body:{role:'MEMBER'}, idemKey:idem()}); document.getElementById('invite-box').innerHTML = `<div class="card">邀请码：<b>${esc(d.invitation.invite_code)}</b></div>`; }
+  catch(e){ toast(e.message); }
+}
+async function joinFamily(){
+  const code = document.getElementById('join-code').value.trim();
+  if(!code){ toast('请输入邀请码'); return; }
+  try { await api('/households/join', {method:'POST', body:{invite_code:code}, idemKey:idem()}); document.getElementById('join-code').value=''; await loadFamily(); } catch(e){ toast(e.message); }
+}
+
+/* ============ 工作（任务/日历/会议/周报） ============ */
+async function renderWork(m){
+  m.innerHTML = `
+    <div class="subnav">
+      <button class="active" data-w="tasks" onclick="switchWorkTab('tasks')">任务</button>
+      <button data-w="calendar" onclick="switchWorkTab('calendar')">日历</button>
+      <button data-w="meetings" onclick="switchWorkTab('meetings')">会议</button>
+      <button data-w="reports" onclick="switchWorkTab('reports')">周报</button>
+    </div>
+    <div id="work-body" class="empty"></div>`;
+  await renderWorkBody(document.getElementById('work-body'));
+}
+async function renderWorkBody(m){
+  try {
+    if (workTab==='tasks') await renderTasks(m);
+    else if (workTab==='calendar') await renderCalendar(m);
+    else if (workTab==='meetings') await renderMeetings(m);
+    else if (workTab==='reports') await renderReports(m);
+  } catch(e){ m.innerHTML = '<div class="empty">加载失败：' + esc(e.message) + '</div>'; }
+}
+
 async function renderTasks(m){
   m.innerHTML = `
     <div class="toolbar">
@@ -139,11 +286,11 @@ async function loadTasks(){
   const d = await api('/tasks/prioritize', {method:'POST', idemKey:idem()});
   const el = document.getElementById('task-list');
   const tag = d.method==='ai' ? '<span class="badge ai">AI 排序</span>' : '<span class="badge heuristic">启发式</span>';
-  if (!d.tasks.length){ el.innerHTML = '<div class="empty">暂无任务，先添加一个</div>'; return; }
+  if (!d.tasks.length){ el.innerHTML = '<div class="empty">暂无任务</div>'; return; }
   el.innerHTML = d.tasks.map(t=>`
     <div class="card">
       <div class="row"><span class="title">${esc(t.title)}</span>${tag}</div>
-      <div class="meta">${esc(t.reason||'')} · 优先级 P${t.priority}${t.due_at?' · 截止 '+esc(t.due_at.slice(0,10)):''}</div>
+      <div class="meta">${esc(t.reason||'')} · P${t.priority}${t.due_at?' · '+esc(t.due_at.slice(0,10)):''}</div>
       <div class="actions">
         ${t.status!=='DONE'?'<button class="primary" onclick="setTaskDone(\''+t.task_id+'\')">完成</button>':''}
         <button class="danger" onclick="delTask(\''+t.task_id+'\')">删除</button>
@@ -160,7 +307,6 @@ async function addTask(){
 async function setTaskDone(id){ try { await api('/tasks/'+id, {method:'PATCH', body:{status:'DONE'}, idemKey:idem()}); await loadTasks(); } catch(e){ toast(e.message); } }
 async function delTask(id){ try { await api('/tasks/'+id, {method:'DELETE'}); await loadTasks(); } catch(e){ toast(e.message); } }
 
-/* ---------- Calendar ---------- */
 async function renderCalendar(m){
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -181,7 +327,7 @@ async function renderCalendar(m){
   el.innerHTML = d.events.map(ev=>`
     <div class="card">
       <div class="row"><span class="title">${esc(ev.title)}</span><span class="badge">${ev.source==='meeting'?'会议':'任务'}</span></div>
-      <div class="meta">${esc(ev.start_at.slice(0,16).replace('T',' '))}</div>
+      <div class="meta">${esc((ev.start_at||'').slice(0,16).replace('T',' '))}</div>
     </div>`).join('');
 }
 function fmtDate(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -197,12 +343,11 @@ async function copyShareUrl(){
   try {
     const d = await api('/calendar/share');
     const url = API + '/calendar/ical/public?token=' + encodeURIComponent(d.token);
-    try { await navigator.clipboard.writeText(url); toast('订阅链接已复制，可粘贴到 Google/Apple 日历'); }
+    try { await navigator.clipboard.writeText(url); toast('订阅链接已复制'); }
     catch(e){ prompt('复制此订阅链接：', url); }
   } catch(e){ toast(e.message); }
 }
 
-/* ---------- Meetings ---------- */
 async function renderMeetings(m){
   m.innerHTML = `
     <div class="card">
@@ -223,7 +368,7 @@ async function loadMeetings(){
       <div class="row"><span class="title">${esc(mt.title)}</span></div>
       <div class="meta">${esc((mt.summary||'（无摘要）').slice(0,120))}</div>
       ${mt.action_items.length?`<div class="section">待办</div>`+mt.action_items.map(a=>`
-        <div class="row" style="padding:6px 0;"><span style="font-size:13px;${a.done?'text-decoration:line-through;color:var(--muted);':''}">${esc(a.text)}${a.assignee?' · '+esc(a.assignee):''}</span>${a.done?'<span class="badge DONE">完成</span>':'<button class="primary" style="background:#2a2f3a;color:var(--text);border:none;padding:5px 10px;border-radius:6px;" onclick="doneItem(\''+a.action_item_id+'\')">完成</button>'}</div>`).join(''):''}
+        <div class="row" style="padding:6px 0;"><span style="font-size:13px;${a.done?'text-decoration:line-through;color:var(--muted);':''}">${esc(a.text)}${a.assignee?' · '+esc(a.assignee):''}</span>${a.done?'<span class="badge DONE">完成</span>':'<button style="background:#2a2f3a;color:var(--text);border:none;padding:5px 10px;border-radius:6px;" onclick="doneItem(\''+a.action_item_id+'\')">完成</button>'}</div>`).join(''):''}
     </div>`).join('');
 }
 async function addMeeting(){
@@ -235,7 +380,6 @@ async function addMeeting(){
 }
 async function doneItem(id){ try { await api('/meetings/action-items/'+id, {method:'PATCH', body:{done:true}, idemKey:idem()}); await loadMeetings(); } catch(e){ toast(e.message); } }
 
-/* ---------- Weekly Reports ---------- */
 async function renderReports(m){
   m.innerHTML = `
     <div class="toolbar">
@@ -248,10 +392,10 @@ async function renderReports(m){
 async function loadReports(){
   const d = await api('/weekly-reports');
   const el = document.getElementById('report-list');
-  if(!d.reports.length){ el.innerHTML = '<div class="empty">暂无周报，点击「生成周报」</div>'; return; }
+  if(!d.reports.length){ el.innerHTML = '<div class="empty">暂无周报</div>'; return; }
   el.innerHTML = d.reports.map(r=>`
     <div class="card">
-      <div class="row"><span class="title">周报 ${esc(r.week_start)}</span><span class="badge">${esc(r.generated_at.slice(0,10))}</span></div>
+      <div class="row"><span class="title">周报 ${esc(r.week_start)}</span><span class="badge">${esc((r.generated_at||'').slice(0,10))}</span></div>
       <div class="summary" style="margin-top:10px;">${esc(r.content)}</div>
     </div>`).join('');
 }
@@ -265,7 +409,7 @@ async function genReport(){
 if (token) {
   document.getElementById('login').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
-  switchTab('tasks');
+  switchTab('life');
 }
 </script>
 </body>
