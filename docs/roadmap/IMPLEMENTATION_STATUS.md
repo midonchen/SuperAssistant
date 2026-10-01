@@ -524,6 +524,13 @@
   - Updated OpenAPI + 1 回归测试
   - Verified: 82/82 API tests PASS, `npm run check:all` PASS
 
+- v3.0 3.4 家庭事务 (part 69):
+  - `family_affairs` 表（迁移 0018）+ household 角色权限（复用 can_write_inventory）
+  - CRUD `/family-affairs` 路由（家庭内共享）
+  - 日历接入：家庭事务作为 source=family 事件（DONE 过滤）
+  - Updated OpenAPI + 1 回归测试
+  - Verified: 83/83 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：

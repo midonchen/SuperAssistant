@@ -14,6 +14,7 @@ from modules.auth.api.routes import router as auth_router
 from modules.calendar.api.routes import router as calendar_router
 from modules.categories.api.routes import router as categories_router
 from modules.contacts.api.routes import router as contacts_router
+from modules.family_affairs.api.routes import router as family_affairs_router
 from modules.households.api.routes import router as households_router
 from modules.inventory.api.routes import router as inventory_router
 from modules.meetings.api.routes import router as meetings_router
@@ -85,4 +86,5 @@ app.include_router(calendar_router, prefix="/api/v1")
 app.include_router(meetings_router, prefix="/api/v1")
 app.include_router(weekly_reports_router, prefix="/api/v1")
 app.include_router(contacts_router, prefix="/api/v1")
+app.include_router(family_affairs_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")

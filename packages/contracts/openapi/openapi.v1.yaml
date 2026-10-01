@@ -431,7 +431,7 @@ components:
       required: [event_id, source, title, start_at]
       properties:
         event_id: { type: string }
-        source: { type: string, enum: [task, meeting, occasion] }
+        source: { type: string, enum: [task, meeting, occasion, family] }
         title: { type: string }
         start_at: { type: string, format: date-time }
         end_at: { type: string, format: date-time, nullable: true }
@@ -550,6 +550,25 @@ components:
       properties:
         occasion_id: { type: string, format: uuid, nullable: true }
         budget: { type: number, nullable: true }
+    FamilyAffair:
+      type: object
+      required: [affair_id, household_id, title, status, created_at, updated_at]
+      properties:
+        affair_id: { type: string, format: uuid }
+        household_id: { type: string, format: uuid }
+        title: { type: string }
+        due_at: { type: string, format: date-time, nullable: true }
+        assignee: { type: string, nullable: true }
+        status: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    FamilyAffairCreateRequest:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string }
+        due_at: { type: string, format: date-time, nullable: true }
+        assignee: { type: string, nullable: true }
 paths:
   /auth/sms/send:
     post:
@@ -1528,6 +1547,62 @@ paths:
         - $ref: '#/components/parameters/IdempotencyKey'
         - in: path
           name: occasion_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /family-affairs:
+    get:
+      summary: List family affairs
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create family affair
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FamilyAffairCreateRequest' }
+      responses:
+        '200': { description: success }
+  /family-affairs/{affair_id}:
+    patch:
+      summary: Update family affair
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: affair_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+    delete:
+      summary: Delete family affair
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: affair_id
           required: true
           schema: { type: string, format: uuid }
       responses:

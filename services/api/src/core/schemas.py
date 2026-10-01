@@ -370,5 +370,29 @@ class GiftSuggestionRequest(BaseModel):
     budget: float | None = Field(default=None, ge=0)
 
 
+class FamilyAffair(BaseModel):
+    affair_id: str
+    household_id: str
+    title: str
+    due_at: datetime | None = None
+    assignee: str | None = None
+    status: str = "TODO"
+    created_at: datetime
+    updated_at: datetime
+
+
+class FamilyAffairCreateRequest(BaseModel):
+    title: str = Field(..., min_length=1, max_length=128)
+    due_at: datetime | None = None
+    assignee: str | None = Field(default=None, max_length=64)
+
+
+class FamilyAffairUpdateRequest(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=128)
+    due_at: datetime | None = None
+    assignee: str | None = Field(default=None, max_length=64)
+    status: str | None = None
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)

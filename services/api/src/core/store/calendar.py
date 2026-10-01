@@ -66,5 +66,6 @@ class CalendarStoreMixin(StoreBase):
                     )
                 )
         events += self.occasion_events(user_id, start, end)
+        events += self.family_affair_events(user_id, start, end)
         events.sort(key=lambda e: e.start_at)
         return events
