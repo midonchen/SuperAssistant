@@ -35,6 +35,10 @@ celery_app.conf.beat_schedule = {
         "task": "modules.reports.domain.tasks.run_monthly_report_task",
         "schedule": crontab(minute=0, hour=0, day_of_month=1),
     },
+    "daily-occasion-reminder": {
+        "task": "modules.contacts.domain.tasks.run_occasion_reminder_task",
+        "schedule": crontab(minute=0, hour=8),
+    },
 }
 
-celery_app.autodiscover_tasks(["modules.inventory.domain", "modules.push.domain", "modules.reports.domain"])
+celery_app.autodiscover_tasks(["modules.inventory.domain", "modules.push.domain", "modules.reports.domain", "modules.contacts.domain"])

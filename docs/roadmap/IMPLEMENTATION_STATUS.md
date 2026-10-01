@@ -499,6 +499,15 @@
   - 生活 = 库存列表+出入库 + 品类管理；采购 = 采购建议+月度报告；家庭 = 家庭信息+邀请/加入
   - 至此 HTML 覆盖 v1.0/v1.5（物资）+ v2.0（工作）全部后端能力
 
+- v3.0 关系模块 3.1 contacts + occasions (part 66):
+  - 新增 `contacts` + `occasions` 表（迁移 0015）
+  - ContactStoreMixin：联系人 CRUD + 纪念日 CRUD + 订阅门控（免费联系人 10 / 纪念日 10）
+  - 创建联系人带生日时自动建「生日」occasion
+  - 日历接入：纪念日作为 source=occasion 事件（按年循环，跨年窗口正确）
+  - 提醒：Celery 每日 8 点扫描到期纪念日 → 记录 Push delivery（模拟）
+  - Updated OpenAPI + 3 回归测试
+  - Verified: 80/80 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：

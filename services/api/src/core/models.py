@@ -310,3 +310,31 @@ class WeeklyReportModel(Base):
     week_start: Mapped[str] = mapped_column(String(10), index=True)
     content: Mapped[str] = mapped_column(Text, default="")
     generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class ContactModel(Base):
+    __tablename__ = "contacts"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    name: Mapped[str] = mapped_column(String(64))
+    relationship: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    birthday: Mapped[str | None] = mapped_column(String(10), nullable=True)  # MM-DD
+    preferences: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class OccasionModel(Base):
+    __tablename__ = "occasions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    contact_id: Mapped[str] = mapped_column(String(36), ForeignKey("contacts.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    name: Mapped[str] = mapped_column(String(64))
+    month: Mapped[int] = mapped_column(Integer)
+    day: Mapped[int] = mapped_column(Integer)
+    is_lunar: Mapped[bool] = mapped_column(Boolean, default=False)
+    remind_days_before: Mapped[int] = mapped_column(Integer, default=3)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)

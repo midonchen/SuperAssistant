@@ -13,6 +13,8 @@ DEFAULT_FREE_LIMITS: dict = {
     "tasks": 20,
     "meetings": 10,
     "weekly_reports": 5,
+    "contacts": 10,
+    "occasions": 10,
 }
 
 

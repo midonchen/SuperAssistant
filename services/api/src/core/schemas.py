@@ -297,5 +297,50 @@ class WeeklyReport(BaseModel):
     generated_at: datetime
 
 
+class Contact(BaseModel):
+    contact_id: str
+    name: str
+    relationship: str | None = None
+    birthday: str | None = None
+    preferences: dict | None = None
+    notes: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class ContactCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=64)
+    relationship: str | None = Field(default=None, max_length=32)
+    birthday: str | None = Field(default=None, pattern=r"^\d{2}-\d{2}$")
+    preferences: dict | None = None
+    notes: str | None = None
+
+
+class ContactUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=64)
+    relationship: str | None = Field(default=None, max_length=32)
+    birthday: str | None = Field(default=None, pattern=r"^\d{2}-\d{2}$")
+    preferences: dict | None = None
+    notes: str | None = None
+
+
+class Occasion(BaseModel):
+    occasion_id: str
+    contact_id: str
+    name: str
+    month: int
+    day: int
+    is_lunar: bool = False
+    remind_days_before: int = 3
+
+
+class OccasionCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=64)
+    month: int = Field(..., ge=1, le=12)
+    day: int = Field(..., ge=1, le=31)
+    is_lunar: bool = False
+    remind_days_before: int = Field(default=3, ge=0, le=30)
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)

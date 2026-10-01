@@ -431,7 +431,7 @@ components:
       required: [event_id, source, title, start_at]
       properties:
         event_id: { type: string }
-        source: { type: string, enum: [task, meeting] }
+        source: { type: string, enum: [task, meeting, occasion] }
         title: { type: string }
         start_at: { type: string, format: date-time }
         end_at: { type: string, format: date-time, nullable: true }
@@ -478,6 +478,47 @@ components:
         week_start: { type: string }
         content: { type: string }
         generated_at: { type: string, format: date-time }
+    Contact:
+      type: object
+      required: [contact_id, name, created_at, updated_at]
+      properties:
+        contact_id: { type: string, format: uuid }
+        name: { type: string }
+        relationship: { type: string, nullable: true }
+        birthday: { type: string, nullable: true }
+        preferences: { type: object, nullable: true }
+        notes: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    ContactCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        relationship: { type: string, nullable: true }
+        birthday: { type: string, pattern: '^[0-9]{2}-[0-9]{2}$', nullable: true }
+        preferences: { type: object, nullable: true }
+        notes: { type: string, nullable: true }
+    Occasion:
+      type: object
+      required: [occasion_id, contact_id, name, month, day]
+      properties:
+        occasion_id: { type: string, format: uuid }
+        contact_id: { type: string, format: uuid }
+        name: { type: string }
+        month: { type: integer }
+        day: { type: integer }
+        is_lunar: { type: boolean }
+        remind_days_before: { type: integer }
+    OccasionCreateRequest:
+      type: object
+      required: [name, month, day]
+      properties:
+        name: { type: string }
+        month: { type: integer, minimum: 1, maximum: 12 }
+        day: { type: integer, minimum: 1, maximum: 31 }
+        is_lunar: { type: boolean }
+        remind_days_before: { type: integer }
 paths:
   /auth/sms/send:
     post:
@@ -1257,6 +1298,126 @@ paths:
           name: week_start
           required: true
           schema: { type: string }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /contacts:
+    get:
+      summary: List contacts
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create contact (auto birthday occasion)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ContactCreateRequest' }
+      responses:
+        '200': { description: success }
+  /contacts/{contact_id}:
+    get:
+      summary: Get a contact
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - in: path
+          name: contact_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+    patch:
+      summary: Update a contact
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: contact_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+    delete:
+      summary: Delete a contact
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: contact_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /contacts/{contact_id}/occasions:
+    get:
+      summary: List a contact's occasions
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - in: path
+          name: contact_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+    post:
+      summary: Add an occasion
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: contact_id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OccasionCreateRequest' }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /contacts/occasions/{occasion_id}:
+    delete:
+      summary: Delete an occasion
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: occasion_id
+          required: true
+          schema: { type: string, format: uuid }
       responses:
         '200': { description: success }
         '404': { description: not found }
