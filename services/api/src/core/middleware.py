@@ -7,11 +7,12 @@ from core.response import failure
 
 
 WRITE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+PUBLIC_PATHS = {"/healthz", "/api/v1/calendar/ical/public"}
 
 
 class HeaderValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        if request.url.path == "/healthz":
+        if request.url.path in PUBLIC_PATHS:
             response = await call_next(request)
             response.headers["X-API-Revision"] = response.headers.get("X-API-Revision", "1.1")
             return response

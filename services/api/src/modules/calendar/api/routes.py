@@ -5,8 +5,8 @@ from datetime import date, datetime, time, timedelta, timezone
 from fastapi import APIRouter, Depends, Query, Request, Response
 
 from core.auth_dep import require_bearer
-from core.ical import build_ical
-from core.response import success
+from core.ical import build_ical, build_share_token, verify_share_token
+from core.response import failure, success
 from core.schemas import utc_now
 from core.store import store
 
@@ -37,6 +37,29 @@ async def list_calendar_events(
 
 @router.get("/ical")
 async def export_ical(request: Request, user_id: str = Depends(require_bearer)):
+    now = utc_now()
+    start = now - timedelta(days=30)
+    end = now + timedelta(days=365)
+    events = store.list_calendar_events(user_id, start, end)
+    ical = build_ical(events, now)
+    return Response(
+        content=ical,
+        media_type="text/calendar",
+        headers={"Content-Disposition": 'attachment; filename="calendar.ics"'},
+    )
+
+
+@router.get("/share")
+async def get_share_url(request: Request, user_id: str = Depends(require_bearer)):
+    token = build_share_token(user_id)
+    return success(request, {"token": token, "path": "/calendar/ical/public"})
+
+
+@router.get("/ical/public")
+async def export_ical_public(request: Request, token: str = Query(...)):
+    user_id = verify_share_token(token)
+    if user_id is None:
+        return failure(request, 401, "BIZ_401_UNAUTHORIZED", "invalid share token")
     now = utc_now()
     start = now - timedelta(days=30)
     end = now + timedelta(days=365)

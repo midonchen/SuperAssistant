@@ -73,3 +73,22 @@ def test_calendar_ical_export(client):
     assert r.headers["content-type"].startswith("text/calendar")
     assert "BEGIN:VCALENDAR" in r.text
     assert "SUMMARY:交报告" in r.text
+
+
+def test_calendar_ical_public_share_token(client):
+    token = _login(client, "13800138603")
+    now = datetime.now(timezone.utc)
+    client.post(
+        "/api/v1/tasks",
+        json={"title": "公开任务", "due_at": (now + timedelta(days=1)).isoformat()},
+        headers=make_headers(idempotency_key="s-1", token=token),
+    )
+    r = client.get("/api/v1/calendar/share", headers=make_headers(token=token))
+    assert r.status_code == 200
+    share_token = r.json()["data"]["token"]
+    r = client.get(f"/api/v1/calendar/ical/public?token={share_token}")
+    assert r.status_code == 200
+    assert "BEGIN:VCALENDAR" in r.text
+    assert "SUMMARY:公开任务" in r.text
+    r = client.get("/api/v1/calendar/ical/public?token=bad.token")
+    assert r.status_code == 401

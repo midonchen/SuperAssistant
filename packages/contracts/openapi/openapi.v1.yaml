@@ -1140,6 +1140,31 @@ paths:
           content:
             text/calendar:
               schema: { type: string }
+  /calendar/share:
+    get:
+      summary: Get calendar share token (for public iCal subscription)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+  /calendar/ical/public:
+    get:
+      summary: Public iCalendar feed (no auth, share token)
+      parameters:
+        - in: query
+          name: token
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: success
+          content:
+            text/calendar:
+              schema: { type: string }
+        '401': { description: invalid token }
   /meetings:
     get:
       summary: List meetings

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
+import os
 from datetime import datetime, timezone
 
 from core.schemas import CalendarEvent
@@ -35,3 +38,24 @@ def build_ical(events: list[CalendarEvent], now: datetime) -> str:
         lines += [f"SUMMARY:{_escape(e.title)}", "END:VEVENT"]
     lines.append("END:VCALENDAR")
     return "\r\n".join(lines)
+
+
+def _share_secret() -> str:
+    return os.getenv("SUPERASSISTANT_CALENDAR_SECRET", "dev-secret")
+
+
+def build_share_token(user_id: str) -> str:
+    digest = hmac.new(_share_secret().encode(), user_id.encode(), hashlib.sha256).hexdigest()
+    return f"{user_id}.{digest[:24]}"
+
+
+def verify_share_token(token: str) -> str | None:
+    """Return user_id when the token is valid, else None."""
+    try:
+        user_id, digest = token.rsplit(".", 1)
+    except ValueError:
+        return None
+    expected = hmac.new(_share_secret().encode(), user_id.encode(), hashlib.sha256).hexdigest()[:24]
+    if not hmac.compare_digest(digest, expected):
+        return None
+    return user_id

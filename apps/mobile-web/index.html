@@ -170,7 +170,10 @@ async function renderCalendar(m){
   m.innerHTML = `
     <div class="row" style="margin-bottom:12px;">
       <div class="section" style="margin:0;">${now.getFullYear()} 年 ${now.getMonth()+1} 月</div>
-      <button class="primary" style="background:var(--gold);color:#111;border:none;padding:8px 14px;border-radius:8px;font-weight:600;" onclick="downloadIcs()">下载日历 (.ics)</button>
+      <div style="display:flex;gap:8px;">
+        <button style="background:var(--gold);color:#111;border:none;padding:8px 14px;border-radius:8px;font-weight:600;" onclick="downloadIcs()">下载 .ics</button>
+        <button style="background:#2a2f3a;color:var(--text);border:none;padding:8px 14px;border-radius:8px;font-weight:600;" onclick="copyShareUrl()">订阅链接</button>
+      </div>
     </div>
     <div id="cal-list"></div>`;
   const el = document.getElementById('cal-list');
@@ -188,6 +191,14 @@ async function downloadIcs(){
     if(!res.ok){ toast('导出失败'); return; }
     const blob = await res.blob();
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'calendar.ics'; a.click();
+  } catch(e){ toast(e.message); }
+}
+async function copyShareUrl(){
+  try {
+    const d = await api('/calendar/share');
+    const url = API + '/calendar/ical/public?token=' + encodeURIComponent(d.token);
+    try { await navigator.clipboard.writeText(url); toast('订阅链接已复制，可粘贴到 Google/Apple 日历'); }
+    catch(e){ prompt('复制此订阅链接：', url); }
   } catch(e){ toast(e.message); }
 }
 

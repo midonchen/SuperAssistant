@@ -483,6 +483,12 @@
   - 更新 OpenAPI + 4 回归测试（任务/会议/周报门控 + ical 导出）
   - Verified: 75/75 API tests PASS, `npm run check:all` PASS
 
+- iCal public share token (part 63):
+  - `GET /calendar/share`（鉴权）返回 HMAC 分享 token；`GET /calendar/ical/public?token=`（免鉴权）返回 .ics
+  - `/api/v1/calendar/ical/public` 加入 HeaderValidationMiddleware 白名单（外部日历订阅器不发 X-Request-Id 等头）
+  - 移动端日历页「订阅链接」按钮：复制公开订阅 URL
+  - Verified: 76/76 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 Phase 2.3 移动端分享（share_plus）待开发（服务端 PDF 导出已完成）。
