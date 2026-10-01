@@ -50,6 +50,8 @@ nav .ic { font-size: 18px; }
 .toolbar button { background: var(--gold); color: #111; border: none; padding: 0 16px; border-radius: 10px; font-weight: 600; font-size: 14px; }
 textarea { width: 100%; min-height: 80px; resize: vertical; margin-bottom: 8px; font-family: inherit; }
 .summary { white-space: pre-wrap; font-size: 13px; line-height: 1.6; color: var(--text); background: #15181e; border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.placeholder { text-align: center; padding: 80px 24px; color: var(--muted); }
+.placeholder .big { font-size: 42px; margin-bottom: 12px; }
 #toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #2a2f3a; color: var(--text); padding: 10px 18px; border-radius: 20px; font-size: 13px; z-index: 99; max-width: 90%; }
 </style>
 </head>
@@ -71,9 +73,9 @@ textarea { width: 100%; min-height: 80px; resize: vertical; margin-bottom: 8px; 
   <main id="main"></main>
   <nav>
     <button class="active" data-tab="life" onclick="switchTab('life')"><span class="ic">🏠</span>生活</button>
-    <button data-tab="shop" onclick="switchTab('shop')"><span class="ic">🛒</span>采购</button>
-    <button data-tab="family" onclick="switchTab('family')"><span class="ic">👨‍👩‍👧</span>家庭</button>
     <button data-tab="work" onclick="switchTab('work')"><span class="ic">💼</span>工作</button>
+    <button data-tab="rel" onclick="switchTab('rel')"><span class="ic">💗</span>关系</button>
+    <button data-tab="career" onclick="switchTab('career')"><span class="ic">🎯</span>职业</button>
   </nav>
 </div>
 
@@ -83,7 +85,12 @@ textarea { width: 100%; min-height: 80px; resize: vertical; margin-bottom: 8px; 
 const API = localStorage.getItem('sa_api_base') || 'http://agint.sonmuu.com:8000/api/v1';
 let token = localStorage.getItem('sa_token') || '';
 let tab = 'life';
-let workTab = 'tasks';
+let subTab = 'inventory';
+
+const SUB_TABS = {
+  life: [['inventory','库存'],['shop','采购'],['family','家庭']],
+  work: [['tasks','任务'],['calendar','日历'],['meetings','会议'],['reports','周报']],
+};
 
 function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'), 2500); }
@@ -92,7 +99,7 @@ function idem(){ return 'web-' + Date.now() + '-' + Math.random().toString(36).s
 async function api(path, {method='GET', body, idemKey}={}) {
   const h = {'X-Request-Id':'web','X-App-Version':'1.1.0','X-Platform':'web-mobile','Content-Type':'application/json'};
   if (token) h['Authorization'] = 'Bearer ' + token;
-  if (idemKey) h['Idempotency-Key'] = idemKey;
+  if (idemKey || method !== 'GET') h['Idempotency-Key'] = idemKey || idem();
   const res = await fetch(API + path, {method, headers:h, body: body ? JSON.stringify(body) : undefined});
   let data = {};
   try { data = await res.json(); } catch(e) {}
@@ -116,20 +123,32 @@ async function doLogin() {
 
 function logout(){ token=''; localStorage.removeItem('sa_token'); location.reload(); }
 
-function switchTab(t){ tab=t; document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active', b.dataset.tab===t)); render(); }
-function switchWorkTab(t){ workTab=t; document.querySelectorAll('.subnav button').forEach(b=>b.classList.toggle('active', b.dataset.w===t)); renderWork(document.getElementById('main')); }
+function switchTab(t){
+  tab = t;
+  subTab = t === 'life' ? 'inventory' : (t === 'work' ? 'tasks' : '');
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
+  render();
+}
+function switchSub(k){ subTab = k; render(); }
 
 async function render(){
   const m = document.getElementById('main');
   try {
-    if (tab==='life') await renderLife(m);
-    else if (tab==='shop') await renderShop(m);
-    else if (tab==='family') await renderFamily(m);
-    else if (tab==='work') await renderWork(m);
+    if (tab==='life' || tab==='work') await renderSub(m);
+    else if (tab==='rel') await renderRelations(m);
+    else if (tab==='career') renderCareer(m);
   } catch(e){ m.innerHTML = '<div class="empty">加载失败：' + esc(e.message) + '</div>'; }
 }
 
-/* ============ 生活（库存 + 品类） ============ */
+async function renderSub(m){
+  const tabs = SUB_TABS[tab];
+  m.innerHTML = '<div class="subnav">' + tabs.map(([k,label])=>`<button class="${k===subTab?'active':''}" onclick="switchSub('${k}')">${label}</button>`).join('') + '</div><div id="sub-body" class="empty"></div>';
+  const body = document.getElementById('sub-body');
+  const fn = {inventory:renderLife, shop:renderShop, family:renderFamily, tasks:renderTasks, calendar:renderCalendar, meetings:renderMeetings, reports:renderReports}[subTab];
+  if (fn) await fn(body);
+}
+
+/* ============ 生活·库存（含品类） ============ */
 async function renderLife(m){
   m.innerHTML = `
     <div class="section">库存</div>
@@ -161,7 +180,7 @@ async function stockOp(key, unit, op){
   const qty = prompt((op==='ADD'?'入库':'出库')+'数量（'+unit+'）：', '1');
   if(!qty) return;
   try {
-    await api('/inventory/operations/batch', {method:'POST', body:{operations:[{item_key:key, operation:op, value:parseFloat(qty), unit, source:'MANUAL'}]}, idemKey:idem()});
+    await api('/inventory/operations/batch', {method:'POST', body:{operations:[{item_key:key, operation:op, value:parseFloat(qty), unit, source:'MANUAL'}]}});
     await loadInventory();
   } catch(e){ toast(e.message); }
 }
@@ -179,11 +198,11 @@ async function addCategory(){
   const name = document.getElementById('cat-name').value.trim();
   const unit = document.getElementById('cat-unit').value.trim() || '个';
   if(!name){ toast('请输入品类名'); return; }
-  try { await api('/categories', {method:'POST', body:{name, icon:'📦', unit_type:unit}, idemKey:idem()}); document.getElementById('cat-name').value=''; document.getElementById('cat-unit').value=''; await loadCategories(); }
+  try { await api('/categories', {method:'POST', body:{name, icon:'📦', unit_type:unit}}); document.getElementById('cat-name').value=''; document.getElementById('cat-unit').value=''; await loadCategories(); }
   catch(e){ toast(e.message); }
 }
 
-/* ============ 采购（建议 + 报告） ============ */
+/* ============ 生活·采购（建议 + 报告） ============ */
 async function renderShop(m){
   m.innerHTML = `
     <div class="toolbar"><button onclick="genSuggestion()">生成采购建议</button></div>
@@ -206,19 +225,18 @@ async function loadSuggestion(){
   } catch(e){ toast(e.message); }
 }
 async function genSuggestion(){
-  try { await api('/suggestions/generate', {method:'POST', body:{mode:'AUTO'}, idemKey:idem()}); await loadSuggestion(); } catch(e){ toast(e.message); }
+  try { await api('/suggestions/generate', {method:'POST', body:{mode:'AUTO'}}); await loadSuggestion(); } catch(e){ toast(e.message); }
 }
 async function loadReport(){
   const month = new Date().toISOString().slice(0,7);
   try {
     const d = await api('/reports/consumption/monthly?month='+month);
     const r = d.report;
-    document.getElementById('report-box').innerHTML = `
-      <div class="card"><div class="meta">${esc(r.month)} · 总消耗 ${r.total_consumed_qty} · 总浪费 ${r.total_wasted_qty}</div></div>`;
+    document.getElementById('report-box').innerHTML = `<div class="card"><div class="meta">${esc(r.month)} · 总消耗 ${r.total_consumed_qty} · 总浪费 ${r.total_wasted_qty}</div></div>`;
   } catch(e){ document.getElementById('report-box').innerHTML = '<div class="empty">暂无报告</div>'; }
 }
 
-/* ============ 家庭 ============ */
+/* ============ 生活·家庭 ============ */
 async function renderFamily(m){
   m.innerHTML = `
     <div id="fam-info" class="empty">加载中…</div>
@@ -242,36 +260,60 @@ async function loadFamily(){
   } catch(e){ document.getElementById('fam-info').innerHTML = '<div class="empty">暂无家庭</div>'; }
 }
 async function invite(){
-  try { const d = await api('/households/invitations', {method:'POST', body:{role:'MEMBER'}, idemKey:idem()}); document.getElementById('invite-box').innerHTML = `<div class="card">邀请码：<b>${esc(d.invitation.invite_code)}</b></div>`; }
+  try { const d = await api('/households/invitations', {method:'POST', body:{role:'MEMBER'}}); document.getElementById('invite-box').innerHTML = `<div class="card">邀请码：<b>${esc(d.invitation.invite_code)}</b></div>`; }
   catch(e){ toast(e.message); }
 }
 async function joinFamily(){
   const code = document.getElementById('join-code').value.trim();
   if(!code){ toast('请输入邀请码'); return; }
-  try { await api('/households/join', {method:'POST', body:{invite_code:code}, idemKey:idem()}); document.getElementById('join-code').value=''; await loadFamily(); } catch(e){ toast(e.message); }
+  try { await api('/households/join', {method:'POST', body:{invite_code:code}}); document.getElementById('join-code').value=''; await loadFamily(); } catch(e){ toast(e.message); }
 }
 
-/* ============ 工作（任务/日历/会议/周报） ============ */
-async function renderWork(m){
+/* ============ 关系 ============ */
+async function renderRelations(m){
   m.innerHTML = `
-    <div class="subnav">
-      <button class="active" data-w="tasks" onclick="switchWorkTab('tasks')">任务</button>
-      <button data-w="calendar" onclick="switchWorkTab('calendar')">日历</button>
-      <button data-w="meetings" onclick="switchWorkTab('meetings')">会议</button>
-      <button data-w="reports" onclick="switchWorkTab('reports')">周报</button>
+    <div class="card">
+      <div class="section" style="margin:0 0 8px;">添加重要的人</div>
+      <div class="toolbar">
+        <input id="ct-name" placeholder="姓名" style="max-width:100px;">
+        <input id="ct-rel" placeholder="关系" style="max-width:80px;">
+        <input id="ct-birthday" placeholder="生日 MM-DD" style="max-width:110px;">
+      </div>
+      <button class="primary" style="background:var(--gold);color:#111;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addContact()">添加</button>
     </div>
-    <div id="work-body" class="empty"></div>`;
-  await renderWorkBody(document.getElementById('work-body'));
+    <div id="contact-list" class="empty">加载中…</div>`;
+  await loadContacts();
 }
-async function renderWorkBody(m){
+async function loadContacts(){
+  const d = await api('/contacts');
+  const el = document.getElementById('contact-list');
+  if(!d.contacts.length){ el.innerHTML = '<div class="empty">暂无联系人，先添加重要的人</div>'; return; }
+  el.innerHTML = d.contacts.map(c=>`
+    <div class="card">
+      <div class="row"><span class="title">${esc(c.name)}</span><span class="badge">${esc(c.relationship||'联系人')}</span></div>
+      <div class="meta">生日 ${esc(c.birthday||'—')}${c.notes?' · '+esc(c.notes):''}</div>
+      <div class="actions"><button class="danger" onclick="delContact('${c.contact_id}')">删除</button></div>
+    </div>`).join('');
+}
+async function addContact(){
+  const name = document.getElementById('ct-name').value.trim();
+  const rel = document.getElementById('ct-rel').value.trim();
+  const bd = document.getElementById('ct-birthday').value.trim();
+  if(!name){ toast('请输入姓名'); return; }
   try {
-    if (workTab==='tasks') await renderTasks(m);
-    else if (workTab==='calendar') await renderCalendar(m);
-    else if (workTab==='meetings') await renderMeetings(m);
-    else if (workTab==='reports') await renderReports(m);
-  } catch(e){ m.innerHTML = '<div class="empty">加载失败：' + esc(e.message) + '</div>'; }
+    await api('/contacts', {method:'POST', body:{name, relationship: rel||null, birthday: bd||null}});
+    document.getElementById('ct-name').value=''; document.getElementById('ct-rel').value=''; document.getElementById('ct-birthday').value='';
+    await loadContacts();
+  } catch(e){ toast(e.message); }
+}
+async function delContact(id){ try { await api('/contacts/'+id, {method:'DELETE'}); await loadContacts(); } catch(e){ toast(e.message); } }
+
+/* ============ 职业（占位） ============ */
+function renderCareer(m){
+  m.innerHTML = `<div class="placeholder"><div class="big">🎯</div><h3 style="color:var(--text);margin-bottom:8px;">职业规划</h3><p>职业目标、技能成长、求职辅助、学习计划</p><p style="margin-top:12px;font-size:12px;">即将上线 · 敬请期待</p></div>`;
 }
 
+/* ============ 工作 ============ */
 async function renderTasks(m){
   m.innerHTML = `
     <div class="toolbar">
@@ -283,7 +325,7 @@ async function renderTasks(m){
   await loadTasks();
 }
 async function loadTasks(){
-  const d = await api('/tasks/prioritize', {method:'POST', idemKey:idem()});
+  const d = await api('/tasks/prioritize', {method:'POST'});
   const el = document.getElementById('task-list');
   const tag = d.method==='ai' ? '<span class="badge ai">AI 排序</span>' : '<span class="badge heuristic">启发式</span>';
   if (!d.tasks.length){ el.innerHTML = '<div class="empty">暂无任务</div>'; return; }
@@ -301,10 +343,10 @@ async function addTask(){
   const title = document.getElementById('t-title').value.trim();
   const priority = document.getElementById('t-priority').value;
   if(!title){ toast('请输入标题'); return; }
-  try { await api('/tasks', {method:'POST', body:{title, priority:parseInt(priority)}, idemKey:idem()}); document.getElementById('t-title').value=''; await loadTasks(); }
+  try { await api('/tasks', {method:'POST', body:{title, priority:parseInt(priority)}}); document.getElementById('t-title').value=''; await loadTasks(); }
   catch(e){ toast(e.message); }
 }
-async function setTaskDone(id){ try { await api('/tasks/'+id, {method:'PATCH', body:{status:'DONE'}, idemKey:idem()}); await loadTasks(); } catch(e){ toast(e.message); } }
+async function setTaskDone(id){ try { await api('/tasks/'+id, {method:'PATCH', body:{status:'DONE'}}); await loadTasks(); } catch(e){ toast(e.message); } }
 async function delTask(id){ try { await api('/tasks/'+id, {method:'DELETE'}); await loadTasks(); } catch(e){ toast(e.message); } }
 
 async function renderCalendar(m){
@@ -326,7 +368,7 @@ async function renderCalendar(m){
   if(!d.events.length){ el.innerHTML = '<div class="empty">本月暂无日程</div>'; return; }
   el.innerHTML = d.events.map(ev=>`
     <div class="card">
-      <div class="row"><span class="title">${esc(ev.title)}</span><span class="badge">${ev.source==='meeting'?'会议':'任务'}</span></div>
+      <div class="row"><span class="title">${esc(ev.title)}</span><span class="badge">${ev.source==='meeting'?'会议':ev.source==='occasion'?'纪念日':'任务'}</span></div>
       <div class="meta">${esc((ev.start_at||'').slice(0,16).replace('T',' '))}</div>
     </div>`).join('');
 }
@@ -375,10 +417,10 @@ async function addMeeting(){
   const title = document.getElementById('mt-title').value.trim();
   const transcript = document.getElementById('mt-transcript').value.trim();
   if(!title || !transcript){ toast('请填写标题和转写内容'); return; }
-  try { await api('/meetings', {method:'POST', body:{title, transcript}, idemKey:idem()}); document.getElementById('mt-title').value=''; document.getElementById('mt-transcript').value=''; await loadMeetings(); }
+  try { await api('/meetings', {method:'POST', body:{title, transcript}}); document.getElementById('mt-title').value=''; document.getElementById('mt-transcript').value=''; await loadMeetings(); }
   catch(e){ toast(e.message); }
 }
-async function doneItem(id){ try { await api('/meetings/action-items/'+id, {method:'PATCH', body:{done:true}, idemKey:idem()}); await loadMeetings(); } catch(e){ toast(e.message); } }
+async function doneItem(id){ try { await api('/meetings/action-items/'+id, {method:'PATCH', body:{done:true}}); await loadMeetings(); } catch(e){ toast(e.message); } }
 
 async function renderReports(m){
   m.innerHTML = `
@@ -401,7 +443,7 @@ async function loadReports(){
 }
 async function genReport(){
   const week = document.getElementById('wr-week').value;
-  try { await api('/weekly-reports/generate' + (week?'?week_start='+week:''), {method:'POST', idemKey:idem()}); await loadReports(); }
+  try { await api('/weekly-reports/generate' + (week?'?week_start='+week:''), {method:'POST'}); await loadReports(); }
   catch(e){ toast(e.message); }
 }
 

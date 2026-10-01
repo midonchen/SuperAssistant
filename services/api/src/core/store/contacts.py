@@ -1,17 +1,19 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 
 from sqlalchemy import delete, func, select
 
 from core.db import SessionLocal
 from core.errors import ApiException
-from core.models import ContactModel, OccasionModel, PushDeliveryModel
+from core.models import ContactInteractionModel, ContactModel, OccasionModel, PushDeliveryModel
 from core.schemas import (
     CalendarEvent,
     Contact,
     ContactCreateRequest,
+    ContactInteraction,
+    ContactInteractionCreateRequest,
     ContactUpdateRequest,
     Occasion,
     OccasionCreateRequest,
@@ -180,6 +182,68 @@ class ContactStoreMixin(StoreBase):
                 raise KeyError("occasion not found")
             db.delete(row)
             db.commit()
+
+    def _interaction(self, row: ContactInteractionModel) -> ContactInteraction:
+        return ContactInteraction(
+            interaction_id=row.id,
+            contact_id=row.contact_id,
+            channel=row.channel,
+            interacted_at=row.interacted_at,
+            note=row.note,
+        )
+
+    def record_interaction(self, user_id: str, contact_id: str, request: ContactInteractionCreateRequest) -> ContactInteraction:
+        with SessionLocal() as db:
+            contact = db.scalar(select(ContactModel).where(ContactModel.id == contact_id, ContactModel.user_id == user_id))
+            if contact is None:
+                raise KeyError("contact not found")
+            row = ContactInteractionModel(
+                id=str(uuid.uuid4()),
+                contact_id=contact_id,
+                user_id=user_id,
+                channel=request.channel,
+                interacted_at=request.interacted_at or utc_now(),
+                note=request.note,
+            )
+            db.add(row)
+            db.commit()
+            db.refresh(row)
+            return self._interaction(row)
+
+    def list_interactions(self, user_id: str, contact_id: str) -> list[ContactInteraction]:
+        with SessionLocal() as db:
+            rows = db.scalars(
+                select(ContactInteractionModel)
+                .where(ContactInteractionModel.contact_id == contact_id, ContactInteractionModel.user_id == user_id)
+                .order_by(ContactInteractionModel.interacted_at.desc())
+            ).all()
+            return [self._interaction(r) for r in rows]
+
+    def stale_contacts(self, user_id: str, days: int = 30) -> list[dict]:
+        cutoff = utc_now() - timedelta(days=days)
+        with SessionLocal() as db:
+            contacts = db.scalars(select(ContactModel).where(ContactModel.user_id == user_id)).all()
+            result: list[dict] = []
+            for c in contacts:
+                last = db.scalar(
+                    select(func.max(ContactInteractionModel.interacted_at)).where(ContactInteractionModel.contact_id == c.id)
+                )
+                effective = last or c.created_at
+                if effective.tzinfo is None:
+                    effective = effective.replace(tzinfo=timezone.utc)
+                if effective < cutoff:
+                    days_since = max(0, int((utc_now() - effective).total_seconds() / 86400))
+                    result.append(
+                        {
+                            "contact_id": c.id,
+                            "name": c.name,
+                            "relationship": c.relationship,
+                            "last_interaction": effective.isoformat(),
+                            "days_since": days_since,
+                        }
+                    )
+            result.sort(key=lambda x: -x["days_since"])
+            return result
 
     def occasion_events(self, user_id: str, start: datetime, end: datetime) -> list[CalendarEvent]:
         with SessionLocal() as db:

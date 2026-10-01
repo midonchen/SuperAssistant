@@ -342,5 +342,19 @@ class OccasionCreateRequest(BaseModel):
     remind_days_before: int = Field(default=3, ge=0, le=30)
 
 
+class ContactInteraction(BaseModel):
+    interaction_id: str
+    contact_id: str
+    channel: str
+    interacted_at: datetime
+    note: str | None = None
+
+
+class ContactInteractionCreateRequest(BaseModel):
+    channel: str = Field(..., min_length=1, max_length=16)
+    interacted_at: datetime | None = None
+    note: str | None = None
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)

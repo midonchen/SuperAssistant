@@ -508,6 +508,14 @@
   - Updated OpenAPI + 3 回归测试
   - Verified: 80/80 API tests PASS, `npm run check:all` PASS
 
+- Mobile 四方向 tab + 3.2 联系频率 (part 67):
+  - 移动端底栏改为 生活/工作/关系/职业 四方向（生活含 库存/采购/家庭 子 tab，工作含 任务/日历/会议/周报）
+  - 关系 tab：联系人列表 + 添加（姓名/关系/生日→自动生成生日纪念日）；职业 tab 占位
+  - 移动端 api() 自动为写方法加 Idempotency-Key（修复 DELETE 缺头 400 隐患）
+  - 3.2 联系频率：contact_interactions 表（迁移 0016）+ record/list interactions + /contacts/stale 久未联系
+  - Updated OpenAPI + 1 回归测试
+  - Verified: 81/81 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：

@@ -519,6 +519,22 @@ components:
         day: { type: integer, minimum: 1, maximum: 31 }
         is_lunar: { type: boolean }
         remind_days_before: { type: integer }
+    ContactInteraction:
+      type: object
+      required: [interaction_id, contact_id, channel, interacted_at]
+      properties:
+        interaction_id: { type: string, format: uuid }
+        contact_id: { type: string, format: uuid }
+        channel: { type: string }
+        interacted_at: { type: string, format: date-time }
+        note: { type: string, nullable: true }
+    ContactInteractionCreateRequest:
+      type: object
+      required: [channel]
+      properties:
+        channel: { type: string }
+        interacted_at: { type: string, format: date-time, nullable: true }
+        note: { type: string, nullable: true }
 paths:
   /auth/sms/send:
     post:
@@ -1326,6 +1342,19 @@ paths:
             schema: { $ref: '#/components/schemas/ContactCreateRequest' }
       responses:
         '200': { description: success }
+  /contacts/stale:
+    get:
+      summary: List contacts not contacted recently
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - in: query
+          name: days
+          schema: { type: integer, default: 30 }
+      responses:
+        '200': { description: success }
   /contacts/{contact_id}:
     get:
       summary: Get a contact
@@ -1402,6 +1431,40 @@ paths:
         content:
           application/json:
             schema: { $ref: '#/components/schemas/OccasionCreateRequest' }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /contacts/{contact_id}/interactions:
+    get:
+      summary: List a contact's interactions
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - in: path
+          name: contact_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+    post:
+      summary: Record an interaction
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: contact_id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ContactInteractionCreateRequest' }
       responses:
         '200': { description: success }
         '404': { description: not found }

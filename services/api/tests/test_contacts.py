@@ -77,3 +77,24 @@ def test_contact_subscription_gate(client, monkeypatch):
     r = client.post("/api/v1/contacts", json={"name": "超限"}, headers=make_headers(idempotency_key="ct-99", token=token))
     assert r.status_code == 402
     assert r.json()["code"] == "BIZ_402_UPGRADE_REQUIRED"
+
+
+def test_contact_interactions_and_stale(client):
+    token = _login(client, "13800138303")
+    r = client.post("/api/v1/contacts", json={"name": "老王", "relationship": "朋友"}, headers=make_headers(idempotency_key="ci-1", token=token))
+    cid = r.json()["data"]["contact"]["contact_id"]
+
+    old = (datetime.now(timezone.utc) - timedelta(days=60)).isoformat()
+    r = client.post(f"/api/v1/contacts/{cid}/interactions", json={"channel": "call", "interacted_at": old}, headers=make_headers(idempotency_key="ci-2", token=token))
+    assert r.status_code == 200
+    assert r.json()["data"]["interaction"]["channel"] == "call"
+
+    r = client.get(f"/api/v1/contacts/{cid}/interactions", headers=make_headers(token=token))
+    assert len(r.json()["data"]["interactions"]) == 1
+
+    r = client.get("/api/v1/contacts/stale?days=30", headers=make_headers(token=token))
+    assert "老王" in [c["name"] for c in r.json()["data"]["contacts"]]
+
+    client.post(f"/api/v1/contacts/{cid}/interactions", json={"channel": "wechat"}, headers=make_headers(idempotency_key="ci-3", token=token))
+    r = client.get("/api/v1/contacts/stale?days=30", headers=make_headers(token=token))
+    assert "老王" not in [c["name"] for c in r.json()["data"]["contacts"]]
