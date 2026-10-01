@@ -90,6 +90,31 @@ def main():
     an = r.json()["data"]
     print(f"8d ADMIN ANALYTICS: HTTP {r.status_code} summary={an['summary']}")
 
+    # 9. v2.0 tasks + AI prioritization
+    req("POST", "/tasks", token, {"title": "交水电费", "priority": 2}, idem=f"demo-task-{RUN_ID}-1")
+    req("POST", "/tasks", token, {"title": "写周报", "priority": 3}, idem=f"demo-task-{RUN_ID}-2")
+    r = req("POST", "/tasks/prioritize", token, idem=f"demo-prio-{RUN_ID}")
+    pt = r.json()["data"]
+    print(f"9 TASKS PRIORITIZE: HTTP {r.status_code} method={pt['method']} order={[t['title'] for t in pt['tasks']]}")
+
+    # 10. v2.0 meeting summary + action items
+    r = req("POST", "/meetings", token, {"title": "家庭采购会", "transcript": "讨论下周采购。待办：采购鸡蛋和牛奶"}, idem=f"demo-meet-{RUN_ID}")
+    mt = r.json()["data"]["meeting"]
+    print(f"10 MEETING: HTTP {r.status_code} summary={mt['summary'][:36]} action_items={len(mt['action_items'])}")
+
+    # 11. v2.0 calendar + iCal
+    start = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    r = req("GET", f"/calendar/events?start_date={start}", token)
+    ev = r.json()["data"]["events"]
+    print(f"11 CALENDAR: HTTP {r.status_code} events={len(ev)} sources={[e['source'] for e in ev]}")
+    r = req("GET", "/calendar/ical", token)
+    print(f"11b ICAL: HTTP {r.status_code} type={r.headers.get('content-type')} vcal={'BEGIN:VCALENDAR' in r.text}")
+
+    # 12. v2.0 weekly report
+    r = req("POST", "/weekly-reports/generate", token, idem=f"demo-wr-{RUN_ID}")
+    wr = r.json()["data"]["report"]
+    print(f"12 WEEKLY REPORT: HTTP {r.status_code} week={wr['week_start']} head={wr['content'][:36]}")
+
 
 if __name__ == "__main__":
     main()

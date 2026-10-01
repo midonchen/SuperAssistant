@@ -85,6 +85,11 @@ async def analytics_snapshot(
     return success(request, snapshot)
 
 
+@router.get("/work/overview")
+async def work_overview(request: Request, user_id: str = Depends(require_admin)):
+    return success(request, store.admin_work_overview())
+
+
 @router.post("/users/{target_user_id}/session/revoke")
 async def revoke_user_session(
     target_user_id: str,

@@ -8,7 +8,7 @@ from sqlalchemy import func, select
 from core.ai_pipeline import ai_pipeline
 from core.db import SessionLocal
 from core.errors import ApiException
-from core.models import TaskModel
+from core.models import MeetingModel, TaskModel, WeeklyReportModel
 from core.schemas import PrioritizedTask, Task, TaskCreateRequest, TaskUpdateRequest, utc_now
 from core.store.base import StoreBase
 
@@ -141,3 +141,24 @@ class TaskStoreMixin(StoreBase):
         method, ranked_dicts = ai_pipeline.rank_tasks(task_dicts)
         ranked = [PrioritizedTask(**d) for d in ranked_dicts]
         return method, ranked
+
+    def admin_work_overview(self) -> dict:
+        with SessionLocal() as db:
+            tasks_total = db.scalar(select(func.count()).select_from(TaskModel)) or 0
+            meetings_total = db.scalar(select(func.count()).select_from(MeetingModel)) or 0
+            reports_total = db.scalar(select(func.count()).select_from(WeeklyReportModel)) or 0
+            recent_tasks = db.scalars(select(TaskModel).order_by(TaskModel.created_at.desc()).limit(10)).all()
+            recent_meetings = db.scalars(select(MeetingModel).order_by(MeetingModel.created_at.desc()).limit(10)).all()
+        return {
+            "totals": {"tasks": tasks_total, "meetings": meetings_total, "weekly_reports": reports_total},
+            "recent_tasks": [self._task(t).model_dump(mode="json") for t in recent_tasks],
+            "recent_meetings": [
+                {
+                    "meeting_id": m.id,
+                    "title": m.title,
+                    "summary": (m.summary or "")[:120],
+                    "started_at": m.started_at.isoformat() if m.started_at else None,
+                }
+                for m in recent_meetings
+            ],
+        }

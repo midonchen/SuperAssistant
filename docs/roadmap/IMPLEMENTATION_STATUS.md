@@ -489,12 +489,19 @@
   - 移动端日历页「订阅链接」按钮：复制公开订阅 URL
   - Verified: 76/76 API tests PASS, `npm run check:all` PASS
 
+- Admin work overview + demo v2.0 coverage (part 64):
+  - `GET /admin/work/overview`（任务/会议/周报总数 + 最近任务/会议）+ Admin「Work」页（nav/type/api）
+  - `scripts/demo_smoke.py` 覆盖 v2.0（任务 AI 排序 / 会议摘要 / 日历+ical / 周报生成）
+  - Verified: 77/77 API tests PASS, admin tsc/build PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
-Phase 2.3 移动端分享（share_plus）待开发（服务端 PDF 导出已完成）。
-Phase 2.5 iOS Widget 待开发（P2，纯 iOS 原生）。
-Phase 2.6 移动端升级提示 UI 待开发（权益门控 + 埋点已在服务器端完成）。
-v2.0 任务 AI 排序、日历整合、会议摘要、工作周报待开发（任务域已起步，见 V2_0_WORK_SCHEDULE_MEMO.md）。
+按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：
+- 移动端分享（share_plus，iOS 原生）—— 暂缓，等服务端/HTML 产品成熟后再做原生。
+- iOS Widget（P2）—— 跳过。
+- 移动端升级提示 UI —— 权益门控已在服务端完成，UI 暂缓。
+- 会议语音转写（STT）—— 用户确认不重要，暂不投入。
+- 原生 iOS 端 —— 先用 HTML 页面效果，产品真正成熟后再做原生。
 
 ## Local Runbook
 

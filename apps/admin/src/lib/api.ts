@@ -11,6 +11,7 @@ import type {
   ReportOverviewRow,
   SecurityEventRow,
   UserRow,
+  WorkOverview,
 } from "../types/admin";
 
 type RequestMethod = "GET" | "POST" | "PUT" | "DELETE";
@@ -196,4 +197,8 @@ export async function getAnalytics(token: string, eventType?: string, limit?: nu
   }
   const suffix = params.size > 0 ? `?${params.toString()}` : "";
   return apiRequest<AnalyticsSnapshot>(`/admin/analytics${suffix}`, { token });
+}
+
+export async function getWorkOverview(token: string): Promise<WorkOverview> {
+  return apiRequest<WorkOverview>("/admin/work/overview", { token });
 }

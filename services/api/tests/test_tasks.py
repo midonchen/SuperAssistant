@@ -85,6 +85,16 @@ def test_ai_task_rank_fallback_and_success(monkeypatch):
     assert ranked[0]["reason"] == "B 更重要"
 
 
+def test_admin_work_overview(client):
+    token = _login(client, "13900139000")  # admin phone
+    r = client.get("/api/v1/admin/work/overview", headers=make_headers(token=token))
+    assert r.status_code == 200
+    d = r.json()["data"]
+    assert "totals" in d
+    assert "recent_tasks" in d
+    assert "recent_meetings" in d
+
+
 def test_invalid_task_status(client):
     token = _login(client, "13800138704")
     r = client.post("/api/v1/tasks", json={"title": "t"}, headers=make_headers(idempotency_key="s-1", token=token))

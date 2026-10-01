@@ -143,3 +143,24 @@ export type AnalyticsSnapshot = {
   list: AnalyticsEventRow[];
   total: number;
 };
+
+export type WorkTaskRow = {
+  task_id: string;
+  title: string;
+  priority: number;
+  status: string;
+  due_at: string | null;
+};
+
+export type WorkMeetingRow = {
+  meeting_id: string;
+  title: string;
+  summary: string;
+  started_at: string | null;
+};
+
+export type WorkOverview = {
+  totals: { tasks: number; meetings: number; weekly_reports: number };
+  recent_tasks: WorkTaskRow[];
+  recent_meetings: WorkMeetingRow[];
+};
