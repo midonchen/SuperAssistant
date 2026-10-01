@@ -15,6 +15,7 @@ DEFAULT_FREE_LIMITS: dict = {
     "weekly_reports": 5,
     "contacts": 10,
     "occasions": 10,
+    "gift_suggestions": 10,
 }
 
 

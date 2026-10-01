@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query, Request
 
 from core.auth_dep import require_bearer
 from core.response import failure, success
-from core.schemas import ContactCreateRequest, ContactInteractionCreateRequest, ContactUpdateRequest, OccasionCreateRequest
+from core.schemas import ContactCreateRequest, ContactInteractionCreateRequest, ContactUpdateRequest, GiftSuggestionRequest, OccasionCreateRequest
 from core.store import store
 
 router = APIRouter(prefix="/contacts", tags=["contacts"])
@@ -83,6 +83,21 @@ async def record_interaction(contact_id: str, payload: ContactInteractionCreateR
 async def list_interactions(contact_id: str, request: Request, user_id: str = Depends(require_bearer)):
     interactions = store.list_interactions(user_id, contact_id)
     return success(request, {"interactions": [i.model_dump(mode="json") for i in interactions]})
+
+
+@router.post("/{contact_id}/gifts")
+async def generate_gift(contact_id: str, payload: GiftSuggestionRequest, request: Request, user_id: str = Depends(require_bearer)):
+    try:
+        suggestion = store.generate_gift_suggestion(user_id, contact_id, payload)
+    except KeyError:
+        return failure(request, 404, "BIZ_404_NOT_FOUND", "contact not found")
+    return success(request, {"suggestion": suggestion.model_dump(mode="json")})
+
+
+@router.get("/{contact_id}/gifts")
+async def list_gifts(contact_id: str, request: Request, user_id: str = Depends(require_bearer)):
+    suggestions = store.list_gift_suggestions(user_id, contact_id)
+    return success(request, {"suggestions": [s.model_dump(mode="json") for s in suggestions]})
 
 
 @router.delete("/occasions/{occasion_id}")

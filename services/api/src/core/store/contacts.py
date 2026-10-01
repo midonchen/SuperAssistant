@@ -5,9 +5,10 @@ from datetime import date, datetime, time, timedelta, timezone
 
 from sqlalchemy import delete, func, select
 
+from core.ai_pipeline import ai_pipeline
 from core.db import SessionLocal
 from core.errors import ApiException
-from core.models import ContactInteractionModel, ContactModel, OccasionModel, PushDeliveryModel
+from core.models import ContactInteractionModel, ContactModel, GiftSuggestionModel, OccasionModel, PushDeliveryModel
 from core.schemas import (
     CalendarEvent,
     Contact,
@@ -15,6 +16,8 @@ from core.schemas import (
     ContactInteraction,
     ContactInteractionCreateRequest,
     ContactUpdateRequest,
+    GiftSuggestion,
+    GiftSuggestionRequest,
     Occasion,
     OccasionCreateRequest,
     utc_now,
@@ -244,6 +247,55 @@ class ContactStoreMixin(StoreBase):
                     )
             result.sort(key=lambda x: -x["days_since"])
             return result
+
+    def _gift_suggestion(self, row: GiftSuggestionModel) -> GiftSuggestion:
+        return GiftSuggestion(
+            suggestion_id=row.id,
+            contact_id=row.contact_id,
+            occasion_id=row.occasion_id,
+            content=row.content,
+            budget=row.budget,
+            generated_at=row.generated_at,
+        )
+
+    def _count_gift_suggestions(self, user_id: str) -> int:
+        with SessionLocal() as db:
+            return db.scalar(select(func.count()).select_from(GiftSuggestionModel).where(GiftSuggestionModel.user_id == user_id)) or 0
+
+    def generate_gift_suggestion(self, user_id: str, contact_id: str, request: GiftSuggestionRequest) -> GiftSuggestion:
+        if not self.can_use_feature(user_id, "gift_suggestions", self._count_gift_suggestions(user_id)):
+            self.record_event(user_id, "subscription_gate_hit", {"feature": "gift_suggestions"})
+            raise ApiException(402, "BIZ_402_UPGRADE_REQUIRED", "free tier gift suggestion limit reached")
+        with SessionLocal() as db:
+            contact = db.scalar(select(ContactModel).where(ContactModel.id == contact_id, ContactModel.user_id == user_id))
+            if contact is None:
+                raise KeyError("contact not found")
+            occasion = None
+            if request.occasion_id:
+                occasion = db.scalar(select(OccasionModel).where(OccasionModel.id == request.occasion_id, OccasionModel.user_id == user_id))
+            occasion_name = occasion.name if occasion else "日常"
+            content = ai_pipeline.suggest_gift(contact.name, contact.relationship, contact.preferences, occasion_name, request.budget)
+            row = GiftSuggestionModel(
+                id=str(uuid.uuid4()),
+                contact_id=contact_id,
+                occasion_id=request.occasion_id,
+                user_id=user_id,
+                content=content,
+                budget=request.budget,
+            )
+            db.add(row)
+            db.commit()
+            db.refresh(row)
+            return self._gift_suggestion(row)
+
+    def list_gift_suggestions(self, user_id: str, contact_id: str) -> list[GiftSuggestion]:
+        with SessionLocal() as db:
+            rows = db.scalars(
+                select(GiftSuggestionModel)
+                .where(GiftSuggestionModel.contact_id == contact_id, GiftSuggestionModel.user_id == user_id)
+                .order_by(GiftSuggestionModel.generated_at.desc())
+            ).all()
+            return [self._gift_suggestion(r) for r in rows]
 
     def occasion_events(self, user_id: str, start: datetime, end: datetime) -> list[CalendarEvent]:
         with SessionLocal() as db:

@@ -98,3 +98,21 @@ def test_contact_interactions_and_stale(client):
     client.post(f"/api/v1/contacts/{cid}/interactions", json={"channel": "wechat"}, headers=make_headers(idempotency_key="ci-3", token=token))
     r = client.get("/api/v1/contacts/stale?days=30", headers=make_headers(token=token))
     assert "老王" not in [c["name"] for c in r.json()["data"]["contacts"]]
+
+
+def test_gift_suggestion(client, monkeypatch):
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)  # heuristic fallback
+    token = _login(client, "13800138304")
+    r = client.post("/api/v1/contacts", json={"name": "老婆", "relationship": "配偶", "birthday": "01-15"}, headers=make_headers(idempotency_key="g-1", token=token))
+    cid = r.json()["data"]["contact"]["contact_id"]
+    r = client.get(f"/api/v1/contacts/{cid}/occasions", headers=make_headers(token=token))
+    oid = r.json()["data"]["occasions"][0]["occasion_id"]
+
+    r = client.post(f"/api/v1/contacts/{cid}/gifts", json={"occasion_id": oid, "budget": 500}, headers=make_headers(idempotency_key="g-2", token=token))
+    assert r.status_code == 200
+    s = r.json()["data"]["suggestion"]
+    assert "生日" in s["content"]
+    assert s["budget"] == 500
+
+    r = client.get(f"/api/v1/contacts/{cid}/gifts", headers=make_headers(token=token))
+    assert len(r.json()["data"]["suggestions"]) == 1

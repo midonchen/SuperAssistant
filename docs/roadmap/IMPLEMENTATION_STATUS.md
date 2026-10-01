@@ -516,6 +516,14 @@
   - Updated OpenAPI + 1 回归测试
   - Verified: 81/81 API tests PASS, `npm run check:all` PASS
 
+- v3.0 3.3 AI 礼物建议 (part 68):
+  - `gift_suggestions` 表（迁移 0017）+ 订阅门控（免费 10 次）
+  - `AIPipeline.suggest_gift`（DeepSeek 结合喜好/场合/预算，启发式兜底）
+  - POST/GET `/contacts/{id}/gifts`
+  - 重构：生成式 AI 方法拆到 `core/ai_generative.py`（ai_pipeline.py 810→613 行，满足 800 行红线）
+  - Updated OpenAPI + 1 回归测试
+  - Verified: 82/82 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：

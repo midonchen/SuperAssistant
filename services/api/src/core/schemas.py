@@ -356,5 +356,19 @@ class ContactInteractionCreateRequest(BaseModel):
     note: str | None = None
 
 
+class GiftSuggestion(BaseModel):
+    suggestion_id: str
+    contact_id: str
+    occasion_id: str | None = None
+    content: str
+    budget: float | None = None
+    generated_at: datetime
+
+
+class GiftSuggestionRequest(BaseModel):
+    occasion_id: str | None = None
+    budget: float | None = Field(default=None, ge=0)
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)

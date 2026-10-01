@@ -350,3 +350,15 @@ class ContactInteractionModel(Base):
     interacted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class GiftSuggestionModel(Base):
+    __tablename__ = "gift_suggestions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    contact_id: Mapped[str] = mapped_column(String(36), ForeignKey("contacts.id"), index=True)
+    occasion_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    content: Mapped[str] = mapped_column(Text)
+    budget: Mapped[float | None] = mapped_column(Float, nullable=True)
+    generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
