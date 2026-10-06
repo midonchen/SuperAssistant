@@ -650,6 +650,31 @@ components:
         status: { type: string, nullable: true }
         applied_at: { type: string, format: date-time, nullable: true }
         notes: { type: string, nullable: true }
+    LearningItem:
+      type: object
+      required: [item_id, title, item_type, status, created_at, updated_at]
+      properties:
+        item_id: { type: string, format: uuid }
+        title: { type: string }
+        item_type: { type: string }
+        status: { type: string }
+        notes: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    LearningItemCreateRequest:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string }
+        item_type: { type: string }
+        notes: { type: string, nullable: true }
+    LearningItemUpdateRequest:
+      type: object
+      properties:
+        title: { type: string, nullable: true }
+        item_type: { type: string, nullable: true }
+        status: { type: string, nullable: true }
+        notes: { type: string, nullable: true }
 paths:
   /auth/sms/send:
     post:
@@ -1870,6 +1895,68 @@ paths:
         - $ref: '#/components/parameters/IdempotencyKey'
         - in: path
           name: application_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /learning-items:
+    get:
+      summary: List learning items
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create a learning item
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LearningItemCreateRequest' }
+      responses:
+        '200': { description: success }
+        '402': { description: upgrade required }
+  /learning-items/{item_id}:
+    patch:
+      summary: Update a learning item
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: item_id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LearningItemUpdateRequest' }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+    delete:
+      summary: Delete a learning item
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: item_id
           required: true
           schema: { type: string, format: uuid }
       responses:

@@ -559,6 +559,14 @@
   - Updated OpenAPI + 2 回归测试
   - Verified: 90/90 API tests PASS, `npm run check:all` PASS
 
+- v3.x 职业模块 3.4 学习计划 (part 74):
+  - `learning_items` 表（迁移 0022）+ 订阅门控（免费 20 个）
+  - CRUD `/learning-items` 路由（学习内容/类型 course·book·cert/状态 TODO·IN_PROGRESS·DONE）
+  - 移动端「职业」tab 增学习计划（待开始→开始→完成）
+  - 修复：学习项方法与 inventory 的 `list_items` 命名冲突，改用 `list_learning_items` 等
+  - Updated OpenAPI + 2 回归测试
+  - Verified: 92/92 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：

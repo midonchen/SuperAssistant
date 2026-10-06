@@ -9,6 +9,8 @@ from core.schemas import (
     CareerGoalUpdateRequest,
     JobApplicationCreateRequest,
     JobApplicationUpdateRequest,
+    LearningItemCreateRequest,
+    LearningItemUpdateRequest,
     SkillCreateRequest,
     SkillUpdateRequest,
 )
@@ -107,4 +109,36 @@ async def delete_application(application_id: str, request: Request, user_id: str
         store.delete_application(user_id, application_id)
     except KeyError:
         return failure(request, 404, "BIZ_404_NOT_FOUND", "job application not found")
+    return success(request, {"deleted": True})
+
+
+learning_router = APIRouter(prefix="/learning-items", tags=["learning-items"])
+
+
+@learning_router.get("")
+async def list_learning_items(request: Request, user_id: str = Depends(require_bearer)):
+    return success(request, {"items": [i.model_dump(mode="json") for i in store.list_learning_items(user_id)]})
+
+
+@learning_router.post("")
+async def create_learning_item(payload: LearningItemCreateRequest, request: Request, user_id: str = Depends(require_bearer)):
+    item = store.create_learning_item(user_id, payload)
+    return success(request, {"item": item.model_dump(mode="json")})
+
+
+@learning_router.patch("/{item_id}")
+async def update_learning_item(item_id: str, payload: LearningItemUpdateRequest, request: Request, user_id: str = Depends(require_bearer)):
+    try:
+        item = store.update_learning_item(user_id, item_id, payload)
+    except KeyError:
+        return failure(request, 404, "BIZ_404_NOT_FOUND", "learning item not found")
+    return success(request, {"item": item.model_dump(mode="json")})
+
+
+@learning_router.delete("/{item_id}")
+async def delete_learning_item(item_id: str, request: Request, user_id: str = Depends(require_bearer)):
+    try:
+        store.delete_learning_item(user_id, item_id)
+    except KeyError:
+        return failure(request, 404, "BIZ_404_NOT_FOUND", "learning item not found")
     return success(request, {"deleted": True})

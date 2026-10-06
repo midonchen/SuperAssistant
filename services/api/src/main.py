@@ -17,6 +17,7 @@ from modules.contacts.api.routes import router as contacts_router
 from modules.career.api.routes import router as career_router
 from modules.career.api.routes import skills_router
 from modules.career.api.routes import applications_router
+from modules.career.api.routes import learning_router
 from modules.family_affairs.api.routes import router as family_affairs_router
 from modules.households.api.routes import router as households_router
 from modules.inventory.api.routes import router as inventory_router
@@ -92,5 +93,6 @@ app.include_router(contacts_router, prefix="/api/v1")
 app.include_router(career_router, prefix="/api/v1")
 app.include_router(skills_router, prefix="/api/v1")
 app.include_router(applications_router, prefix="/api/v1")
+app.include_router(learning_router, prefix="/api/v1")
 app.include_router(family_affairs_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")

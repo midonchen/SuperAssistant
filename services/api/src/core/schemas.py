@@ -469,5 +469,28 @@ class JobApplicationUpdateRequest(BaseModel):
     notes: str | None = None
 
 
+class LearningItem(BaseModel):
+    item_id: str
+    title: str
+    item_type: str = "course"
+    status: str = "TODO"
+    notes: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class LearningItemCreateRequest(BaseModel):
+    title: str = Field(..., min_length=1, max_length=128)
+    item_type: str = Field(default="course", max_length=16)
+    notes: str | None = None
+
+
+class LearningItemUpdateRequest(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=128)
+    item_type: str | None = Field(default=None, max_length=16)
+    status: str | None = None
+    notes: str | None = None
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)

@@ -367,8 +367,22 @@ async function renderCareer(m){
       </div>
       <button class="primary" style="background:var(--blue);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addApplication()">添加投递</button>
     </div>
-    <div id="app-list" class="empty">加载中…</div>`;
-  await Promise.all([loadGoals(), loadSkills(), loadApplications()]);
+    <div id="app-list" class="empty">加载中…</div>
+
+    <div class="card">
+      <div class="section" style="margin:0 0 8px;">学习计划</div>
+      <div class="toolbar">
+        <input id="li-title" placeholder="学习内容" style="max-width:110px;">
+        <select id="li-type" style="background:#2a2f3a;color:var(--text);border:none;padding:10px 12px;border-radius:10px;">
+          <option value="course">课程</option>
+          <option value="book">书籍</option>
+          <option value="cert">认证</option>
+        </select>
+      </div>
+      <button class="primary" style="background:var(--blue);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addLearningItem()">添加学习</button>
+    </div>
+    <div id="learning-list" class="empty">加载中…</div>`;
+  await Promise.all([loadGoals(), loadSkills(), loadApplications(), loadLearningItems()]);
 }
 async function loadGoals(){
   const d = await api('/career-goals');
@@ -482,6 +496,46 @@ async function advanceApplication(id, status){
 }
 async function delApplication(id){
   try { await api('/job-applications/'+id, {method:'DELETE'}); await loadApplications(); }
+  catch(e){ toast(e.message); }
+}
+async function loadLearningItems(){
+  const d = await api('/learning-items');
+  const el = document.getElementById('learning-list');
+  if(!d.items.length){ el.innerHTML = '<div class="empty">暂无学习计划，添加课程/书籍/认证</div>'; return; }
+  const TY = {course:'课程', book:'书籍', cert:'认证'};
+  const ST = {TODO:'待开始', IN_PROGRESS:'学习中', DONE:'已完成'};
+  el.innerHTML = d.items.map(i=>{
+    let act = '';
+    if(i.status==='TODO') act = '<button onclick="startLearning(\''+i.item_id+'\')">开始</button>';
+    else if(i.status==='IN_PROGRESS') act = '<button onclick="doneLearning(\''+i.item_id+'\')">完成</button>';
+    return `<div class="card">
+      <div class="row"><span class="title">${esc(i.title)}</span><span class="badge">${TY[i.item_type]||i.item_type}</span></div>
+      <div class="meta">${ST[i.status]||i.status}${i.notes?' · '+esc(i.notes):''}</div>
+      <div class="actions">${act}<button class="danger" onclick="delLearningItem('${i.item_id}')">删除</button></div>
+    </div>`;
+  }).join('');
+}
+async function addLearningItem(){
+  const t = document.getElementById('li-title').value.trim();
+  const ty = document.getElementById('li-type').value;
+  if(!t) return toast('请输入学习内容');
+  try {
+    await api('/learning-items', {method:'POST', body:{title:t, item_type:ty}});
+    document.getElementById('li-title').value='';
+    toast('已添加学习项');
+    await loadLearningItems();
+  } catch(e){ toast(e.message); }
+}
+async function startLearning(id){
+  try { await api('/learning-items/'+id, {method:'PATCH', body:{status:'IN_PROGRESS'}}); await loadLearningItems(); }
+  catch(e){ toast(e.message); }
+}
+async function doneLearning(id){
+  try { await api('/learning-items/'+id, {method:'PATCH', body:{status:'DONE'}}); await loadLearningItems(); }
+  catch(e){ toast(e.message); }
+}
+async function delLearningItem(id){
+  try { await api('/learning-items/'+id, {method:'DELETE'}); await loadLearningItems(); }
   catch(e){ toast(e.message); }
 }
 
