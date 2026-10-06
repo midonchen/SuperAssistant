@@ -174,3 +174,12 @@ export type RelationshipsOverview = {
     birthday: string | null;
   }[];
 };
+
+export type CareerOverview = {
+  totals: {
+    career_goals: number;
+    skills: number;
+    job_applications: number;
+    learning_items: number;
+  };
+};

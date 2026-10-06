@@ -125,3 +125,10 @@ def test_admin_relationships_overview(client):
     d = r.json()["data"]
     assert "totals" in d
     assert "recent_contacts" in d
+
+
+def test_admin_career_overview(client):
+    token = _login(client, "13900139000")  # admin
+    r = client.get("/api/v1/admin/career/overview", headers=make_headers(token=token))
+    assert r.status_code == 200
+    assert "totals" in r.json()["data"]

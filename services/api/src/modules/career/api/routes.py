@@ -142,3 +142,11 @@ async def delete_learning_item(item_id: str, request: Request, user_id: str = De
     except KeyError:
         return failure(request, 404, "BIZ_404_NOT_FOUND", "learning item not found")
     return success(request, {"deleted": True})
+
+
+advice_router = APIRouter(prefix="/career", tags=["career-advice"])
+
+
+@advice_router.post("/advice")
+async def career_advice(request: Request, user_id: str = Depends(require_bearer)):
+    return success(request, store.get_career_advice(user_id))

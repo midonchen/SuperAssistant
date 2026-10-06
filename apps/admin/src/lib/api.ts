@@ -10,6 +10,7 @@ import type {
   LoginResult,
   ReportOverviewRow,
   RelationshipsOverview,
+  CareerOverview,
   SecurityEventRow,
   UserRow,
   WorkOverview,
@@ -206,4 +207,8 @@ export async function getWorkOverview(token: string): Promise<WorkOverview> {
 
 export async function getRelationshipsOverview(token: string): Promise<RelationshipsOverview> {
   return apiRequest<RelationshipsOverview>("/admin/relationships/overview", { token });
+}
+
+export async function getCareerOverview(token: string): Promise<CareerOverview> {
+  return apiRequest<CareerOverview>("/admin/career/overview", { token });
 }

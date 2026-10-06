@@ -95,6 +95,11 @@ async def relationships_overview(request: Request, user_id: str = Depends(requir
     return success(request, store.admin_relationships_overview())
 
 
+@router.get("/career/overview")
+async def career_overview(request: Request, user_id: str = Depends(require_admin)):
+    return success(request, store.admin_career_overview())
+
+
 @router.post("/users/{target_user_id}/session/revoke")
 async def revoke_user_session(
     target_user_id: str,

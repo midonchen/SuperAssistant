@@ -127,6 +127,18 @@ def main():
     r = req("POST", "/family-affairs", token, {"title": "交物业费", "due_at": (datetime.now(timezone.utc) + timedelta(days=3)).isoformat()}, idem=f"demo-fa-{RUN_ID}")
     print(f"13d FAMILY AFFAIR: HTTP {r.status_code}")
 
+    # 14. v3.x career
+    r = req("POST", "/career-goals", token, {"title": "晋升高级工程师", "target_year": 2027}, idem=f"demo-cg-{RUN_ID}")
+    print(f"14 CAREER GOAL: HTTP {r.status_code} title={r.json()['data']['goal']['title']}")
+    r = req("POST", "/skills", token, {"name": "Python", "level": 3, "target_level": 5}, idem=f"demo-sk-{RUN_ID}")
+    print(f"14b SKILL: HTTP {r.status_code} name={r.json()['data']['skill']['name']}")
+    r = req("POST", "/job-applications", token, {"company": "字节跳动", "position": "后端工程师"}, idem=f"demo-ja-{RUN_ID}")
+    print(f"14c APPLICATION: HTTP {r.status_code} company={r.json()['data']['application']['company']}")
+    r = req("POST", "/learning-items", token, {"title": "系统设计", "item_type": "course"}, idem=f"demo-li-{RUN_ID}")
+    print(f"14d LEARNING: HTTP {r.status_code} title={r.json()['data']['item']['title']}")
+    r = req("POST", "/career/advice", token, idem=f"demo-advice-{RUN_ID}")
+    print(f"14e CAREER ADVICE: HTTP {r.status_code} head={r.json()['data']['advice'][:40]}")
+
 
 if __name__ == "__main__":
     main()

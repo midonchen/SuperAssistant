@@ -4,9 +4,10 @@ import uuid
 
 from sqlalchemy import func, select
 
+from core.ai_pipeline import ai_pipeline
 from core.db import SessionLocal
 from core.errors import ApiException
-from core.models import CareerGoalModel
+from core.models import CareerGoalModel, JobApplicationModel, LearningItemModel, SkillModel
 from core.schemas import CareerGoal, CareerGoalCreateRequest, CareerGoalUpdateRequest, utc_now
 from core.store.base import StoreBase
 
@@ -98,3 +99,26 @@ class CareerGoalStoreMixin(StoreBase):
                 raise KeyError("career goal not found")
             db.delete(row)
             db.commit()
+
+    def get_career_advice(self, user_id: str) -> dict:
+        goals = [g.model_dump(mode="json") for g in self.list_goals(user_id)]
+        skills = [s.model_dump(mode="json") for s in self.list_skills(user_id)]
+        applications = [a.model_dump(mode="json") for a in self.list_applications(user_id)]
+        learning_items = [i.model_dump(mode="json") for i in self.list_learning_items(user_id)]
+        advice = ai_pipeline.career_advice(goals, skills, applications, learning_items)
+        return {"advice": advice}
+
+    def admin_career_overview(self) -> dict:
+        with SessionLocal() as db:
+            goals_total = db.scalar(select(func.count()).select_from(CareerGoalModel)) or 0
+            skills_total = db.scalar(select(func.count()).select_from(SkillModel)) or 0
+            apps_total = db.scalar(select(func.count()).select_from(JobApplicationModel)) or 0
+            learning_total = db.scalar(select(func.count()).select_from(LearningItemModel)) or 0
+        return {
+            "totals": {
+                "career_goals": goals_total,
+                "skills": skills_total,
+                "job_applications": apps_total,
+                "learning_items": learning_total,
+            }
+        }

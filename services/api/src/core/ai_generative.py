@@ -207,3 +207,65 @@ class GenerativeAIMixin:
         if occasion_name and ("纪念" in occasion_name or "周年" in occasion_name):
             return f"为{contact_name}准备一份纪念礼物：一件有纪念意义的定制小物，如照片相册或刻字饰品。"
         return f"为{contact_name}挑选一份心意礼物：结合ta的喜好，选一份实用或精致的礼物。"
+
+    def career_advice(
+        self, goals: list[dict], skills: list[dict], applications: list[dict], learning_items: list[dict]
+    ) -> str:
+        """Generate career growth advice. Falls back to heuristic."""
+        try:
+            content = self._ai_career_advice(goals, skills, applications, learning_items)
+            if content:
+                return content
+        except Exception as exc:
+            logger.warning("career advice failed, fallback to heuristic: %s", exc)
+        return self._heuristic_career_advice(goals, skills, applications, learning_items)
+
+    def _ai_career_advice(
+        self, goals: list[dict], skills: list[dict], applications: list[dict], learning_items: list[dict]
+    ) -> str | None:
+        api_key = os.getenv("DEEPSEEK_API_KEY", "").strip()
+        if not api_key:
+            return None
+        model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat").strip() or "deepseek-chat"
+        endpoint = os.getenv("DEEPSEEK_CHAT_ENDPOINT", "https://api.deepseek.com/v1/chat/completions").strip()
+        g = "; ".join([f"{x['title']}(进度{x['progress']}%, {x['status']})" for x in goals]) or "无"
+        s = "; ".join([f"{x['name']}(L{x['level']}→L{x['target_level']})" for x in skills]) or "无"
+        a = "; ".join([f"{x['company']}·{x['position']}({x['status']})" for x in applications]) or "无"
+        l = "; ".join([f"{x['title']}({x['item_type']}, {x['status']})" for x in learning_items]) or "无"
+        prompt = (
+            "你是职业规划顾问。根据用户的职业目标、技能、求职进展和学习计划，给出三条具体可执行的成长建议，每条一句话，语气务实。\n"
+            f"职业目标：{g}\n技能：{s}\n求职进展：{a}\n学习计划：{l}\n"
+            "用 markdown 列表返回，每条以 '- ' 开头，200字以内。"
+        )
+        with httpx.Client(timeout=30.0) as client:
+            response = client.post(
+                endpoint,
+                headers={"Authorization": f"Bearer {api_key}", "content-type": "application/json"},
+                json={"model": model, "temperature": 0.6, "messages": [{"role": "user", "content": prompt}]},
+            )
+            response.raise_for_status()
+            content = response.json()["choices"][0]["message"]["content"].strip()
+            return content or None
+
+    def _heuristic_career_advice(
+        self, goals: list[dict], skills: list[dict], applications: list[dict], learning_items: list[dict]
+    ) -> str:
+        lines = ["## 职业成长建议"]
+        if goals:
+            active = [x for x in goals if x.get("status") == "ACTIVE"]
+            lines.append(f"- 聚焦当前 {len(active)} 个进行中的目标，把进度推进到 100%。")
+        else:
+            lines.append("- 先设定一个明确的职业目标（如晋升/转岗/技能深耕），再拆解季度里程碑。")
+        gaps = [x for x in skills if x.get("target_level", 0) > x.get("level", 0)]
+        if gaps:
+            names = "、".join(x["name"] for x in gaps[:3])
+            lines.append(f"- 优先补齐技能缺口：{names}，制定学习计划提升等级。")
+        interviewing = [x for x in applications if x.get("status") == "INTERVIEW"]
+        if interviewing:
+            lines.append(f"- 你有 {len(interviewing)} 个面试进行中，及时复盘每次面试并补充针对性准备。")
+        pending = [x for x in learning_items if x.get("status") != "DONE"]
+        if pending:
+            lines.append(f"- 推进 {len(pending)} 个未完成的学习项，保持输入节奏。")
+        if not (goals or skills or applications or learning_items):
+            lines.append("- 先完善职业档案：设定目标、盘点技能、记录投递、规划学习。")
+        return "\n".join(lines)

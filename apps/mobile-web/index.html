@@ -339,6 +339,11 @@ async function loadStale(){
 async function renderCareer(m){
   m.innerHTML = `
     <div class="card">
+      <button class="primary" style="background:var(--blue);color:#fff;border:none;padding:12px 16px;border-radius:10px;font-weight:600;width:100%;" onclick="getAdvice()">🎯 AI 职业顾问 · 生成成长建议</button>
+      <div id="advice-box"></div>
+    </div>
+
+    <div class="card">
       <div class="section" style="margin:0 0 8px;">添加职业目标</div>
       <div class="toolbar">
         <input id="cg-title" placeholder="目标（如：晋升高级工程师）" style="max-width:150px;">
@@ -537,6 +542,14 @@ async function doneLearning(id){
 async function delLearningItem(id){
   try { await api('/learning-items/'+id, {method:'DELETE'}); await loadLearningItems(); }
   catch(e){ toast(e.message); }
+}
+async function getAdvice(){
+  const box = document.getElementById('advice-box');
+  box.innerHTML = '<div class="empty">生成中…</div>';
+  try {
+    const d = await api('/career/advice', {method:'POST', body:{}});
+    box.innerHTML = '<div class="meta" style="white-space:pre-wrap;line-height:1.6;">'+esc(d.advice)+'</div>';
+  } catch(e){ box.innerHTML = ''; toast(e.message); }
 }
 
 /* ============ 工作 ============ */

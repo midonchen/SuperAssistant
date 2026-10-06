@@ -1962,6 +1962,17 @@ paths:
       responses:
         '200': { description: success }
         '404': { description: not found }
+  /career/advice:
+    post:
+      summary: Generate career growth advice
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200': { description: success }
   /tasks/{task_id}:
     patch:
       summary: Update a task

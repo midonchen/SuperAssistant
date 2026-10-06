@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: "/analytics", label: "Analytics" },
   { href: "/work", label: "Work" },
   { href: "/relationships", label: "Relationships" },
+  { href: "/career", label: "Career" },
   { href: "/approvals", label: "Approvals" },
   { href: "/audit", label: "Audit" },
   { href: "/security", label: "Security" },

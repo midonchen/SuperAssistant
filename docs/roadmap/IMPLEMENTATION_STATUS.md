@@ -567,6 +567,14 @@
   - Updated OpenAPI + 2 回归测试
   - Verified: 92/92 API tests PASS, `npm run check:all` PASS
 
+- v3.x 职业模块 3.5 收尾整合 (part 75):
+  - `POST /career/advice`：AI 职业顾问（DeepSeek 结合目标/技能缺口/求职/学习，启发式兜底）
+  - Admin「Career」页（目标/技能/投递/学习 四项统计）
+  - 移动端「职业」tab 加「AI 职业顾问」按钮
+  - demo_smoke.py 覆盖 v3.x（目标→技能→投递→学习→AI 顾问）
+  - v3.x 职业模块全闭环（3.1~3.5）
+  - Verified: 93/93 API tests PASS, admin tsc/build PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：
