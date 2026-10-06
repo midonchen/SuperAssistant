@@ -376,3 +376,17 @@ class FamilyAffairModel(Base):
     status: Mapped[str] = mapped_column(String(16), default="TODO", index=True)  # TODO/IN_PROGRESS/DONE
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class CareerGoalModel(Base):
+    __tablename__ = "career_goals"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    title: Mapped[str] = mapped_column(String(128))
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    target_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    status: Mapped[str] = mapped_column(String(16), default="ACTIVE", index=True)  # ACTIVE/COMPLETED/ARCHIVED
+    progress: Mapped[int] = mapped_column(Integer, default=0)  # 0-100
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)

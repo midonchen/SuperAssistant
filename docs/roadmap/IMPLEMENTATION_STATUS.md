@@ -538,6 +538,13 @@
   - v3.0 关系模块全闭环（3.1~3.5）
   - Verified: 84/84 API tests PASS, admin tsc/build PASS, `npm run check:all` PASS
 
+- v3.x 职业模块 3.1 职业目标 (part 71):
+  - `career_goals` 表（迁移 0019）+ 订阅门控（免费 5 个）
+  - CRUD `/career-goals` 路由（目标/目标年/进度/状态 ACTIVE·COMPLETED·ARCHIVED）
+  - 移动端「职业」tab 从占位改为目标管理（添加/进度条 +10%/完成/删除）
+  - Updated OpenAPI + 2 回归测试
+  - Verified: 86/86 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：

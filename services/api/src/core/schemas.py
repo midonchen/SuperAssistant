@@ -394,5 +394,30 @@ class FamilyAffairUpdateRequest(BaseModel):
     status: str | None = None
 
 
+class CareerGoal(BaseModel):
+    goal_id: str
+    title: str
+    description: str | None = None
+    target_year: int | None = None
+    status: str = "ACTIVE"
+    progress: int = 0
+    created_at: datetime
+    updated_at: datetime
+
+
+class CareerGoalCreateRequest(BaseModel):
+    title: str = Field(..., min_length=1, max_length=128)
+    description: str | None = None
+    target_year: int | None = Field(default=None, ge=2020, le=2100)
+
+
+class CareerGoalUpdateRequest(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=128)
+    description: str | None = None
+    target_year: int | None = Field(default=None, ge=2020, le=2100)
+    status: str | None = None
+    progress: int | None = Field(default=None, ge=0, le=100)
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)

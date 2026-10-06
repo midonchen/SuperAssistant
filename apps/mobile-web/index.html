@@ -335,9 +335,59 @@ async function loadStale(){
   } catch(e){ toast(e.message); }
 }
 
-/* ============ 职业（占位） ============ */
-function renderCareer(m){
-  m.innerHTML = `<div class="placeholder"><div class="big">🎯</div><h3 style="color:var(--text);margin-bottom:8px;">职业规划</h3><p>职业目标、技能成长、求职辅助、学习计划</p><p style="margin-top:12px;font-size:12px;">即将上线 · 敬请期待</p></div>`;
+/* ============ 职业 ============ */
+async function renderCareer(m){
+  m.innerHTML = `
+    <div class="card">
+      <div class="section" style="margin:0 0 8px;">添加职业目标</div>
+      <div class="toolbar">
+        <input id="cg-title" placeholder="目标（如：晋升高级工程师）" style="max-width:150px;">
+        <input id="cg-year" placeholder="目标年 2027" style="max-width:96px;" inputmode="numeric">
+      </div>
+      <button class="primary" style="background:var(--blue);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addGoal()">添加目标</button>
+    </div>
+    <div id="goal-list" class="empty">加载中…</div>`;
+  await loadGoals();
+}
+async function loadGoals(){
+  const d = await api('/career-goals');
+  const el = document.getElementById('goal-list');
+  if(!d.goals.length){ el.innerHTML = '<div class="empty">暂无职业目标，先设定一个长期目标</div>'; return; }
+  el.innerHTML = d.goals.map(g=>`
+    <div class="card">
+      <div class="row"><span class="title">${esc(g.title)}</span><span class="badge">${g.status==='COMPLETED'?'已完成':g.status==='ARCHIVED'?'已归档':'进行中'}</span></div>
+      <div class="meta">${g.target_year?'目标年 '+g.target_year+' · ':''}进度 ${g.progress}%</div>
+      <div style="height:6px;background:#2a2f3a;border-radius:3px;margin:6px 0;"><div style="height:6px;width:${g.progress}%;background:var(--blue);border-radius:3px;"></div></div>
+      <div class="actions">
+        <button onclick="bumpGoal('${g.goal_id}',${g.progress})">+10%</button>
+        <button onclick="finishGoal('${g.goal_id}')">完成</button>
+        <button class="danger" onclick="delGoal('${g.goal_id}')">删除</button>
+      </div>
+    </div>`).join('');
+}
+async function addGoal(){
+  const t = document.getElementById('cg-title').value.trim();
+  const y = document.getElementById('cg-year').value.trim();
+  if(!t) return toast('请输入目标');
+  try {
+    await api('/career-goals', {method:'POST', body:{title:t, target_year:y?parseInt(y,10):null}});
+    document.getElementById('cg-title').value='';
+    document.getElementById('cg-year').value='';
+    toast('已添加目标');
+    await loadGoals();
+  } catch(e){ toast(e.message); }
+}
+async function bumpGoal(id, cur){
+  try { await api('/career-goals/'+id, {method:'PATCH', body:{progress:Math.min(100, cur+10)}}); await loadGoals(); }
+  catch(e){ toast(e.message); }
+}
+async function finishGoal(id){
+  try { await api('/career-goals/'+id, {method:'PATCH', body:{status:'COMPLETED', progress:100}}); await loadGoals(); }
+  catch(e){ toast(e.message); }
+}
+async function delGoal(id){
+  try { await api('/career-goals/'+id, {method:'DELETE'}); await loadGoals(); }
+  catch(e){ toast(e.message); }
 }
 
 /* ============ 工作 ============ */
