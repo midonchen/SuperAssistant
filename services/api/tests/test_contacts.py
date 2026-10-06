@@ -116,3 +116,12 @@ def test_gift_suggestion(client, monkeypatch):
 
     r = client.get(f"/api/v1/contacts/{cid}/gifts", headers=make_headers(token=token))
     assert len(r.json()["data"]["suggestions"]) == 1
+
+
+def test_admin_relationships_overview(client):
+    token = _login(client, "13900139000")  # admin
+    r = client.get("/api/v1/admin/relationships/overview", headers=make_headers(token=token))
+    assert r.status_code == 200
+    d = r.json()["data"]
+    assert "totals" in d
+    assert "recent_contacts" in d

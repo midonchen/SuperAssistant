@@ -9,6 +9,7 @@ import type {
   HouseholdRow,
   LoginResult,
   ReportOverviewRow,
+  RelationshipsOverview,
   SecurityEventRow,
   UserRow,
   WorkOverview,
@@ -201,4 +202,8 @@ export async function getAnalytics(token: string, eventType?: string, limit?: nu
 
 export async function getWorkOverview(token: string): Promise<WorkOverview> {
   return apiRequest<WorkOverview>("/admin/work/overview", { token });
+}
+
+export async function getRelationshipsOverview(token: string): Promise<RelationshipsOverview> {
+  return apiRequest<RelationshipsOverview>("/admin/relationships/overview", { token });
 }

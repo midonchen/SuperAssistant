@@ -280,7 +280,9 @@ async function renderRelations(m){
         <input id="ct-birthday" placeholder="生日 MM-DD" style="max-width:110px;">
       </div>
       <button class="primary" style="background:var(--gold);color:#111;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addContact()">添加</button>
+      <button style="background:#2a2f3a;color:var(--text);border:none;padding:10px 16px;border-radius:10px;font-weight:600;margin-top:8px;" onclick="loadStale()">久未联系</button>
     </div>
+    <div id="stale-box"></div>
     <div id="contact-list" class="empty">加载中…</div>`;
   await loadContacts();
 }
@@ -292,7 +294,11 @@ async function loadContacts(){
     <div class="card">
       <div class="row"><span class="title">${esc(c.name)}</span><span class="badge">${esc(c.relationship||'联系人')}</span></div>
       <div class="meta">生日 ${esc(c.birthday||'—')}${c.notes?' · '+esc(c.notes):''}</div>
-      <div class="actions"><button class="danger" onclick="delContact('${c.contact_id}')">删除</button></div>
+      <div class="actions">
+        <button class="primary" onclick="recordInteraction('${c.contact_id}','${esc(c.name)}')">记互动</button>
+        <button onclick="suggestGift('${c.contact_id}')">礼物建议</button>
+        <button class="danger" onclick="delContact('${c.contact_id}')">删除</button>
+      </div>
     </div>`).join('');
 }
 async function addContact(){
@@ -307,6 +313,27 @@ async function addContact(){
   } catch(e){ toast(e.message); }
 }
 async function delContact(id){ try { await api('/contacts/'+id, {method:'DELETE'}); await loadContacts(); } catch(e){ toast(e.message); } }
+async function recordInteraction(id, name){
+  const ch = prompt('互动方式（电话/微信/见面）：', '微信');
+  if(!ch) return;
+  const note = prompt('备注（可空）：', '');
+  try { await api('/contacts/'+id+'/interactions', {method:'POST', body:{channel: ch, note: note||null}}); toast('已记录与「'+name+'」的互动'); }
+  catch(e){ toast(e.message); }
+}
+async function suggestGift(id){
+  try {
+    const d = await api('/contacts/'+id+'/gifts', {method:'POST', body:{}});
+    toast('礼物建议：'+d.suggestion.content);
+  } catch(e){ toast(e.message); }
+}
+async function loadStale(){
+  try {
+    const d = await api('/contacts/stale?days=30');
+    const box = document.getElementById('stale-box');
+    if(!d.contacts.length){ box.innerHTML = '<div class="empty">最近 30 天都有保持联系 👍</div>'; return; }
+    box.innerHTML = '<div class="section">久未联系（该问候了）</div>' + d.contacts.map(c=>`<div class="card"><div class="meta">${esc(c.name)}${c.relationship?'（'+esc(c.relationship)+'）':''} · ${c.days_since} 天未联系</div></div>`).join('');
+  } catch(e){ toast(e.message); }
+}
 
 /* ============ 职业（占位） ============ */
 function renderCareer(m){

@@ -1,6 +1,6 @@
 import json
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import httpx
 
@@ -114,6 +114,18 @@ def main():
     r = req("POST", "/weekly-reports/generate", token, idem=f"demo-wr-{RUN_ID}")
     wr = r.json()["data"]["report"]
     print(f"12 WEEKLY REPORT: HTTP {r.status_code} week={wr['week_start']} head={wr['content'][:36]}")
+
+    # 13. v3.0 relationships
+    r = req("POST", "/contacts", token, {"name": "妈妈", "relationship": "母亲", "birthday": "10-04"}, idem=f"demo-ct-{RUN_ID}")
+    cid = r.json()["data"]["contact"]["contact_id"]
+    print(f"13 CONTACT: HTTP {r.status_code} name={r.json()['data']['contact']['name']}")
+    r = req("GET", f"/contacts/{cid}/occasions", token)
+    oid = r.json()["data"]["occasions"][0]["occasion_id"]
+    print(f"13b OCCASION: HTTP {r.status_code} name={r.json()['data']['occasions'][0]['name']}")
+    r = req("POST", f"/contacts/{cid}/gifts", token, {"occasion_id": oid, "budget": 300}, idem=f"demo-gift-{RUN_ID}")
+    print(f"13c GIFT: HTTP {r.status_code} content={r.json()['data']['suggestion']['content'][:40]}")
+    r = req("POST", "/family-affairs", token, {"title": "交物业费", "due_at": (datetime.now(timezone.utc) + timedelta(days=3)).isoformat()}, idem=f"demo-fa-{RUN_ID}")
+    print(f"13d FAMILY AFFAIR: HTTP {r.status_code}")
 
 
 if __name__ == "__main__":

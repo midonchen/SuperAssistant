@@ -531,6 +531,13 @@
   - Updated OpenAPI + 1 回归测试
   - Verified: 83/83 API tests PASS, `npm run check:all` PASS
 
+- v3.0 3.5 收尾整合 (part 70):
+  - 移动端「关系」tab 增强：记互动、礼物建议、久未联系入口
+  - Admin「Relationships」页（联系人数/纪念日数/礼物建议数 + 最近联系人）
+  - demo_smoke.py 覆盖 v3.0（联系人→纪念日→礼物→家庭事务）
+  - v3.0 关系模块全闭环（3.1~3.5）
+  - Verified: 84/84 API tests PASS, admin tsc/build PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：

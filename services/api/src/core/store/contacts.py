@@ -351,3 +351,14 @@ class ContactStoreMixin(StoreBase):
                 )
             db.commit()
         return {"sent": len(due)}
+
+    def admin_relationships_overview(self) -> dict:
+        with SessionLocal() as db:
+            contacts_total = db.scalar(select(func.count()).select_from(ContactModel)) or 0
+            occasions_total = db.scalar(select(func.count()).select_from(OccasionModel)) or 0
+            gifts_total = db.scalar(select(func.count()).select_from(GiftSuggestionModel)) or 0
+            recent_contacts = db.scalars(select(ContactModel).order_by(ContactModel.created_at.desc()).limit(10)).all()
+        return {
+            "totals": {"contacts": contacts_total, "occasions": occasions_total, "gift_suggestions": gifts_total},
+            "recent_contacts": [self._contact(c).model_dump(mode="json") for c in recent_contacts],
+        }

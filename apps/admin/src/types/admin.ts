@@ -164,3 +164,13 @@ export type WorkOverview = {
   recent_tasks: WorkTaskRow[];
   recent_meetings: WorkMeetingRow[];
 };
+
+export type RelationshipsOverview = {
+  totals: { contacts: number; occasions: number; gift_suggestions: number };
+  recent_contacts: {
+    contact_id: string;
+    name: string;
+    relationship: string | null;
+    birthday: string | null;
+  }[];
+};
