@@ -596,6 +596,32 @@ components:
         target_year: { type: integer, nullable: true }
         status: { type: string, nullable: true }
         progress: { type: integer, nullable: true }
+    Skill:
+      type: object
+      required: [skill_id, name, level, target_level, created_at, updated_at]
+      properties:
+        skill_id: { type: string, format: uuid }
+        name: { type: string }
+        category: { type: string, nullable: true }
+        level: { type: integer }
+        target_level: { type: integer }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    SkillCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        category: { type: string, nullable: true }
+        level: { type: integer }
+        target_level: { type: integer }
+    SkillUpdateRequest:
+      type: object
+      properties:
+        name: { type: string, nullable: true }
+        category: { type: string, nullable: true }
+        level: { type: integer, nullable: true }
+        target_level: { type: integer, nullable: true }
 paths:
   /auth/sms/send:
     post:
@@ -1692,6 +1718,68 @@ paths:
         - $ref: '#/components/parameters/IdempotencyKey'
         - in: path
           name: goal_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /skills:
+    get:
+      summary: List skills
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create a skill
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SkillCreateRequest' }
+      responses:
+        '200': { description: success }
+        '402': { description: upgrade required }
+  /skills/{skill_id}:
+    patch:
+      summary: Update a skill
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: skill_id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SkillUpdateRequest' }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+    delete:
+      summary: Delete a skill
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: skill_id
           required: true
           schema: { type: string, format: uuid }
       responses:

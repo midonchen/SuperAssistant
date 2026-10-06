@@ -17,6 +17,7 @@ DEFAULT_FREE_LIMITS: dict = {
     "occasions": 10,
     "gift_suggestions": 10,
     "career_goals": 5,
+    "skills": 20,
 }
 
 

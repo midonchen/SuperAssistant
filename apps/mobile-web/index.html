@@ -346,8 +346,19 @@ async function renderCareer(m){
       </div>
       <button class="primary" style="background:var(--blue);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addGoal()">添加目标</button>
     </div>
-    <div id="goal-list" class="empty">加载中…</div>`;
-  await loadGoals();
+    <div id="goal-list" class="empty">加载中…</div>
+
+    <div class="card">
+      <div class="section" style="margin:0 0 8px;">技能与成长</div>
+      <div class="toolbar">
+        <input id="sk-name" placeholder="技能（如：Python）" style="max-width:110px;">
+        <input id="sk-level" placeholder="当前 1-5" style="max-width:76px;" inputmode="numeric">
+        <input id="sk-target" placeholder="目标 1-5" style="max-width:76px;" inputmode="numeric">
+      </div>
+      <button class="primary" style="background:var(--blue);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addSkill()">添加技能</button>
+    </div>
+    <div id="skill-list" class="empty">加载中…</div>`;
+  await Promise.all([loadGoals(), loadSkills()]);
 }
 async function loadGoals(){
   const d = await api('/career-goals');
@@ -387,6 +398,44 @@ async function finishGoal(id){
 }
 async function delGoal(id){
   try { await api('/career-goals/'+id, {method:'DELETE'}); await loadGoals(); }
+  catch(e){ toast(e.message); }
+}
+async function loadSkills(){
+  const d = await api('/skills');
+  const el = document.getElementById('skill-list');
+  if(!d.skills.length){ el.innerHTML = '<div class="empty">暂无技能，先盘点目标岗位所需技能</div>'; return; }
+  el.innerHTML = d.skills.map(s=>{
+    const gap = s.target_level - s.level;
+    return `<div class="card">
+      <div class="row"><span class="title">${esc(s.name)}</span><span class="badge">${gap>0?'缺口 '+gap:'已达标'}</span></div>
+      <div class="meta">${s.category?esc(s.category)+' · ':''}L${s.level} → L${s.target_level}</div>
+      <div class="actions">
+        <button onclick="levelUpSkill('${s.skill_id}',${s.level})">升级 +1</button>
+        <button class="danger" onclick="delSkill('${s.skill_id}')">删除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function addSkill(){
+  const n = document.getElementById('sk-name').value.trim();
+  const l = document.getElementById('sk-level').value.trim();
+  const t = document.getElementById('sk-target').value.trim();
+  if(!n) return toast('请输入技能名');
+  try {
+    await api('/skills', {method:'POST', body:{name:n, level:l?parseInt(l,10):1, target_level:t?parseInt(t,10):3}});
+    document.getElementById('sk-name').value='';
+    document.getElementById('sk-level').value='';
+    document.getElementById('sk-target').value='';
+    toast('已添加技能');
+    await loadSkills();
+  } catch(e){ toast(e.message); }
+}
+async function levelUpSkill(id, cur){
+  try { await api('/skills/'+id, {method:'PATCH', body:{level:Math.min(5, cur+1)}}); await loadSkills(); }
+  catch(e){ toast(e.message); }
+}
+async function delSkill(id){
+  try { await api('/skills/'+id, {method:'DELETE'}); await loadSkills(); }
   catch(e){ toast(e.message); }
 }
 

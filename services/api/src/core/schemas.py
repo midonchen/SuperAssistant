@@ -419,5 +419,29 @@ class CareerGoalUpdateRequest(BaseModel):
     progress: int | None = Field(default=None, ge=0, le=100)
 
 
+class Skill(BaseModel):
+    skill_id: str
+    name: str
+    category: str | None = None
+    level: int = 1
+    target_level: int = 3
+    created_at: datetime
+    updated_at: datetime
+
+
+class SkillCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=64)
+    category: str | None = Field(default=None, max_length=32)
+    level: int = Field(default=1, ge=1, le=5)
+    target_level: int = Field(default=3, ge=1, le=5)
+
+
+class SkillUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=64)
+    category: str | None = Field(default=None, max_length=32)
+    level: int | None = Field(default=None, ge=1, le=5)
+    target_level: int | None = Field(default=None, ge=1, le=5)
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)

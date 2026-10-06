@@ -545,6 +545,13 @@
   - Updated OpenAPI + 2 回归测试
   - Verified: 86/86 API tests PASS, `npm run check:all` PASS
 
+- v3.x 职业模块 3.2 技能与成长计划 (part 72):
+  - `skills` 表（迁移 0020）+ 订阅门控（免费 20 个）
+  - CRUD `/skills` 路由（技能/分类/当前等级/目标等级，缺口=目标-当前）
+  - 移动端「职业」tab 增技能盘点（添加/升级 +1/缺口标签/删除）
+  - Updated OpenAPI + 2 回归测试
+  - Verified: 88/88 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：
