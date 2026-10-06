@@ -357,8 +357,18 @@ async function renderCareer(m){
       </div>
       <button class="primary" style="background:var(--blue);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addSkill()">添加技能</button>
     </div>
-    <div id="skill-list" class="empty">加载中…</div>`;
-  await Promise.all([loadGoals(), loadSkills()]);
+    <div id="skill-list" class="empty">加载中…</div>
+
+    <div class="card">
+      <div class="section" style="margin:0 0 8px;">求职跟踪</div>
+      <div class="toolbar">
+        <input id="ja-company" placeholder="公司" style="max-width:100px;">
+        <input id="ja-position" placeholder="岗位" style="max-width:110px;">
+      </div>
+      <button class="primary" style="background:var(--blue);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addApplication()">添加投递</button>
+    </div>
+    <div id="app-list" class="empty">加载中…</div>`;
+  await Promise.all([loadGoals(), loadSkills(), loadApplications()]);
 }
 async function loadGoals(){
   const d = await api('/career-goals');
@@ -436,6 +446,42 @@ async function levelUpSkill(id, cur){
 }
 async function delSkill(id){
   try { await api('/skills/'+id, {method:'DELETE'}); await loadSkills(); }
+  catch(e){ toast(e.message); }
+}
+async function loadApplications(){
+  const d = await api('/job-applications');
+  const el = document.getElementById('app-list');
+  if(!d.applications.length){ el.innerHTML = '<div class="empty">暂无投递，记录你的求职进度</div>'; return; }
+  const ST = {APPLIED:'已投递', INTERVIEW:'面试中', OFFER:'已 Offer', REJECTED:'已拒绝'};
+  el.innerHTML = d.applications.map(a=>{
+    let adv = '';
+    if(a.status==='APPLIED') adv = '<button onclick="advanceApplication(\''+a.application_id+'\',\'INTERVIEW\')">进面试</button>';
+    else if(a.status==='INTERVIEW') adv = '<button onclick="advanceApplication(\''+a.application_id+'\',\'OFFER\')">拿 Offer</button><button class="danger" onclick="advanceApplication(\''+a.application_id+'\',\'REJECTED\')">拒绝</button>';
+    return `<div class="card">
+      <div class="row"><span class="title">${esc(a.company)}</span><span class="badge">${ST[a.status]||a.status}</span></div>
+      <div class="meta">${esc(a.position)}${a.notes?' · '+esc(a.notes):''}</div>
+      <div class="actions">${adv}<button class="danger" onclick="delApplication('${a.application_id}')">删除</button></div>
+    </div>`;
+  }).join('');
+}
+async function addApplication(){
+  const c = document.getElementById('ja-company').value.trim();
+  const p = document.getElementById('ja-position').value.trim();
+  if(!c || !p) return toast('请输入公司和岗位');
+  try {
+    await api('/job-applications', {method:'POST', body:{company:c, position:p}});
+    document.getElementById('ja-company').value='';
+    document.getElementById('ja-position').value='';
+    toast('已添加投递');
+    await loadApplications();
+  } catch(e){ toast(e.message); }
+}
+async function advanceApplication(id, status){
+  try { await api('/job-applications/'+id, {method:'PATCH', body:{status:status}}); await loadApplications(); }
+  catch(e){ toast(e.message); }
+}
+async function delApplication(id){
+  try { await api('/job-applications/'+id, {method:'DELETE'}); await loadApplications(); }
   catch(e){ toast(e.message); }
 }
 

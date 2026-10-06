@@ -9,6 +9,7 @@ from core.store.categories import CategoryStoreMixin
 from core.store.contacts import ContactStoreMixin
 from core.store.career_goals import CareerGoalStoreMixin
 from core.store.skills import SkillStoreMixin
+from core.store.job_applications import JobApplicationStoreMixin
 from core.store.family_affairs import FamilyAffairStoreMixin
 from core.store.households import HouseholdStoreMixin
 from core.store.inventory import InventoryStoreMixin
@@ -42,6 +43,7 @@ class Store(
     FamilyAffairStoreMixin,
     CareerGoalStoreMixin,
     SkillStoreMixin,
+    JobApplicationStoreMixin,
     PushStoreMixin,
     AuditStoreMixin,
 ):

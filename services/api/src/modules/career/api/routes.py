@@ -4,7 +4,14 @@ from fastapi import APIRouter, Depends, Request
 
 from core.auth_dep import require_bearer
 from core.response import failure, success
-from core.schemas import CareerGoalCreateRequest, CareerGoalUpdateRequest, SkillCreateRequest, SkillUpdateRequest
+from core.schemas import (
+    CareerGoalCreateRequest,
+    CareerGoalUpdateRequest,
+    JobApplicationCreateRequest,
+    JobApplicationUpdateRequest,
+    SkillCreateRequest,
+    SkillUpdateRequest,
+)
 from core.store import store
 
 router = APIRouter(prefix="/career-goals", tags=["career-goals"])
@@ -68,4 +75,36 @@ async def delete_skill(skill_id: str, request: Request, user_id: str = Depends(r
         store.delete_skill(user_id, skill_id)
     except KeyError:
         return failure(request, 404, "BIZ_404_NOT_FOUND", "skill not found")
+    return success(request, {"deleted": True})
+
+
+applications_router = APIRouter(prefix="/job-applications", tags=["job-applications"])
+
+
+@applications_router.get("")
+async def list_applications(request: Request, user_id: str = Depends(require_bearer)):
+    return success(request, {"applications": [a.model_dump(mode="json") for a in store.list_applications(user_id)]})
+
+
+@applications_router.post("")
+async def create_application(payload: JobApplicationCreateRequest, request: Request, user_id: str = Depends(require_bearer)):
+    app = store.create_application(user_id, payload)
+    return success(request, {"application": app.model_dump(mode="json")})
+
+
+@applications_router.patch("/{application_id}")
+async def update_application(application_id: str, payload: JobApplicationUpdateRequest, request: Request, user_id: str = Depends(require_bearer)):
+    try:
+        app = store.update_application(user_id, application_id, payload)
+    except KeyError:
+        return failure(request, 404, "BIZ_404_NOT_FOUND", "job application not found")
+    return success(request, {"application": app.model_dump(mode="json")})
+
+
+@applications_router.delete("/{application_id}")
+async def delete_application(application_id: str, request: Request, user_id: str = Depends(require_bearer)):
+    try:
+        store.delete_application(user_id, application_id)
+    except KeyError:
+        return failure(request, 404, "BIZ_404_NOT_FOUND", "job application not found")
     return success(request, {"deleted": True})

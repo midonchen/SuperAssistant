@@ -403,3 +403,17 @@ class SkillModel(Base):
     target_level: Mapped[int] = mapped_column(Integer, default=3)  # 1-5
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+
+class JobApplicationModel(Base):
+    __tablename__ = "job_applications"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    company: Mapped[str] = mapped_column(String(128))
+    position: Mapped[str] = mapped_column(String(128))
+    status: Mapped[str] = mapped_column(String(16), default="APPLIED", index=True)  # APPLIED/INTERVIEW/OFFER/REJECTED
+    applied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)

@@ -443,5 +443,31 @@ class SkillUpdateRequest(BaseModel):
     target_level: int | None = Field(default=None, ge=1, le=5)
 
 
+class JobApplication(BaseModel):
+    application_id: str
+    company: str
+    position: str
+    status: str = "APPLIED"
+    applied_at: datetime | None = None
+    notes: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class JobApplicationCreateRequest(BaseModel):
+    company: str = Field(..., min_length=1, max_length=128)
+    position: str = Field(..., min_length=1, max_length=128)
+    applied_at: datetime | None = None
+    notes: str | None = None
+
+
+class JobApplicationUpdateRequest(BaseModel):
+    company: str | None = Field(default=None, min_length=1, max_length=128)
+    position: str | None = Field(default=None, min_length=1, max_length=128)
+    status: str | None = None
+    applied_at: datetime | None = None
+    notes: str | None = None
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)

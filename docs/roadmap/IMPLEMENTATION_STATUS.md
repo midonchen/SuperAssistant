@@ -552,6 +552,13 @@
   - Updated OpenAPI + 2 回归测试
   - Verified: 88/88 API tests PASS, `npm run check:all` PASS
 
+- v3.x 职业模块 3.3 求职辅助 (part 73):
+  - `job_applications` 表（迁移 0021）+ 订阅门控（免费 20 个）
+  - CRUD `/job-applications` 路由（公司/岗位/状态 APPLIED·INTERVIEW·OFFER·REJECTED/备注）
+  - 移动端「职业」tab 增求职跟踪（投递→进面试→拿 Offer/拒绝）
+  - Updated OpenAPI + 2 回归测试
+  - Verified: 90/90 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：

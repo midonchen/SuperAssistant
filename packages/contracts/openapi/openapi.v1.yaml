@@ -622,6 +622,34 @@ components:
         category: { type: string, nullable: true }
         level: { type: integer, nullable: true }
         target_level: { type: integer, nullable: true }
+    JobApplication:
+      type: object
+      required: [application_id, company, position, status, created_at, updated_at]
+      properties:
+        application_id: { type: string, format: uuid }
+        company: { type: string }
+        position: { type: string }
+        status: { type: string }
+        applied_at: { type: string, format: date-time, nullable: true }
+        notes: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    JobApplicationCreateRequest:
+      type: object
+      required: [company, position]
+      properties:
+        company: { type: string }
+        position: { type: string }
+        applied_at: { type: string, format: date-time, nullable: true }
+        notes: { type: string, nullable: true }
+    JobApplicationUpdateRequest:
+      type: object
+      properties:
+        company: { type: string, nullable: true }
+        position: { type: string, nullable: true }
+        status: { type: string, nullable: true }
+        applied_at: { type: string, format: date-time, nullable: true }
+        notes: { type: string, nullable: true }
 paths:
   /auth/sms/send:
     post:
@@ -1780,6 +1808,68 @@ paths:
         - $ref: '#/components/parameters/IdempotencyKey'
         - in: path
           name: skill_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /job-applications:
+    get:
+      summary: List job applications
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create a job application
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/JobApplicationCreateRequest' }
+      responses:
+        '200': { description: success }
+        '402': { description: upgrade required }
+  /job-applications/{application_id}:
+    patch:
+      summary: Update a job application
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: application_id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/JobApplicationUpdateRequest' }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+    delete:
+      summary: Delete a job application
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: application_id
           required: true
           schema: { type: string, format: uuid }
       responses:
