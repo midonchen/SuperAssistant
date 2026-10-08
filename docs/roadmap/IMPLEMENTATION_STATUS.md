@@ -597,6 +597,12 @@
   - Updated OpenAPI + 1 回归测试
   - Verified: 98/98 API tests PASS, `npm run check:all` PASS
 
+- 移动端视觉打磨·配色第一版 (part 79):
+  - 暗色主题 → PRD §7 浅色主题（背景 #f5f5f7、白卡片、16px 圆角、弱阴影）
+  - 四方向配色落地：生活薄荷 #4de0b6 / 工作蓝 #4f8afe / 关系紫罗兰 #7a56fe / 职业琥珀 #f5b94b（底部导航 + 子导航跟随方向）
+  - 主按钮统一品牌渐变（薄荷→紫罗兰）+ 白字；次级按钮/徽章改浅色底；Toast 深色白字
+  - Verified: `npm run check:all` PASS（纯前端 HTML，无后端改动）
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：
