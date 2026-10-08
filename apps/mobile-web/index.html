@@ -579,10 +579,11 @@ async function loadApplications(){
     let adv = '';
     if(a.status==='APPLIED') adv = '<button onclick="advanceApplication(\''+a.application_id+'\',\'INTERVIEW\')">进面试</button>';
     else if(a.status==='INTERVIEW') adv = '<button onclick="advanceApplication(\''+a.application_id+'\',\'OFFER\')">拿 Offer</button><button class="danger" onclick="advanceApplication(\''+a.application_id+'\',\'REJECTED\')">拒绝</button>';
+    const rev = a.status==='APPLIED' ? '' : '<button onclick="reviewInterview(\''+a.application_id+'\')">复盘</button>';
     return `<div class="card">
       <div class="row"><span class="title">${esc(a.company)}</span><span class="badge">${ST[a.status]||a.status}</span></div>
       <div class="meta">${esc(a.position)}${a.notes?' · '+esc(a.notes):''}</div>
-      <div class="actions">${adv}<button class="danger" onclick="delApplication('${a.application_id}')">删除</button></div>
+      <div class="actions">${adv}${rev}<button class="danger" onclick="delApplication('${a.application_id}')">删除</button></div>
     </div>`;
   }).join('');
 }
@@ -605,6 +606,12 @@ async function advanceApplication(id, status){
 async function delApplication(id){
   try { await api('/job-applications/'+id, {method:'DELETE'}); await loadApplications(); }
   catch(e){ toast(e.message); }
+}
+async function reviewInterview(id){
+  try {
+    const d = await api('/job-applications/'+id+'/review', {method:'POST', body:{}});
+    alert(d.review);
+  } catch(e){ toast(e.message); }
 }
 async function loadLearningItems(){
   const d = await api('/learning-items');

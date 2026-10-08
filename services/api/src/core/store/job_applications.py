@@ -4,6 +4,7 @@ import uuid
 
 from sqlalchemy import func, select
 
+from core.ai_pipeline import ai_pipeline
 from core.db import SessionLocal
 from core.errors import ApiException
 from core.models import JobApplicationModel
@@ -104,3 +105,17 @@ class JobApplicationStoreMixin(StoreBase):
                 raise KeyError("job application not found")
             db.delete(row)
             db.commit()
+
+    def review_interview(self, user_id: str, application_id: str) -> dict:
+        with SessionLocal() as db:
+            row = db.scalar(
+                select(JobApplicationModel).where(
+                    JobApplicationModel.id == application_id,
+                    JobApplicationModel.user_id == user_id,
+                )
+            )
+            if row is None:
+                raise KeyError("job application not found")
+            company, position, notes = row.company, row.position, row.notes
+        review = ai_pipeline.review_interview(company, position, notes)
+        return {"review": review, "company": company, "position": position}

@@ -67,3 +67,21 @@ def test_job_application_gate(client):
     )
     assert r.status_code == 402
     assert r.json()["code"] == "BIZ_402_UPGRADE_REQUIRED"
+
+
+def test_interview_review(client):
+    token = _login(client, "13800138300")
+    r = client.post(
+        "/api/v1/job-applications",
+        json={"company": "字节跳动", "position": "后端工程师", "notes": "一面问了系统设计和算法"},
+        headers=make_headers(idempotency_key="jr-1", token=token),
+    )
+    aid = r.json()["data"]["application"]["application_id"]
+    r = client.post(
+        f"/api/v1/job-applications/{aid}/review",
+        headers=make_headers(idempotency_key="jr-2", token=token),
+    )
+    assert r.status_code == 200
+    d = r.json()["data"]
+    assert "review" in d
+    assert d["company"] == "字节跳动"

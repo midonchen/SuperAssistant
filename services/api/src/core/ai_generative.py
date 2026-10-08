@@ -314,3 +314,43 @@ class GenerativeAIMixin:
             dish = "家常小炒"
         used = "、".join(names[:4]) or "现有食材"
         return f"## 今晚推荐\n- 菜名：{dish}\n- 用到：{used}\n- 缺料：按口味补充调味料"
+
+    def review_interview(self, company: str, position: str, notes: str | None) -> str:
+        """Generate an interview review. Falls back to heuristic."""
+        try:
+            content = self._ai_interview_review(company, position, notes)
+            if content:
+                return content
+        except Exception as exc:
+            logger.warning("interview review failed, fallback to heuristic: %s", exc)
+        return self._heuristic_interview_review(company, position, notes)
+
+    def _ai_interview_review(self, company: str, position: str, notes: str | None) -> str | None:
+        api_key = os.getenv("DEEPSEEK_API_KEY", "").strip()
+        if not api_key:
+            return None
+        model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat").strip() or "deepseek-chat"
+        endpoint = os.getenv("DEEPSEEK_CHAT_ENDPOINT", "https://api.deepseek.com/v1/chat/completions").strip()
+        prompt = (
+            "你是面试复盘教练。根据面试信息，给出面试复盘：表现亮点、可改进点、下次准备建议。\n"
+            f"公司：{company}，岗位：{position}\n面试记录：{notes or '无'}\n"
+            "返回 markdown 列表，每条以 '- ' 开头，150字以内，只返回这段。"
+        )
+        with httpx.Client(timeout=30.0) as client:
+            response = client.post(
+                endpoint,
+                headers={"Authorization": f"Bearer {api_key}", "content-type": "application/json"},
+                json={"model": model, "temperature": 0.6, "messages": [{"role": "user", "content": prompt}]},
+            )
+            response.raise_for_status()
+            content = response.json()["choices"][0]["message"]["content"].strip()
+            return content or None
+
+    def _heuristic_interview_review(self, company: str, position: str, notes: str | None) -> str:
+        lines = [f"## {company}·{position} 面试复盘"]
+        if notes:
+            lines.append(f"- 面试记录：{notes[:60]}")
+        lines.append("- 亮点：复盘被问到的核心问题，标注回答最流畅的部分")
+        lines.append("- 改进：找出卡壳/未答全的问题，针对性地补强")
+        lines.append("- 下次：结合岗位 JD 准备 2-3 个技术点，并准备反问")
+        return "\n".join(lines)

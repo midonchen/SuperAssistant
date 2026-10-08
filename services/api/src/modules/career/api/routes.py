@@ -112,6 +112,15 @@ async def delete_application(application_id: str, request: Request, user_id: str
     return success(request, {"deleted": True})
 
 
+@applications_router.post("/{application_id}/review")
+async def review_interview(application_id: str, request: Request, user_id: str = Depends(require_bearer)):
+    try:
+        result = store.review_interview(user_id, application_id)
+    except KeyError:
+        return failure(request, 404, "BIZ_404_NOT_FOUND", "job application not found")
+    return success(request, result)
+
+
 learning_router = APIRouter(prefix="/learning-items", tags=["learning-items"])
 
 

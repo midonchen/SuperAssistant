@@ -1948,6 +1948,22 @@ paths:
       responses:
         '200': { description: success }
         '404': { description: not found }
+  /job-applications/{application_id}/review:
+    post:
+      summary: Generate an interview review
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: application_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
   /learning-items:
     get:
       summary: List learning items

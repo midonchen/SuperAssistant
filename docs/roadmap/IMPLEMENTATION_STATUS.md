@@ -591,6 +591,12 @@
   - Updated OpenAPI + 1 回归测试
   - Verified: 97/97 API tests PASS, `npm run check:all` PASS
 
+- 职业 AI 面试复盘 (part 78):
+  - `POST /job-applications/{id}/review`：AI 面试复盘（DeepSeek 结合公司/岗位/面试记录，启发式兜底）
+  - 移动端「求职跟踪」卡片加「复盘」按钮
+  - Updated OpenAPI + 1 回归测试
+  - Verified: 98/98 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：
