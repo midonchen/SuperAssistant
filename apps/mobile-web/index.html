@@ -452,7 +452,7 @@ async function loadStale(){
 async function renderCareer(m){
   m.innerHTML = `
     <div class="card">
-      <button class="primary" style="background:var(--amber);color:#111;border:none;padding:12px 16px;border-radius:10px;font-weight:600;width:100%;" onclick="getAdvice()">🎯 AI 职业顾问 · 生成成长建议</button>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:12px 16px;border-radius:10px;font-weight:600;width:100%;" onclick="getAdvice()">🎯 AI 职业顾问 · 生成成长建议</button>
       <div id="advice-box"></div>
     </div>
 
@@ -462,7 +462,7 @@ async function renderCareer(m){
         <input id="cg-title" placeholder="目标（如：晋升高级工程师）" style="max-width:150px;">
         <input id="cg-year" placeholder="目标年 2027" style="max-width:96px;" inputmode="numeric">
       </div>
-      <button class="primary" style="background:var(--amber);color:#111;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addGoal()">添加目标</button>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addGoal()">添加目标</button>
     </div>
     <div id="goal-list" class="empty">加载中…</div>
 
@@ -473,7 +473,7 @@ async function renderCareer(m){
         <input id="sk-level" placeholder="当前 1-5" style="max-width:76px;" inputmode="numeric">
         <input id="sk-target" placeholder="目标 1-5" style="max-width:76px;" inputmode="numeric">
       </div>
-      <button class="primary" style="background:var(--amber);color:#111;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addSkill()">添加技能</button>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addSkill()">添加技能</button>
     </div>
     <div id="skill-list" class="empty">加载中…</div>
 
@@ -483,7 +483,7 @@ async function renderCareer(m){
         <input id="ja-company" placeholder="公司" style="max-width:100px;">
         <input id="ja-position" placeholder="岗位" style="max-width:110px;">
       </div>
-      <button class="primary" style="background:var(--amber);color:#111;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addApplication()">添加投递</button>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addApplication()">添加投递</button>
     </div>
     <div id="app-list" class="empty">加载中…</div>
 
@@ -497,7 +497,7 @@ async function renderCareer(m){
           <option value="cert">认证</option>
         </select>
       </div>
-      <button class="primary" style="background:var(--amber);color:#111;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addLearningItem()">添加学习</button>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addLearningItem()">添加学习</button>
     </div>
     <div id="learning-list" class="empty">加载中…</div>`;
   await Promise.all([loadGoals(), loadSkills(), loadApplications(), loadLearningItems()]);
