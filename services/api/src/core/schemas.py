@@ -555,5 +555,31 @@ class BillReminderUpdateRequest(BaseModel):
     notes: str | None = None
 
 
+class KnowledgeEntry(BaseModel):
+    entry_id: str
+    kind: str
+    name: str
+    category: str | None = None
+    description: str
+    applications: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class KnowledgeEntryCreateRequest(BaseModel):
+    kind: str = Field(default="thinking_model", max_length=16)
+    name: str = Field(..., min_length=1, max_length=64)
+    category: str | None = Field(default=None, max_length=32)
+    description: str = Field(..., min_length=1)
+    applications: str | None = None
+
+
+class KnowledgeEntryUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=64)
+    category: str | None = Field(default=None, max_length=32)
+    description: str | None = None
+    applications: str | None = None
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)

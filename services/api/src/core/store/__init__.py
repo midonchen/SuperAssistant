@@ -10,6 +10,7 @@ from core.store.contacts import ContactStoreMixin
 from core.store.career_goals import CareerGoalStoreMixin
 from core.store.skills import SkillStoreMixin
 from core.store.job_applications import JobApplicationStoreMixin
+from core.store.knowledge import KnowledgeStoreMixin
 from core.store.learning_items import LearningItemStoreMixin
 from core.store.reminders import BillReminderStoreMixin, HealthReminderStoreMixin
 from core.store.family_affairs import FamilyAffairStoreMixin
@@ -49,6 +50,7 @@ class Store(
     LearningItemStoreMixin,
     HealthReminderStoreMixin,
     BillReminderStoreMixin,
+    KnowledgeStoreMixin,
     PushStoreMixin,
     AuditStoreMixin,
 ):

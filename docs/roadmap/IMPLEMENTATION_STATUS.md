@@ -603,6 +603,14 @@
   - 主按钮统一品牌渐变（薄荷→紫罗兰）+ 白字；次级按钮/徽章改浅色底；Toast 深色白字
   - Verified: `npm run check:all` PASS（纯前端 HTML，无后端改动）
 
+- 成长 3.1 知识底座：思维模型库 + 价值观库 (part 80):
+  - `knowledge_entries` 表（迁移 0024，kind 区分 thinking_model / value_principle）
+  - `/thinking-models` + `/value-principles` 双路由 CRUD
+  - 首访自动预置：8 个思维模型（多元/框架/正逆向/批判/归零/长线/系统）+ 8 个价值观/原则（理性/工匠精神/成长/知识定义/成长率…）
+  - 第五方向「成长」确认（PRD §2 五大方向、§6.5、§11 D7、§12，主色青碧 #14b8a6，图标 🌱）
+  - Updated OpenAPI + 2 回归测试
+  - Verified: 100/100 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：

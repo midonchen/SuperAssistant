@@ -723,6 +723,34 @@ components:
         period_months: { type: integer }
         next_due_at: { type: string, format: date-time, nullable: true }
         notes: { type: string, nullable: true }
+    KnowledgeEntry:
+      type: object
+      required: [entry_id, kind, name, description, created_at, updated_at]
+      properties:
+        entry_id: { type: string, format: uuid }
+        kind: { type: string }
+        name: { type: string }
+        category: { type: string, nullable: true }
+        description: { type: string }
+        applications: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    KnowledgeEntryCreateRequest:
+      type: object
+      required: [name, description]
+      properties:
+        kind: { type: string }
+        name: { type: string }
+        category: { type: string, nullable: true }
+        description: { type: string }
+        applications: { type: string, nullable: true }
+    KnowledgeEntryUpdateRequest:
+      type: object
+      properties:
+        name: { type: string, nullable: true }
+        category: { type: string, nullable: true }
+        description: { type: string, nullable: true }
+        applications: { type: string, nullable: true }
 paths:
   /auth/sms/send:
     post:
@@ -2162,6 +2190,118 @@ paths:
         - $ref: '#/components/parameters/IdempotencyKey'
       responses:
         '200': { description: success }
+  /thinking-models:
+    get:
+      summary: List thinking models
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create a thinking model
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/KnowledgeEntryCreateRequest' }
+      responses:
+        '200': { description: success }
+  /thinking-models/{entry_id}:
+    patch:
+      summary: Update a thinking model
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: entry_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+    delete:
+      summary: Delete a thinking model
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: entry_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /value-principles:
+    get:
+      summary: List value principles
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create a value principle
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/KnowledgeEntryCreateRequest' }
+      responses:
+        '200': { description: success }
+  /value-principles/{entry_id}:
+    patch:
+      summary: Update a value principle
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: entry_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+    delete:
+      summary: Delete a value principle
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: entry_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
   /tasks/{task_id}:
     patch:
       summary: Update a task
