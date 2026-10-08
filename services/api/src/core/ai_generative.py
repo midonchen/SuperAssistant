@@ -269,3 +269,48 @@ class GenerativeAIMixin:
         if not (goals or skills or applications or learning_items):
             lines.append("- 先完善职业档案：设定目标、盘点技能、记录投递、规划学习。")
         return "\n".join(lines)
+
+    def suggest_meal(self, items: list[dict]) -> str:
+        """Suggest a meal from household inventory. Falls back to heuristic."""
+        try:
+            content = self._ai_meal_suggestion(items)
+            if content:
+                return content
+        except Exception as exc:
+            logger.warning("meal suggestion failed, fallback to heuristic: %s", exc)
+        return self._heuristic_meal_suggestion(items)
+
+    def _ai_meal_suggestion(self, items: list[dict]) -> str | None:
+        api_key = os.getenv("DEEPSEEK_API_KEY", "").strip()
+        if not api_key:
+            return None
+        model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat").strip() or "deepseek-chat"
+        endpoint = os.getenv("DEEPSEEK_CHAT_ENDPOINT", "https://api.deepseek.com/v1/chat/completions").strip()
+        inventory = "; ".join([f"{x['item_name']}×{x['current_stock']}{x.get('unit', '')}" for x in items]) or "空"
+        prompt = (
+            "你是家常菜厨师。根据家里现有食材，推荐一道今晚能做的菜，并列出用到的食材和缺少的配料。\n"
+            f"现有食材：{inventory}\n"
+            "返回格式（markdown）：\n## 今晚推荐\n- 菜名：...\n- 用到：...\n- 缺料：...\n100字以内，只返回这段。"
+        )
+        with httpx.Client(timeout=30.0) as client:
+            response = client.post(
+                endpoint,
+                headers={"Authorization": f"Bearer {api_key}", "content-type": "application/json"},
+                json={"model": model, "temperature": 0.6, "messages": [{"role": "user", "content": prompt}]},
+            )
+            response.raise_for_status()
+            content = response.json()["choices"][0]["message"]["content"].strip()
+            return content or None
+
+    def _heuristic_meal_suggestion(self, items: list[dict]) -> str:
+        names = [x.get("item_name", "") for x in items]
+        has = set(names)
+        dish = "一锅乱炖（用现有食材）"
+        if "鸡蛋" in has:
+            dish = "西红柿炒鸡蛋" if "西红柿" in has else "鸡蛋炒饭"
+        elif "土豆" in has:
+            dish = "酸辣土豆丝"
+        elif any(k in has for k in ("猪肉", "牛肉", "鸡肉")):
+            dish = "家常小炒"
+        used = "、".join(names[:4]) or "现有食材"
+        return f"## 今晚推荐\n- 菜名：{dish}\n- 用到：{used}\n- 缺料：按口味补充调味料"

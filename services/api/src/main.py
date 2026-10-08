@@ -23,6 +23,7 @@ from modules.reminders.api.routes import bills_router, health_router
 from modules.family_affairs.api.routes import router as family_affairs_router
 from modules.households.api.routes import router as households_router
 from modules.inventory.api.routes import router as inventory_router
+from modules.inventory.api.routes import meals_router
 from modules.meetings.api.routes import router as meetings_router
 from modules.ocr.api.routes import router as ocr_router
 from modules.push.api.routes import router as push_router
@@ -83,6 +84,7 @@ app.include_router(auth_router, prefix="/api/v1")
 app.include_router(households_router, prefix="/api/v1")
 app.include_router(categories_router, prefix="/api/v1")
 app.include_router(inventory_router, prefix="/api/v1")
+app.include_router(meals_router, prefix="/api/v1")
 app.include_router(voice_router, prefix="/api/v1")
 app.include_router(ocr_router, prefix="/api/v1")
 app.include_router(push_router, prefix="/api/v1")

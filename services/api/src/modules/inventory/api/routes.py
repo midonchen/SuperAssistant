@@ -106,3 +106,11 @@ async def offline_replay(payload: OfflineReplayRequest, request: Request, user_i
         return failure(request, 403, "AUTH_403_FORBIDDEN", "insufficient household role")
     result = store.enqueue_offline_replay_ops(household_id, UUID(user_id), [op.model_dump(mode="json") for op in payload.offline_ops])
     return success(request, result)
+
+
+meals_router = APIRouter(prefix="/meals", tags=["meals"])
+
+
+@meals_router.post("/suggest")
+async def suggest_meal(request: Request, user_id: str = Depends(require_bearer)):
+    return success(request, store.suggest_meal(user_id))

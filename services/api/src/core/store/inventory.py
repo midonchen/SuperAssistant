@@ -4,6 +4,7 @@ from uuid import UUID
 
 from sqlalchemy import func, select
 
+from core.ai_pipeline import ai_pipeline
 from core.db import SessionLocal
 from core.errors import ApiException
 from core.models import ActivityLogModel, InventoryItemModel
@@ -38,6 +39,15 @@ class InventoryStoreMixin(StoreBase):
             if row is None:
                 raise KeyError("item not found")
             return self._inventory_item(row)
+
+    def suggest_meal(self, user_id: str) -> dict:
+        household_id = self.get_user_household_id(user_id)
+        if household_id is None:
+            raise ApiException(403, "AUTH_403_FORBIDDEN", "user has no household")
+        items = self.list_items(household_id)
+        available = [i.model_dump(mode="json") for i in items if i.current_stock > 0]
+        suggestion = ai_pipeline.suggest_meal(available)
+        return {"suggestion": suggestion, "available_items": len(available)}
 
     def apply_operation(self, household_id: str, user_id: UUID, item_key: str, op: Operation, value: float, source: ActionType) -> ActivityLog:
         with SessionLocal() as db:

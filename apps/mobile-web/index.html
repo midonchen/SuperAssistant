@@ -151,6 +151,10 @@ async function renderSub(m){
 /* ============ 生活·库存（含品类） ============ */
 async function renderLife(m){
   m.innerHTML = `
+    <div class="card">
+      <button class="primary" style="background:var(--green);color:#111;border:none;padding:12px 16px;border-radius:10px;font-weight:600;width:100%;" onclick="suggestMeal()">🍳 今晚吃什么</button>
+      <div id="meal-box"></div>
+    </div>
     <div class="section">库存</div>
     <div id="inv-list" class="empty">加载中…</div>
     <div class="section">品类</div>
@@ -175,6 +179,14 @@ async function loadInventory(){
         <button onclick="stockOp('${i.item_key}','${esc(i.unit)}','SUBTRACT')">出库</button>
       </div>
     </div>`).join('');
+}
+async function suggestMeal(){
+  const box = document.getElementById('meal-box');
+  box.innerHTML = '<div class="empty">生成中…</div>';
+  try {
+    const d = await api('/meals/suggest', {method:'POST', body:{}});
+    box.innerHTML = '<div class="meta" style="white-space:pre-wrap;line-height:1.6;">'+esc(d.suggestion)+'</div>';
+  } catch(e){ box.innerHTML = ''; toast(e.message); }
 }
 async function stockOp(key, unit, op){
   const qty = prompt((op==='ADD'?'入库':'出库')+'数量（'+unit+'）：', '1');

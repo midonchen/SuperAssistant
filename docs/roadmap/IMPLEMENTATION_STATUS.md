@@ -585,6 +585,12 @@
   - Updated OpenAPI + 3 回归测试
   - Verified: 96/96 API tests PASS, `npm run check:all` PASS
 
+- 生活 AI 膳食推荐 (part 77):
+  - `POST /meals/suggest`：AI 基于家庭库存推荐「今晚吃什么」+ 缺料清单（DeepSeek + 启发式兜底）
+  - 移动端「生活·库存」加「今晚吃什么」按钮
+  - Updated OpenAPI + 1 回归测试
+  - Verified: 97/97 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：
