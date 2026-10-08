@@ -675,6 +675,54 @@ components:
         item_type: { type: string, nullable: true }
         status: { type: string, nullable: true }
         notes: { type: string, nullable: true }
+    HealthReminder:
+      type: object
+      required: [reminder_id, household_id, member_name, reminder_type, title, period_days, enabled, created_at, updated_at]
+      properties:
+        reminder_id: { type: string, format: uuid }
+        household_id: { type: string, format: uuid }
+        member_name: { type: string }
+        reminder_type: { type: string }
+        title: { type: string }
+        period_days: { type: integer }
+        next_due_at: { type: string, format: date-time, nullable: true }
+        enabled: { type: boolean }
+        notes: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    HealthReminderCreateRequest:
+      type: object
+      required: [member_name, title]
+      properties:
+        member_name: { type: string }
+        reminder_type: { type: string }
+        title: { type: string }
+        period_days: { type: integer }
+        next_due_at: { type: string, format: date-time, nullable: true }
+        notes: { type: string, nullable: true }
+    BillReminder:
+      type: object
+      required: [reminder_id, household_id, name, period_months, enabled, created_at, updated_at]
+      properties:
+        reminder_id: { type: string, format: uuid }
+        household_id: { type: string, format: uuid }
+        name: { type: string }
+        amount: { type: number, nullable: true }
+        period_months: { type: integer }
+        next_due_at: { type: string, format: date-time, nullable: true }
+        enabled: { type: boolean }
+        notes: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    BillReminderCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        amount: { type: number, nullable: true }
+        period_months: { type: integer }
+        next_due_at: { type: string, format: date-time, nullable: true }
+        notes: { type: string, nullable: true }
 paths:
   /auth/sms/send:
     post:
@@ -1957,6 +2005,120 @@ paths:
         - $ref: '#/components/parameters/IdempotencyKey'
         - in: path
           name: item_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /health-reminders:
+    get:
+      summary: List health reminders
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create a health reminder
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/HealthReminderCreateRequest' }
+      responses:
+        '200': { description: success }
+        '402': { description: upgrade required }
+  /health-reminders/{reminder_id}:
+    patch:
+      summary: Update a health reminder
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: reminder_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+    delete:
+      summary: Delete a health reminder
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: reminder_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /bill-reminders:
+    get:
+      summary: List bill reminders
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create a bill reminder
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BillReminderCreateRequest' }
+      responses:
+        '200': { description: success }
+        '402': { description: upgrade required }
+  /bill-reminders/{reminder_id}:
+    patch:
+      summary: Update a bill reminder
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: reminder_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+    delete:
+      summary: Delete a bill reminder
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: reminder_id
           required: true
           schema: { type: string, format: uuid }
       responses:

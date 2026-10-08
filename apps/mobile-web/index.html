@@ -88,7 +88,7 @@ let tab = 'life';
 let subTab = 'inventory';
 
 const SUB_TABS = {
-  life: [['inventory','库存'],['shop','采购'],['family','家庭']],
+  life: [['inventory','库存'],['shop','采购'],['family','家庭'],['reminders','提醒']],
   work: [['tasks','任务'],['calendar','日历'],['meetings','会议'],['reports','周报']],
 };
 
@@ -144,7 +144,7 @@ async function renderSub(m){
   const tabs = SUB_TABS[tab];
   m.innerHTML = '<div class="subnav">' + tabs.map(([k,label])=>`<button class="${k===subTab?'active':''}" onclick="switchSub('${k}')">${label}</button>`).join('') + '</div><div id="sub-body" class="empty"></div>';
   const body = document.getElementById('sub-body');
-  const fn = {inventory:renderLife, shop:renderShop, family:renderFamily, tasks:renderTasks, calendar:renderCalendar, meetings:renderMeetings, reports:renderReports}[subTab];
+  const fn = {inventory:renderLife, shop:renderShop, family:renderFamily, reminders:renderReminders, tasks:renderTasks, calendar:renderCalendar, meetings:renderMeetings, reports:renderReports}[subTab];
   if (fn) await fn(body);
 }
 
@@ -267,6 +267,97 @@ async function joinFamily(){
   const code = document.getElementById('join-code').value.trim();
   if(!code){ toast('请输入邀请码'); return; }
   try { await api('/households/join', {method:'POST', body:{invite_code:code}}); document.getElementById('join-code').value=''; await loadFamily(); } catch(e){ toast(e.message); }
+}
+
+/* ============ 生活·提醒（健康 + 缴费） ============ */
+async function renderReminders(m){
+  m.innerHTML = `
+    <div class="card">
+      <div class="section" style="margin:0 0 8px;">健康用药提醒</div>
+      <div class="toolbar">
+        <input id="hr-member" placeholder="成员" style="max-width:70px;">
+        <input id="hr-title" placeholder="事项（如降压药）" style="max-width:120px;">
+        <input id="hr-days" placeholder="周期天数" style="max-width:76px;" inputmode="numeric">
+      </div>
+      <button class="primary" style="background:var(--green);color:#111;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addHealthReminder()">添加健康提醒</button>
+      <div id="health-list" class="empty">加载中…</div>
+    </div>
+    <div class="card">
+      <div class="section" style="margin:0 0 8px;">生活缴费提醒</div>
+      <div class="toolbar">
+        <input id="br-name" placeholder="账单（水费/电费）" style="max-width:130px;">
+        <input id="br-amount" placeholder="金额" style="max-width:70px;" inputmode="numeric">
+        <input id="br-months" placeholder="周期月" style="max-width:70px;" inputmode="numeric">
+      </div>
+      <button class="primary" style="background:var(--green);color:#111;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addBillReminder()">添加缴费提醒</button>
+      <div id="bill-list" class="empty">加载中…</div>
+    </div>`;
+  await Promise.all([loadHealthReminders(), loadBillReminders()]);
+}
+async function loadHealthReminders(){
+  const d = await api('/health-reminders');
+  const el = document.getElementById('health-list');
+  if(!d.reminders.length){ el.innerHTML = '<div class="empty">暂无健康提醒</div>'; return; }
+  const TY = {medication:'用药', checkup:'体检', followup:'复诊'};
+  el.innerHTML = d.reminders.map(r=>{
+    const due = r.next_due_at ? new Date(r.next_due_at) : null;
+    const overdue = due && due < new Date();
+    return `<div class="card">
+      <div class="row"><span class="title">${esc(r.member_name)} · ${esc(r.title)}</span><span class="badge ${overdue?'OVERDUE':''}">${TY[r.reminder_type]||r.reminder_type}</span></div>
+      <div class="meta">周期 ${r.period_days} 天${r.next_due_at?' · 下次 '+r.next_due_at.slice(0,10):''}${r.enabled?'':' · 已暂停'}</div>
+      <div class="actions"><button class="danger" onclick="delHealthReminder('${r.reminder_id}')">删除</button></div>
+    </div>`;
+  }).join('');
+}
+async function addHealthReminder(){
+  const member = document.getElementById('hr-member').value.trim();
+  const title = document.getElementById('hr-title').value.trim();
+  const days = document.getElementById('hr-days').value.trim();
+  if(!member || !title) return toast('请输入成员和事项');
+  try {
+    await api('/health-reminders', {method:'POST', body:{member_name:member, title:title, period_days:days?parseInt(days,10):1}});
+    document.getElementById('hr-member').value='';
+    document.getElementById('hr-title').value='';
+    document.getElementById('hr-days').value='';
+    toast('已添加健康提醒');
+    await loadHealthReminders();
+  } catch(e){ toast(e.message); }
+}
+async function delHealthReminder(id){
+  try { await api('/health-reminders/'+id, {method:'DELETE'}); await loadHealthReminders(); }
+  catch(e){ toast(e.message); }
+}
+async function loadBillReminders(){
+  const d = await api('/bill-reminders');
+  const el = document.getElementById('bill-list');
+  if(!d.reminders.length){ el.innerHTML = '<div class="empty">暂无缴费提醒</div>'; return; }
+  el.innerHTML = d.reminders.map(r=>{
+    const due = r.next_due_at ? new Date(r.next_due_at) : null;
+    const overdue = due && due < new Date();
+    return `<div class="card">
+      <div class="row"><span class="title">${esc(r.name)}</span><span class="badge ${overdue?'OVERDUE':''}">${overdue?'已到期':'待缴'}</span></div>
+      <div class="meta">${r.amount?'¥'+r.amount+' · ':''}周期 ${r.period_months} 月${r.next_due_at?' · 下次 '+r.next_due_at.slice(0,10):''}${r.enabled?'':' · 已暂停'}</div>
+      <div class="actions"><button class="danger" onclick="delBillReminder('${r.reminder_id}')">删除</button></div>
+    </div>`;
+  }).join('');
+}
+async function addBillReminder(){
+  const name = document.getElementById('br-name').value.trim();
+  const amount = document.getElementById('br-amount').value.trim();
+  const months = document.getElementById('br-months').value.trim();
+  if(!name) return toast('请输入账单名');
+  try {
+    await api('/bill-reminders', {method:'POST', body:{name:name, amount:amount?parseFloat(amount):null, period_months:months?parseInt(months,10):1}});
+    document.getElementById('br-name').value='';
+    document.getElementById('br-amount').value='';
+    document.getElementById('br-months').value='';
+    toast('已添加缴费提醒');
+    await loadBillReminders();
+  } catch(e){ toast(e.message); }
+}
+async function delBillReminder(id){
+  try { await api('/bill-reminders/'+id, {method:'DELETE'}); await loadBillReminders(); }
+  catch(e){ toast(e.message); }
 }
 
 /* ============ 关系 ============ */

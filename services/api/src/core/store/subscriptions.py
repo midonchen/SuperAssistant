@@ -20,6 +20,8 @@ DEFAULT_FREE_LIMITS: dict = {
     "skills": 20,
     "job_applications": 20,
     "learning_items": 20,
+    "health_reminders": 10,
+    "bill_reminders": 10,
 }
 
 

@@ -39,6 +39,14 @@ celery_app.conf.beat_schedule = {
         "task": "modules.contacts.domain.tasks.run_occasion_reminder_task",
         "schedule": crontab(minute=0, hour=8),
     },
+    "daily-health-reminder": {
+        "task": "modules.reminders.domain.tasks.run_health_reminder_task",
+        "schedule": crontab(minute=0, hour=8),
+    },
+    "daily-bill-reminder": {
+        "task": "modules.reminders.domain.tasks.run_bill_reminder_task",
+        "schedule": crontab(minute=0, hour=8),
+    },
 }
 
-celery_app.autodiscover_tasks(["modules.inventory.domain", "modules.push.domain", "modules.reports.domain", "modules.contacts.domain"])
+celery_app.autodiscover_tasks(["modules.inventory.domain", "modules.push.domain", "modules.reports.domain", "modules.contacts.domain", "modules.reminders.domain"])

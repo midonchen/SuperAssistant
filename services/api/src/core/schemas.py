@@ -492,5 +492,68 @@ class LearningItemUpdateRequest(BaseModel):
     notes: str | None = None
 
 
+class HealthReminder(BaseModel):
+    reminder_id: str
+    household_id: str
+    member_name: str
+    reminder_type: str = "medication"
+    title: str
+    period_days: int = 1
+    next_due_at: datetime | None = None
+    enabled: bool = True
+    notes: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class HealthReminderCreateRequest(BaseModel):
+    member_name: str = Field(..., min_length=1, max_length=64)
+    reminder_type: str = Field(default="medication", max_length=16)
+    title: str = Field(..., min_length=1, max_length=128)
+    period_days: int = Field(default=1, ge=1, le=3650)
+    next_due_at: datetime | None = None
+    notes: str | None = None
+
+
+class HealthReminderUpdateRequest(BaseModel):
+    member_name: str | None = Field(default=None, min_length=1, max_length=64)
+    reminder_type: str | None = Field(default=None, max_length=16)
+    title: str | None = Field(default=None, min_length=1, max_length=128)
+    period_days: int | None = Field(default=None, ge=1, le=3650)
+    next_due_at: datetime | None = None
+    enabled: bool | None = None
+    notes: str | None = None
+
+
+class BillReminder(BaseModel):
+    reminder_id: str
+    household_id: str
+    name: str
+    amount: float | None = None
+    period_months: int = 1
+    next_due_at: datetime | None = None
+    enabled: bool = True
+    notes: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class BillReminderCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=64)
+    amount: float | None = Field(default=None, ge=0)
+    period_months: int = Field(default=1, ge=1, le=24)
+    next_due_at: datetime | None = None
+    notes: str | None = None
+
+
+class BillReminderUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=64)
+    amount: float | None = Field(default=None, ge=0)
+    period_months: int | None = Field(default=None, ge=1, le=24)
+    next_due_at: datetime | None = None
+    enabled: bool | None = None
+    notes: str | None = None
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)

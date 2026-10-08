@@ -575,6 +575,16 @@
   - v3.x 职业模块全闭环（3.1~3.5）
   - Verified: 93/93 API tests PASS, admin tsc/build PASS, `npm run check:all` PASS
 
+- 生活扩展 健康用药 + 缴费提醒 (part 76):
+  - `health_reminders` + `bill_reminders` 表（迁移 0023）+ 订阅门控（各免费 10 个）
+  - CRUD `/health-reminders`（成员/用药·体检·复诊/周期天数）+ `/bill-reminders`（账单/金额/周期月数）
+  - 家庭维度隔离 + 角色权限（复用 can_write_inventory）
+  - celery 每日推送任务（到期提醒 + 自动顺延周期），beat 08:00
+  - 移动端「生活」tab 增「提醒」子 tab（健康 + 缴费，到期高亮）
+  - 修复：reminders 的 `_require_write` 与 family_affairs 同名方法冲突，改名 `_require_reminder_write`
+  - Updated OpenAPI + 3 回归测试
+  - Verified: 96/96 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：

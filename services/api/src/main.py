@@ -19,6 +19,7 @@ from modules.career.api.routes import skills_router
 from modules.career.api.routes import applications_router
 from modules.career.api.routes import learning_router
 from modules.career.api.routes import advice_router
+from modules.reminders.api.routes import bills_router, health_router
 from modules.family_affairs.api.routes import router as family_affairs_router
 from modules.households.api.routes import router as households_router
 from modules.inventory.api.routes import router as inventory_router
@@ -96,5 +97,7 @@ app.include_router(skills_router, prefix="/api/v1")
 app.include_router(applications_router, prefix="/api/v1")
 app.include_router(learning_router, prefix="/api/v1")
 app.include_router(advice_router, prefix="/api/v1")
+app.include_router(health_router, prefix="/api/v1")
+app.include_router(bills_router, prefix="/api/v1")
 app.include_router(family_affairs_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
