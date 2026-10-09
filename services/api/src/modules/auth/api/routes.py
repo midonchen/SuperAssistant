@@ -5,6 +5,7 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
+from core import wechat
 from core.auth_dep import require_bearer
 from core.response import failure, success
 from core.schemas import utc_now
@@ -22,6 +23,11 @@ class SmsLoginRequest(BaseModel):
     phone: str
     code: str
     device_id: str
+
+
+class WechatLoginRequest(BaseModel):
+    code: str
+    device_id: str = "wechat-miniprogram"
 
 
 class TokenRefreshRequest(BaseModel):
@@ -56,6 +62,27 @@ async def sms_login(payload: SmsLoginRequest, request: Request):
             "access_token": access_token,
             "refresh_token": refresh_token,
             "expires_in": 7200,
+            "user_profile": profile.model_dump(mode="json"),
+        },
+    )
+
+
+@router.post("/wechat/login")
+async def wechat_login(payload: WechatLoginRequest, request: Request):
+    try:
+        openid = wechat.exchange_code(payload.code)
+    except RuntimeError as exc:
+        return failure(request, 401, "AUTH_401_WECHAT_FAILED", str(exc))
+    user_id, profile, is_new = store.bootstrap_wechat_user(openid)
+    sid, access_token, refresh_token = store.upsert_session(user_id, payload.device_id)
+    return success(
+        request,
+        {
+            "session_id": sid,
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "expires_in": 7200,
+            "is_new_user": is_new,
             "user_profile": profile.model_dump(mode="json"),
         },
     )

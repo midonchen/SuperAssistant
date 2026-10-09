@@ -28,6 +28,7 @@ class UserModel(Base):
     household_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("households.id"), nullable=True, index=True)
     subscription_tier_id: Mapped[str] = mapped_column(String(16), ForeignKey("subscription_tiers.id"), default="free", index=True)
     onboarded: Mapped[bool] = mapped_column(Boolean, default=True)
+    openid: Mapped[str | None] = mapped_column(String(64), unique=True, index=True, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 

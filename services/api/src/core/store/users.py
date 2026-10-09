@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from uuid import UUID, uuid4
 
 from sqlalchemy import Select, func, select
@@ -23,14 +24,15 @@ from core.store.base import ITEM_META, MAX_ACTIVE_SESSIONS, StoreBase
 
 
 class UserStoreMixin(StoreBase):
-    def bootstrap_user(self, phone: str) -> tuple[UUID, UserProfile]:
+    def bootstrap_user(self, phone: str, openid: str | None = None, phone_masked: str | None = None) -> tuple[UUID, UserProfile]:
         role = self._role_for_phone(phone)
         with SessionLocal() as db:
             user = db.scalar(select(UserModel).where(UserModel.phone == phone))
             if user is None:
                 user = UserModel(
                     phone=phone,
-                    phone_masked=f"{phone[:3]}****{phone[-4:]}",
+                    phone_masked=phone_masked or f"{phone[:3]}****{phone[-4:]}",
+                    openid=openid,
                     timezone="Asia/Shanghai",
                     shopping_day=6,
                     shopping_cycle=7,
@@ -94,6 +96,19 @@ class UserStoreMixin(StoreBase):
                 db.commit()
                 db.refresh(user)
             return UUID(user.id), self._profile(user)
+
+    @staticmethod
+    def _synthetic_phone(openid: str) -> str:
+        return "9" + hashlib.md5(openid.encode()).hexdigest()[:16]
+
+    def bootstrap_wechat_user(self, openid: str) -> tuple[UUID, UserProfile, bool]:
+        with SessionLocal() as db:
+            user = db.scalar(select(UserModel).where(UserModel.openid == openid))
+            if user is not None:
+                return UUID(user.id), self._profile(user), False
+        phone = self._synthetic_phone(openid)
+        user_id, profile = self.bootstrap_user(phone, openid=openid, phone_masked="微信用户")
+        return user_id, profile, True
 
     def upsert_session(self, user_id: UUID, device_id: str = "unknown") -> tuple[str, str, str]:
         sid = str(uuid4())

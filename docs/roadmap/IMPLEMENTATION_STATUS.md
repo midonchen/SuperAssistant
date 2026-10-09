@@ -636,6 +636,12 @@
   - demo_smoke 15 步覆盖成长段
   - Verified: 106/106 API tests PASS, admin build PASS, `npm run check:all` PASS
 
+- 微信小程序迁移 · 后端微信登录 (part 85, W1):
+  - `users.openid` 列（unique 可空，迁移 0028）+ `core/wechat.py`（`exchange_code` 走 jscode2session，`WECHAT_MOCK=1`/无密钥时确定性 mock）
+  - `POST /auth/wechat/login`（code → openid → `bootstrap_wechat_user` 首次建用户 `phone_masked`="微信用户" + `is_new_user`）
+  - compose 增 `WECHAT_APPID`/`WECHAT_APPSECRET`/`WECHAT_MOCK` env；OpenAPI 补 `/auth/wechat/login`
+  - Verified: 107/107 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：

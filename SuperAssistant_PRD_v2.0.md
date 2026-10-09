@@ -268,6 +268,7 @@ family_affairs     -> 生活：家庭事务（复用 household 角色）
 | D5 | 信息架构 | 底部导航固定五大方向：生活 / 工作 / 关系 / 职业 / 成长 |
 | D6 | 演示载体 | Admin + demo 脚本为演示主载体，随每个版本同步更新 |
 | D7 | 第五方向「成长」 | 新增个人成长方向（习惯/思维模型/价值观/感悟/愿景），主色青碧 `#14b8a6`，图标 🌱，按 V3_1_PERSONAL_GROWTH_MEMO.md 里程碑推进 |
+| D8 | 客户端载体 | 改用微信小程序呈现（AppID `wxf99e99ee5bc9eaf1`）；身份认证走 openid（`wx.login` → `code2session`）；AppSecret 仅存服务器 .env（0600），绝不进代码/仓库；HTML 移动端作为临时演示保留 |
 
 ### 下一阶段开发范围（v3.0 关系，已确认）
 

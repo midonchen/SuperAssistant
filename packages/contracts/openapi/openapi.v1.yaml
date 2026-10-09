@@ -913,6 +913,27 @@ paths:
                 device_id: { type: string }
       responses:
         '200': { description: success }
+  /auth/wechat/login:
+    post:
+      summary: Login by WeChat mini program code (wx.login)
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: { type: string }
+                device_id: { type: string }
+      responses:
+        '200': { description: success }
+        '401': { description: wechat code2session failed }
   /auth/token/refresh:
     post:
       summary: Refresh token
