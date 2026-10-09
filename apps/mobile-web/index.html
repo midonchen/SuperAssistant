@@ -11,6 +11,7 @@
   --mint: #4de0b6; --work: #4f8afe; --violet: #7a56fe; --amber: #f5b94b;
   --success: #34c77b; --warning: #f5b94b; --red: #e5534b;
   --grad: linear-gradient(135deg, #4de0b6, #7a56fe);
+  --teal: #14b8a6;
   --shadow: 0 8px 24px rgba(20,30,60,.06);
   --soft: #eef0f5;
   --gold: #7a56fe; --green: #4de0b6; --blue: #4f8afe;
@@ -34,11 +35,13 @@ nav button[data-tab="life"].active { color: var(--mint); }
 nav button[data-tab="work"].active { color: var(--work); }
 nav button[data-tab="rel"].active { color: var(--violet); }
 nav button[data-tab="career"].active { color: var(--amber); }
+nav button[data-tab="growth"].active { color: var(--teal); }
 nav .ic { font-size: 18px; }
 .subnav { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; }
 .subnav button { background: var(--soft); color: var(--muted); border: none; padding: 7px 14px; border-radius: 18px; font-size: 13px; white-space: nowrap; }
 .subnav.life button.active { background: var(--mint); color: #fff; font-weight: 600; }
 .subnav.work button.active { background: var(--work); color: #fff; font-weight: 600; }
+.subnav.growth button.active { background: var(--teal); color: #fff; font-weight: 600; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-bottom: 10px; box-shadow: var(--shadow); }
 .card .title { font-size: 15px; font-weight: 600; word-break: break-all; }
 .card .meta { color: var(--muted); font-size: 12px; margin-top: 4px; line-height: 1.5; }
@@ -86,6 +89,7 @@ textarea { width: 100%; min-height: 80px; resize: vertical; margin-bottom: 8px; 
     <button data-tab="work" onclick="switchTab('work')"><span class="ic">💼</span>工作</button>
     <button data-tab="rel" onclick="switchTab('rel')"><span class="ic">💗</span>关系</button>
     <button data-tab="career" onclick="switchTab('career')"><span class="ic">🎯</span>职业</button>
+    <button data-tab="growth" onclick="switchTab('growth')"><span class="ic">🌱</span>成长</button>
   </nav>
 </div>
 
@@ -100,6 +104,7 @@ let subTab = 'inventory';
 const SUB_TABS = {
   life: [['inventory','库存'],['shop','采购'],['family','家庭'],['reminders','提醒']],
   work: [['tasks','任务'],['calendar','日历'],['meetings','会议'],['reports','周报']],
+  growth: [['knowledge','知识'],['habits','习惯'],['finance','财务'],['reflect','自省']],
 };
 
 function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -135,7 +140,7 @@ function logout(){ token=''; localStorage.removeItem('sa_token'); location.reloa
 
 function switchTab(t){
   tab = t;
-  subTab = t === 'life' ? 'inventory' : (t === 'work' ? 'tasks' : '');
+  subTab = t === 'life' ? 'inventory' : (t === 'work' ? 'tasks' : (t === 'growth' ? 'knowledge' : ''));
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
   render();
 }
@@ -144,7 +149,7 @@ function switchSub(k){ subTab = k; render(); }
 async function render(){
   const m = document.getElementById('main');
   try {
-    if (tab==='life' || tab==='work') await renderSub(m);
+    if (tab==='life' || tab==='work' || tab==='growth') await renderSub(m);
     else if (tab==='rel') await renderRelations(m);
     else if (tab==='career') renderCareer(m);
   } catch(e){ m.innerHTML = '<div class="empty">加载失败：' + esc(e.message) + '</div>'; }
@@ -152,9 +157,9 @@ async function render(){
 
 async function renderSub(m){
   const tabs = SUB_TABS[tab];
-  m.innerHTML = '<div class="subnav ' + (tab==='life'?'life':'work') + '">' + tabs.map(([k,label])=>`<button class="${k===subTab?'active':''}" onclick="switchSub('${k}')">${label}</button>`).join('') + '</div><div id="sub-body" class="empty"></div>';
+  m.innerHTML = '<div class="subnav ' + tab + '">' + tabs.map(([k,label])=>`<button class="${k===subTab?'active':''}" onclick="switchSub('${k}')">${label}</button>`).join('') + '</div><div id="sub-body" class="empty"></div>';
   const body = document.getElementById('sub-body');
-  const fn = {inventory:renderLife, shop:renderShop, family:renderFamily, reminders:renderReminders, tasks:renderTasks, calendar:renderCalendar, meetings:renderMeetings, reports:renderReports}[subTab];
+  const fn = {inventory:renderLife, shop:renderShop, family:renderFamily, reminders:renderReminders, tasks:renderTasks, calendar:renderCalendar, meetings:renderMeetings, reports:renderReports, knowledge:renderKnowledge, habits:renderHabits, finance:renderFinance, reflect:renderReflect}[subTab];
   if (fn) await fn(body);
 }
 
@@ -671,6 +676,175 @@ async function getAdvice(){
     box.innerHTML = '<div class="meta" style="white-space:pre-wrap;line-height:1.6;">'+esc(d.advice)+'</div>';
   } catch(e){ box.innerHTML = ''; toast(e.message); }
 }
+
+
+/* ============ 成长 ============ */
+async function renderKnowledge(m){
+  m.innerHTML = `
+    <div class="card"><div class="section" style="margin:0 0 8px;">思维模型</div>
+      <div class="toolbar"><input id="tm-name" placeholder="模型名" style="max-width:110px;"><input id="tm-desc" placeholder="一句话说明" style="max-width:150px;"></div>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addEntry('thinking_model')">添加模型</button>
+      <div id="tm-list" class="empty">加载中…</div></div>
+    <div class="card"><div class="section" style="margin:0 0 8px;">价值观 / 原则</div>
+      <div class="toolbar"><input id="vp-name" placeholder="名称" style="max-width:110px;"><input id="vp-desc" placeholder="一句话说明" style="max-width:150px;"></div>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addEntry('value_principle')">添加价值观</button>
+      <div id="vp-list" class="empty">加载中…</div></div>`;
+  await Promise.all([loadEntries('thinking_model'), loadEntries('value_principle')]);
+}
+async function loadEntries(kind){
+  const path = kind==='thinking_model' ? '/thinking-models' : '/value-principles';
+  const listId = kind==='thinking_model' ? 'tm-list' : 'vp-list';
+  const d = await api(path);
+  const el = document.getElementById(listId);
+  if(!d.entries.length){ el.innerHTML = '<div class="empty">暂无</div>'; return; }
+  el.innerHTML = d.entries.map(e=>`<div class="card"><div class="row"><span class="title">${esc(e.name)}</span>${e.category?'<span class="badge">'+esc(e.category)+'</span>':''}</div><div class="meta">${esc(e.description)}${e.applications?' · '+esc(e.applications):''}</div><div class="actions"><button class="danger" onclick="delEntry('${kind}','${e.entry_id}')">删除</button></div></div>`).join('');
+}
+async function addEntry(kind){
+  const nameId = kind==='thinking_model' ? 'tm-name' : 'vp-name';
+  const descId = kind==='thinking_model' ? 'tm-desc' : 'vp-desc';
+  const name = document.getElementById(nameId).value.trim();
+  const desc = document.getElementById(descId).value.trim();
+  if(!name || !desc) return toast('请输入名称和说明');
+  const path = kind==='thinking_model' ? '/thinking-models' : '/value-principles';
+  try { await api(path, {method:'POST', body:{name, description:desc}}); document.getElementById(nameId).value=''; document.getElementById(descId).value=''; toast('已添加'); await loadEntries(kind); }
+  catch(e){ toast(e.message); }
+}
+async function delEntry(kind, id){
+  const path = (kind==='thinking_model' ? '/thinking-models' : '/value-principles') + '/' + id;
+  try { await api(path, {method:'DELETE'}); await loadEntries(kind); } catch(e){ toast(e.message); }
+}
+async function renderHabits(m){
+  m.innerHTML = `
+    <div class="card"><div class="section" style="margin:0 0 8px;">习惯养成</div>
+      <div class="toolbar"><input id="hb-name" placeholder="习惯（如早睡早起）" style="max-width:150px;"><input id="hb-schedule" placeholder="固定时间 22:30" style="max-width:110px;"></div>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addHabit()">添加习惯</button>
+      <div id="hb-list" class="empty">加载中…</div></div>
+    <div class="card"><div class="section" style="margin:0 0 8px;">健身运动</div>
+      <div class="toolbar"><select id="wk-type" style="background:var(--soft);color:var(--text);border:none;padding:10px 12px;border-radius:10px;"><option value="run">跑步</option><option value="strength">力量</option><option value="tennis">网球</option></select><input id="wk-min" placeholder="时长(分)" style="max-width:80px;" inputmode="numeric"><input id="wk-km" placeholder="距离km" style="max-width:80px;" inputmode="numeric"></div>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addWorkout()">记录运动</button>
+      <div id="wk-list" class="empty">加载中…</div></div>`;
+  await Promise.all([loadHabits(), loadWorkouts()]);
+}
+async function loadHabits(){
+  const d = await api('/habits');
+  const el = document.getElementById('hb-list');
+  if(!d.habits.length){ el.innerHTML = '<div class="empty">暂无习惯，添加一个开始坚持</div>'; return; }
+  el.innerHTML = d.habits.map(h=>`<div class="card"><div class="row"><span class="title">${esc(h.name)}</span><span class="badge">连续 ${h.streak} 天</span></div><div class="meta">${h.schedule?'固定 '+esc(h.schedule)+' · ':''}周期 ${h.period_days} 天</div><div class="actions"><button class="primary" onclick="checkinHabit('${h.habit_id}')">今日打卡</button><button class="danger" onclick="delHabit('${h.habit_id}')">删除</button></div></div>`).join('');
+}
+async function addHabit(){
+  const name = document.getElementById('hb-name').value.trim();
+  const schedule = document.getElementById('hb-schedule').value.trim();
+  if(!name) return toast('请输入习惯名');
+  try { await api('/habits', {method:'POST', body:{name, schedule:schedule||null}}); document.getElementById('hb-name').value=''; document.getElementById('hb-schedule').value=''; toast('已添加习惯'); await loadHabits(); }
+  catch(e){ toast(e.message); }
+}
+async function checkinHabit(id){
+  const today = new Date().toISOString().slice(0,10);
+  try { const d = await api('/habits/'+id+'/checkin', {method:'POST', body:{checkin_date:today}}); toast('打卡成功 · 连续 '+d.streak+' 天'); await loadHabits(); }
+  catch(e){ toast(e.message); }
+}
+async function delHabit(id){ try { await api('/habits/'+id, {method:'DELETE'}); await loadHabits(); } catch(e){ toast(e.message); } }
+async function loadWorkouts(){
+  const d = await api('/workouts');
+  const el = document.getElementById('wk-list');
+  if(!d.workouts.length){ el.innerHTML = '<div class="empty">暂无运动记录</div>'; return; }
+  const TY = {run:'跑步', strength:'力量', tennis:'网球'};
+  el.innerHTML = d.workouts.map(w=>`<div class="card"><div class="row"><span class="title">${TY[w.workout_type]||w.workout_type}</span><span class="badge">${w.workout_date}</span></div><div class="meta">${w.duration_minutes} 分钟${w.distance_km?' · '+w.distance_km+' km':''}</div><div class="actions"><button class="danger" onclick="delWorkout('${w.workout_id}')">删除</button></div></div>`).join('');
+}
+async function addWorkout(){
+  const type = document.getElementById('wk-type').value;
+  const min = document.getElementById('wk-min').value.trim();
+  const km = document.getElementById('wk-km').value.trim();
+  if(!min) return toast('请输入时长');
+  const today = new Date().toISOString().slice(0,10);
+  try { await api('/workouts', {method:'POST', body:{workout_type:type, duration_minutes:parseInt(min,10), distance_km:km?parseFloat(km):null, workout_date:today}}); document.getElementById('wk-min').value=''; document.getElementById('wk-km').value=''; toast('已记录'); await loadWorkouts(); }
+  catch(e){ toast(e.message); }
+}
+async function delWorkout(id){ try { await api('/workouts/'+id, {method:'DELETE'}); await loadWorkouts(); } catch(e){ toast(e.message); } }
+async function renderFinance(m){
+  m.innerHTML = `
+    <div class="card"><div class="section" style="margin:0 0 8px;">资产配置</div>
+      <div class="toolbar"><input id="as-name" placeholder="资产名" style="max-width:100px;"><select id="as-cat" style="background:var(--soft);color:var(--text);border:none;padding:10px 12px;border-radius:10px;"><option value="cash">现金</option><option value="stock">股票</option><option value="fund">基金</option><option value="property">房产</option><option value="insurance">保险</option></select><input id="as-amount" placeholder="金额" style="max-width:90px;" inputmode="numeric"></div>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addAsset()">添加资产</button>
+      <div id="as-list" class="empty">加载中…</div></div>
+    <div class="card"><div class="section" style="margin:0 0 8px;">投资记录</div>
+      <div class="toolbar"><input id="iv-name" placeholder="标的" style="max-width:110px;"><input id="iv-amount" placeholder="金额" style="max-width:80px;" inputmode="numeric"><input id="iv-rate" placeholder="收益率%" style="max-width:80px;" inputmode="numeric"></div>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addInvestment()">添加投资</button>
+      <div id="iv-list" class="empty">加载中…</div></div>`;
+  await Promise.all([loadAssets(), loadInvestments()]);
+}
+async function loadAssets(){
+  const d = await api('/assets');
+  const el = document.getElementById('as-list');
+  const CAT = {cash:'现金', stock:'股票', fund:'基金', property:'房产', insurance:'保险'};
+  if(!d.assets.length){ el.innerHTML = '<div class="empty">暂无资产</div>'; return; }
+  el.innerHTML = '<div class="meta" style="margin-bottom:6px;">总资产 ¥'+d.total.toLocaleString()+'</div>' + d.assets.map(a=>`<div class="card"><div class="row"><span class="title">${esc(a.name)}</span><span class="badge">${CAT[a.category]||a.category}</span></div><div class="meta">¥${a.amount.toLocaleString()}</div><div class="actions"><button class="danger" onclick="delAsset('${a.asset_id}')">删除</button></div></div>`).join('');
+}
+async function addAsset(){
+  const name = document.getElementById('as-name').value.trim();
+  const cat = document.getElementById('as-cat').value;
+  const amount = document.getElementById('as-amount').value.trim();
+  if(!name || !amount) return toast('请输入资产名和金额');
+  try { await api('/assets', {method:'POST', body:{name, category:cat, amount:parseFloat(amount)}}); document.getElementById('as-name').value=''; document.getElementById('as-amount').value=''; toast('已添加'); await loadAssets(); }
+  catch(e){ toast(e.message); }
+}
+async function delAsset(id){ try { await api('/assets/'+id, {method:'DELETE'}); await loadAssets(); } catch(e){ toast(e.message); } }
+async function loadInvestments(){
+  const d = await api('/investments');
+  const el = document.getElementById('iv-list');
+  if(!d.investments.length){ el.innerHTML = '<div class="empty">暂无投资记录</div>'; return; }
+  el.innerHTML = d.investments.map(i=>`<div class="card"><div class="row"><span class="title">${esc(i.name)}</span><span class="badge">${i.status==='active'?'持有中':'已结束'}</span></div><div class="meta">¥${i.amount.toLocaleString()}${i.return_rate!=null?' · 收益率 '+i.return_rate+'%':''}</div><div class="actions"><button class="danger" onclick="delInvestment('${i.investment_id}')">删除</button></div></div>`).join('');
+}
+async function addInvestment(){
+  const name = document.getElementById('iv-name').value.trim();
+  const amount = document.getElementById('iv-amount').value.trim();
+  const rate = document.getElementById('iv-rate').value.trim();
+  if(!name || !amount) return toast('请输入标的和金额');
+  try { await api('/investments', {method:'POST', body:{name, amount:parseFloat(amount), return_rate:rate?parseFloat(rate):null}}); document.getElementById('iv-name').value=''; document.getElementById('iv-amount').value=''; document.getElementById('iv-rate').value=''; toast('已添加'); await loadInvestments(); }
+  catch(e){ toast(e.message); }
+}
+async function delInvestment(id){ try { await api('/investments/'+id, {method:'DELETE'}); await loadInvestments(); } catch(e){ toast(e.message); } }
+async function renderReflect(m){
+  m.innerHTML = `
+    <div class="card"><div class="section" style="margin:0 0 8px;">感悟日记</div>
+      <textarea id="jn-content" placeholder="今天有什么感悟？（好记性不如烂笔头）"></textarea>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addJournal()">记一笔</button>
+      <div id="jn-list" class="empty">加载中…</div></div>
+    <div class="card"><div class="section" style="margin:0 0 8px;">人生愿景</div>
+      <div class="toolbar"><select id="lg-dim" style="background:var(--soft);color:var(--text);border:none;padding:10px 12px;border-radius:10px;"><option value="career">事业</option><option value="health">健康</option><option value="family">家庭</option><option value="wealth">财富</option></select><input id="lg-title" placeholder="愿景（如做喜欢的事）" style="max-width:160px;"></div>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addLifeGoal()">添加愿景</button>
+      <div id="lg-list" class="empty">加载中…</div></div>`;
+  await Promise.all([loadJournal(), loadLifeGoals()]);
+}
+async function loadJournal(){
+  const d = await api('/journal');
+  const el = document.getElementById('jn-list');
+  if(!d.entries.length){ el.innerHTML = '<div class="empty">暂无感悟，写第一笔</div>'; return; }
+  el.innerHTML = d.entries.map(e=>`<div class="card"><div class="meta">${e.created_at?esc(e.created_at.slice(0,10)):''}</div><div class="summary" style="margin-top:4px;">${esc(e.content)}</div><div class="actions"><button class="danger" onclick="delJournal('${e.entry_id}')">删除</button></div></div>`).join('');
+}
+async function addJournal(){
+  const content = document.getElementById('jn-content').value.trim();
+  if(!content) return toast('请输入感悟内容');
+  try { await api('/journal', {method:'POST', body:{content}}); document.getElementById('jn-content').value=''; toast('已记录'); await loadJournal(); }
+  catch(e){ toast(e.message); }
+}
+async function delJournal(id){ try { await api('/journal/'+id, {method:'DELETE'}); await loadJournal(); } catch(e){ toast(e.message); } }
+async function loadLifeGoals(){
+  const d = await api('/life-goals');
+  const el = document.getElementById('lg-list');
+  const DIM = {career:'事业', health:'健康', family:'家庭', wealth:'财富'};
+  if(!d.goals.length){ el.innerHTML = '<div class="empty">暂无愿景</div>'; return; }
+  el.innerHTML = d.goals.map(g=>`<div class="card"><div class="row"><span class="title">${esc(g.title)}</span><span class="badge">${DIM[g.dimension]||g.dimension}</span></div>${g.description?'<div class="meta">'+esc(g.description)+'</div>':''}<div class="actions"><button class="danger" onclick="delLifeGoal('${g.goal_id}')">删除</button></div></div>`).join('');
+}
+async function addLifeGoal(){
+  const dim = document.getElementById('lg-dim').value;
+  const title = document.getElementById('lg-title').value.trim();
+  if(!title) return toast('请输入愿景');
+  try { await api('/life-goals', {method:'POST', body:{dimension:dim, title}}); document.getElementById('lg-title').value=''; toast('已添加'); await loadLifeGoals(); }
+  catch(e){ toast(e.message); }
+}
+async function delLifeGoal(id){ try { await api('/life-goals/'+id, {method:'DELETE'}); await loadLifeGoals(); } catch(e){ toast(e.message); } }
+
 
 /* ============ 工作 ============ */
 async function renderTasks(m){

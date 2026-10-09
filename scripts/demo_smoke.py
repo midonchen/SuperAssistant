@@ -139,6 +139,32 @@ def main():
     r = req("POST", "/career/advice", token, idem=f"demo-advice-{RUN_ID}")
     print(f"14e CAREER ADVICE: HTTP {r.status_code} head={r.json()['data']['advice'][:40]}")
 
+    # 15. v3.1 growth (成长方向)
+    r = req("POST", "/thinking-models", token, {"name": "多元思维模型", "description": "用不同学科思维模型看问题"}, idem=f"demo-tm-{RUN_ID}")
+    print(f"15 THINKING MODEL: HTTP {r.status_code} name={r.json()['data']['entry']['name']}")
+    r = req("POST", "/value-principles", token, {"name": "成长放首位", "description": "成长优先于短期利益"}, idem=f"demo-vp-{RUN_ID}")
+    print(f"15b VALUE PRINCIPLE: HTTP {r.status_code} name={r.json()['data']['entry']['name']}")
+    r = req("POST", "/habits", token, {"name": "早睡早起", "schedule": "22:30"}, idem=f"demo-hb-{RUN_ID}")
+    hid = r.json()["data"]["habit"]["habit_id"]
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    r = req("POST", f"/habits/{hid}/checkin", token, {"checkin_date": today}, idem=f"demo-hc-{RUN_ID}")
+    print(f"15c HABIT CHECKIN: HTTP {r.status_code} streak={r.json()['data']['streak']}")
+    r = req("POST", "/workouts", token, {"workout_type": "run", "duration_minutes": 30, "distance_km": 5, "workout_date": today}, idem=f"demo-wk-{RUN_ID}")
+    print(f"15d WORKOUT: HTTP {r.status_code} type={r.json()['data']['workout']['workout_type']}")
+    req("POST", "/assets", token, {"name": "银行存款", "category": "cash", "amount": 100000}, idem=f"demo-as-{RUN_ID}")
+    req("POST", "/assets", token, {"name": "股票账户", "category": "stock", "amount": 50000}, idem=f"demo-as2-{RUN_ID}")
+    r = req("GET", "/assets", token)
+    print(f"15e ASSETS: HTTP {r.status_code} total={r.json()['data']['total']}")
+    r = req("POST", "/investments", token, {"name": "指数基金", "amount": 10000, "return_rate": 8.5}, idem=f"demo-iv-{RUN_ID}")
+    print(f"15f INVESTMENT: HTTP {r.status_code} name={r.json()['data']['investment']['name']}")
+    r = req("POST", "/journal", token, {"content": "今日感悟：知易行难，重在坚持"}, idem=f"demo-jn-{RUN_ID}")
+    print(f"15g JOURNAL: HTTP {r.status_code}")
+    r = req("POST", "/life-goals", token, {"dimension": "health", "title": "保持身体健康"}, idem=f"demo-lg-{RUN_ID}")
+    print(f"15h LIFE GOAL: HTTP {r.status_code} title={r.json()['data']['goal']['title']}")
+    r = req("GET", "/admin/growth/overview", atoken)
+    gtot = r.json()["data"]["totals"]
+    print(f"15i ADMIN GROWTH: HTTP {r.status_code} totals={gtot}")
+
 
 if __name__ == "__main__":
     main()

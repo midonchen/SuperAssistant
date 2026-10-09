@@ -2,11 +2,19 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from core.db import SessionLocal
 from core.errors import ApiException
-from core.models import JournalEntryModel, LifeGoalModel
+from core.models import (
+    AssetModel,
+    HabitModel,
+    InvestmentModel,
+    JournalEntryModel,
+    KnowledgeEntryModel,
+    LifeGoalModel,
+    WorkoutModel,
+)
 from core.schemas import (
     JournalEntry,
     JournalEntryCreateRequest,
@@ -121,3 +129,30 @@ class LifeGoalStoreMixin(StoreBase):
                 raise KeyError("life goal not found")
             db.delete(row)
             db.commit()
+
+    def admin_growth_overview(self) -> dict:
+        with SessionLocal() as db:
+            tm = db.scalar(
+                select(func.count()).select_from(KnowledgeEntryModel).where(KnowledgeEntryModel.kind == "thinking_model")
+            ) or 0
+            vp = db.scalar(
+                select(func.count()).select_from(KnowledgeEntryModel).where(KnowledgeEntryModel.kind == "value_principle")
+            ) or 0
+            journal = db.scalar(select(func.count()).select_from(JournalEntryModel)) or 0
+            goals = db.scalar(select(func.count()).select_from(LifeGoalModel)) or 0
+            habits = db.scalar(select(func.count()).select_from(HabitModel)) or 0
+            workouts = db.scalar(select(func.count()).select_from(WorkoutModel)) or 0
+            assets = db.scalar(select(func.count()).select_from(AssetModel)) or 0
+            investments = db.scalar(select(func.count()).select_from(InvestmentModel)) or 0
+        return {
+            "totals": {
+                "thinking_models": tm,
+                "value_principles": vp,
+                "journal_entries": journal,
+                "life_goals": goals,
+                "habits": habits,
+                "workouts": workouts,
+                "assets": assets,
+                "investments": investments,
+            }
+        }

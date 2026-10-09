@@ -630,6 +630,12 @@
   - Updated OpenAPI + 2 回归测试
   - Verified: 106/106 API tests PASS, `npm run check:all` PASS
 
+- 成长 3.5 收尾 (part 84):
+  - 移动端「成长」tab（🌱 #14b8a6，子 tab 知识/习惯/财务/自省，覆盖思维模型+价值观+日记+愿景+习惯+健身+资产+投资）
+  - Admin「Growth」概览页（`/admin/growth/overview` 8 项统计 + nav + page.tsx + types + api）
+  - demo_smoke 15 步覆盖成长段
+  - Verified: 106/106 API tests PASS, admin build PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：

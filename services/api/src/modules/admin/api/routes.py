@@ -100,6 +100,11 @@ async def career_overview(request: Request, user_id: str = Depends(require_admin
     return success(request, store.admin_career_overview())
 
 
+@router.get("/growth/overview")
+async def growth_overview(request: Request, user_id: str = Depends(require_admin)):
+    return success(request, store.admin_growth_overview())
+
+
 @router.post("/users/{target_user_id}/session/revoke")
 async def revoke_user_session(
     target_user_id: str,

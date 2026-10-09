@@ -11,6 +11,7 @@ import type {
   ReportOverviewRow,
   RelationshipsOverview,
   CareerOverview,
+  GrowthOverview,
   SecurityEventRow,
   UserRow,
   WorkOverview,
@@ -211,4 +212,8 @@ export async function getRelationshipsOverview(token: string): Promise<Relations
 
 export async function getCareerOverview(token: string): Promise<CareerOverview> {
   return apiRequest<CareerOverview>("/admin/career/overview", { token });
+}
+
+export async function getGrowthOverview(token: string): Promise<GrowthOverview> {
+  return apiRequest<GrowthOverview>("/admin/growth/overview", { token });
 }

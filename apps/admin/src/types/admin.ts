@@ -183,3 +183,16 @@ export type CareerOverview = {
     learning_items: number;
   };
 };
+
+export type GrowthOverview = {
+  totals: {
+    thinking_models: number;
+    value_principles: number;
+    journal_entries: number;
+    life_goals: number;
+    habits: number;
+    workouts: number;
+    assets: number;
+    investments: number;
+  };
+};
