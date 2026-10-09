@@ -1,0 +1,15 @@
+{
+  "appid": "wxf99e99ee5bc9eaf1",
+  "projectname": "superassistant-miniprogram",
+  "compileType": "miniprogram",
+  "libVersion": "3.0.0",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "ignoreUploadUnusedFiles": true
+  },
+  "condition": {}
+}

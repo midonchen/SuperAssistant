@@ -28,7 +28,7 @@
 | 里程碑 | 内容 | 状态 |
 |--------|------|------|
 | W1 | 后端微信登录（openid 列 + `code2session` 服务 + `/auth/wechat/login` + 测试） | ✅ part 85 |
-| W2 | 小程序骨架（project.config.json / app.json tabBar 五方向 / app.js 登录 / utils/api.js / 首页 + 占位页） | 进行中 |
+| W2 | 小程序骨架（project.config.json / app.json tabBar 五方向 / app.js 登录 / utils/api.js / 首页 + 占位页） | ✅ part 86 |
 | W3 | 生活方向（库存/采购/家庭/提醒）迁入小程序页面 | 待做 |
 | W4 | 工作/关系/职业/成长 迁入小程序页面 | 待做 |
 | W5 | 微信手机号绑定（`getPhoneNumber`，需企业认证）+ HTTPS 域名 + 提审发布 | 待做 |

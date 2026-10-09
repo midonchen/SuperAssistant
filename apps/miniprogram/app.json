@@ -1,0 +1,55 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/work/work",
+    "pages/rel/rel",
+    "pages/career/career",
+    "pages/growth/growth"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#f5f5f7",
+    "navigationBarTitleText": "超级管家",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f5f5f7"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#14b8a6",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "生活",
+        "iconPath": "assets/tab/life.png",
+        "selectedIconPath": "assets/tab/life-active.png"
+      },
+      {
+        "pagePath": "pages/work/work",
+        "text": "工作",
+        "iconPath": "assets/tab/work.png",
+        "selectedIconPath": "assets/tab/work-active.png"
+      },
+      {
+        "pagePath": "pages/rel/rel",
+        "text": "关系",
+        "iconPath": "assets/tab/rel.png",
+        "selectedIconPath": "assets/tab/rel-active.png"
+      },
+      {
+        "pagePath": "pages/career/career",
+        "text": "职业",
+        "iconPath": "assets/tab/career.png",
+        "selectedIconPath": "assets/tab/career-active.png"
+      },
+      {
+        "pagePath": "pages/growth/growth",
+        "text": "成长",
+        "iconPath": "assets/tab/growth.png",
+        "selectedIconPath": "assets/tab/growth-active.png"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json"
+}

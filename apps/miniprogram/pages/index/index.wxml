@@ -1,0 +1,13 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="empty">加载中…</view>
+  <view wx:elif="{{error}}" class="empty">加载失败：{{error}}</view>
+  <block wx:else>
+    <view class="card" wx:for="{{items}}" wx:key="item_key">
+      <view class="row">
+        <text class="title">{{item.item_name}}</text>
+        <text class="badge">{{item.current_stock}} {{item.unit}}</text>
+      </view>
+      <view class="meta">{{item.status}}</view>
+    </view>
+  </block>
+</view>

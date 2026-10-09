@@ -642,6 +642,11 @@
   - compose 增 `WECHAT_APPID`/`WECHAT_APPSECRET`/`WECHAT_MOCK` env；OpenAPI 补 `/auth/wechat/login`
   - Verified: 107/107 API tests PASS, `npm run check:all` PASS
 
+- 微信小程序骨架 (part 86, W2):
+  - `apps/miniprogram/`：project.config.json（AppID + urlCheck off）+ app.json（tabBar 五方向 生活/工作/关系/职业/成长）+ app.js（`wx.login` → `/auth/wechat/login` → token 存 storage）+ utils/api.js（带 Authorization/Idempotency-Key/X-Request-Id/X-App-Version）
+  - 5 个 tab 页（生活·库存 demo + 工作/关系/职业/成长占位）+ 10 个 tabBar 图标（81×81 PNG，纯 Python 生成）
+  - 注：生产需 HTTPS + 小程序后台配置 request 合法域名；开发阶段微信开发者工具关闭域名校验
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：
