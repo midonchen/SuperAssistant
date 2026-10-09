@@ -615,5 +615,76 @@ class LifeGoalUpdateRequest(BaseModel):
     description: str | None = None
 
 
+class Habit(BaseModel):
+    habit_id: str
+    name: str
+    schedule: str | None = None
+    period_days: int = 30
+    streak: int = 0
+    created_at: datetime
+    updated_at: datetime
+
+
+class HabitCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=64)
+    schedule: str | None = Field(default=None, max_length=32)
+    period_days: int = Field(default=30, ge=1, le=365)
+
+
+class HabitCheckin(BaseModel):
+    checkin_id: str
+    habit_id: str
+    checkin_date: str
+    created_at: datetime
+
+
+class Workout(BaseModel):
+    workout_id: str
+    workout_type: str
+    duration_minutes: int
+    distance_km: float | None = None
+    workout_date: str
+    created_at: datetime
+
+
+class WorkoutCreateRequest(BaseModel):
+    workout_type: str = Field(..., max_length=16)
+    duration_minutes: int = Field(..., ge=1)
+    distance_km: float | None = Field(default=None, ge=0)
+    workout_date: str = Field(..., max_length=10)
+
+
+class Asset(BaseModel):
+    asset_id: str
+    name: str
+    category: str
+    amount: float
+    created_at: datetime
+    updated_at: datetime
+
+
+class AssetCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=64)
+    category: str = Field(..., max_length=16)
+    amount: float = Field(..., ge=0)
+
+
+class Investment(BaseModel):
+    investment_id: str
+    name: str
+    amount: float
+    return_rate: float | None = None
+    status: str = "active"
+    created_at: datetime
+    updated_at: datetime
+
+
+class InvestmentCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=64)
+    amount: float = Field(..., ge=0)
+    return_rate: float | None = Field(default=None)
+    status: str = Field(default="active", max_length=16)
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)

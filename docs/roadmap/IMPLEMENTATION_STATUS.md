@@ -618,6 +618,18 @@
   - Updated OpenAPI + 2 回归测试
   - Verified: 102/102 API tests PASS, `npm run check:all` PASS
 
+- 成长 3.3 习惯打卡 + 健身记录 (part 82):
+  - `habits` + `habit_checkins`（唯一约束 habit_id+date）+ `workouts` 表（迁移 0026）
+  - `/habits` CRUD + `/habits/{id}/checkin` 打卡（连续天数 streak 计算）+ `/workouts`（跑步/力量/网球）
+  - Updated OpenAPI + 2 回归测试
+  - Verified: 104/104 API tests PASS, `npm run check:all` PASS
+
+- 成长 3.4 财务理财 (part 83):
+  - `assets`（资产配置，category cash/stock/fund/property/insurance）+ `investments`（投资记录，收益率/状态）表（迁移 0027）
+  - `/assets`（含 total 汇总）+ `/investments` CRUD
+  - Updated OpenAPI + 2 回归测试
+  - Verified: 106/106 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：

@@ -789,6 +789,86 @@ components:
         dimension: { type: string, nullable: true }
         title: { type: string, nullable: true }
         description: { type: string, nullable: true }
+    Habit:
+      type: object
+      required: [habit_id, name, period_days, streak, created_at, updated_at]
+      properties:
+        habit_id: { type: string, format: uuid }
+        name: { type: string }
+        schedule: { type: string, nullable: true }
+        period_days: { type: integer }
+        streak: { type: integer }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    HabitCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        schedule: { type: string, nullable: true }
+        period_days: { type: integer }
+    HabitCheckin:
+      type: object
+      required: [checkin_id, habit_id, checkin_date, created_at]
+      properties:
+        checkin_id: { type: string, format: uuid }
+        habit_id: { type: string, format: uuid }
+        checkin_date: { type: string }
+        created_at: { type: string, format: date-time }
+    Workout:
+      type: object
+      required: [workout_id, workout_type, duration_minutes, workout_date, created_at]
+      properties:
+        workout_id: { type: string, format: uuid }
+        workout_type: { type: string }
+        duration_minutes: { type: integer }
+        distance_km: { type: number, nullable: true }
+        workout_date: { type: string }
+        created_at: { type: string, format: date-time }
+    WorkoutCreateRequest:
+      type: object
+      required: [workout_type, duration_minutes, workout_date]
+      properties:
+        workout_type: { type: string }
+        duration_minutes: { type: integer }
+        distance_km: { type: number, nullable: true }
+        workout_date: { type: string }
+    Asset:
+      type: object
+      required: [asset_id, name, category, amount, created_at, updated_at]
+      properties:
+        asset_id: { type: string, format: uuid }
+        name: { type: string }
+        category: { type: string }
+        amount: { type: number }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    AssetCreateRequest:
+      type: object
+      required: [name, category, amount]
+      properties:
+        name: { type: string }
+        category: { type: string }
+        amount: { type: number }
+    Investment:
+      type: object
+      required: [investment_id, name, amount, status, created_at, updated_at]
+      properties:
+        investment_id: { type: string, format: uuid }
+        name: { type: string }
+        amount: { type: number }
+        return_rate: { type: number, nullable: true }
+        status: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    InvestmentCreateRequest:
+      type: object
+      required: [name, amount]
+      properties:
+        name: { type: string }
+        amount: { type: number }
+        return_rate: { type: number, nullable: true }
+        status: { type: string }
 paths:
   /auth/sms/send:
     post:
@@ -2432,6 +2512,186 @@ paths:
         - $ref: '#/components/parameters/IdempotencyKey'
         - in: path
           name: goal_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /habits:
+    get:
+      summary: List habits
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create a habit
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/HabitCreateRequest' }
+      responses:
+        '200': { description: success }
+  /habits/{habit_id}/checkin:
+    post:
+      summary: Check in a habit
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: habit_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /habits/{habit_id}:
+    delete:
+      summary: Delete a habit
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: habit_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /workouts:
+    get:
+      summary: List workouts
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create a workout
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkoutCreateRequest' }
+      responses:
+        '200': { description: success }
+  /workouts/{workout_id}:
+    delete:
+      summary: Delete a workout
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: workout_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /assets:
+    get:
+      summary: List assets
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create an asset
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssetCreateRequest' }
+      responses:
+        '200': { description: success }
+  /assets/{asset_id}:
+    delete:
+      summary: Delete an asset
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: asset_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /investments:
+    get:
+      summary: List investments
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create an investment
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InvestmentCreateRequest' }
+      responses:
+        '200': { description: success }
+  /investments/{investment_id}:
+    delete:
+      summary: Delete an investment
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: investment_id
           required: true
           schema: { type: string, format: uuid }
       responses:

@@ -21,7 +21,7 @@ from modules.career.api.routes import learning_router
 from modules.career.api.routes import advice_router
 from modules.reminders.api.routes import bills_router, health_router
 from modules.family_affairs.api.routes import router as family_affairs_router
-from modules.growth.api.routes import journal_router, life_goals_router
+from modules.growth.api.routes import journal_router, life_goals_router, habits_router, workouts_router, assets_router, investments_router
 from modules.households.api.routes import router as households_router
 from modules.inventory.api.routes import router as inventory_router
 from modules.inventory.api.routes import meals_router
@@ -91,6 +91,10 @@ app.include_router(thinking_models_router, prefix="/api/v1")
 app.include_router(value_principles_router, prefix="/api/v1")
 app.include_router(journal_router, prefix="/api/v1")
 app.include_router(life_goals_router, prefix="/api/v1")
+app.include_router(habits_router, prefix="/api/v1")
+app.include_router(workouts_router, prefix="/api/v1")
+app.include_router(assets_router, prefix="/api/v1")
+app.include_router(investments_router, prefix="/api/v1")
 app.include_router(voice_router, prefix="/api/v1")
 app.include_router(ocr_router, prefix="/api/v1")
 app.include_router(push_router, prefix="/api/v1")

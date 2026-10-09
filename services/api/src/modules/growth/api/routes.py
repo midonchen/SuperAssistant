@@ -4,7 +4,15 @@ from fastapi import APIRouter, Depends, Request
 
 from core.auth_dep import require_bearer
 from core.response import failure, success
-from core.schemas import JournalEntryCreateRequest, LifeGoalCreateRequest, LifeGoalUpdateRequest
+from core.schemas import (
+    AssetCreateRequest,
+    HabitCreateRequest,
+    InvestmentCreateRequest,
+    JournalEntryCreateRequest,
+    LifeGoalCreateRequest,
+    LifeGoalUpdateRequest,
+    WorkoutCreateRequest,
+)
 from core.store import store
 
 journal_router = APIRouter(prefix="/journal", tags=["growth"])
@@ -57,4 +65,103 @@ async def delete_life_goal(goal_id: str, request: Request, user_id: str = Depend
         store.delete_life_goal(user_id, goal_id)
     except KeyError:
         return failure(request, 404, "BIZ_404_NOT_FOUND", "life goal not found")
+    return success(request, {"deleted": True})
+
+
+habits_router = APIRouter(prefix="/habits", tags=["growth"])
+workouts_router = APIRouter(prefix="/workouts", tags=["growth"])
+
+
+@habits_router.get("")
+async def list_habits(request: Request, user_id: str = Depends(require_bearer)):
+    return success(request, {"habits": [h.model_dump(mode="json") for h in store.list_habits(user_id)]})
+
+
+@habits_router.post("")
+async def create_habit(payload: HabitCreateRequest, request: Request, user_id: str = Depends(require_bearer)):
+    habit = store.create_habit(user_id, payload)
+    return success(request, {"habit": habit.model_dump(mode="json")})
+
+
+@habits_router.post("/{habit_id}/checkin")
+async def checkin_habit(habit_id: str, payload: dict, request: Request, user_id: str = Depends(require_bearer)):
+    try:
+        result = store.checkin(user_id, habit_id, payload.get("checkin_date", ""))
+    except KeyError:
+        return failure(request, 404, "BIZ_404_NOT_FOUND", "habit not found")
+    return success(request, result)
+
+
+@habits_router.delete("/{habit_id}")
+async def delete_habit(habit_id: str, request: Request, user_id: str = Depends(require_bearer)):
+    try:
+        store.delete_habit(user_id, habit_id)
+    except KeyError:
+        return failure(request, 404, "BIZ_404_NOT_FOUND", "habit not found")
+    return success(request, {"deleted": True})
+
+
+@workouts_router.get("")
+async def list_workouts(request: Request, user_id: str = Depends(require_bearer)):
+    return success(request, {"workouts": [w.model_dump(mode="json") for w in store.list_workouts(user_id)]})
+
+
+@workouts_router.post("")
+async def create_workout(payload: WorkoutCreateRequest, request: Request, user_id: str = Depends(require_bearer)):
+    workout = store.create_workout(user_id, payload)
+    return success(request, {"workout": workout.model_dump(mode="json")})
+
+
+@workouts_router.delete("/{workout_id}")
+async def delete_workout(workout_id: str, request: Request, user_id: str = Depends(require_bearer)):
+    try:
+        store.delete_workout(user_id, workout_id)
+    except KeyError:
+        return failure(request, 404, "BIZ_404_NOT_FOUND", "workout not found")
+    return success(request, {"deleted": True})
+
+
+assets_router = APIRouter(prefix="/assets", tags=["growth"])
+investments_router = APIRouter(prefix="/investments", tags=["growth"])
+
+
+@assets_router.get("")
+async def list_assets(request: Request, user_id: str = Depends(require_bearer)):
+    assets = store.list_assets(user_id)
+    total = sum(a.amount for a in assets)
+    return success(request, {"assets": [a.model_dump(mode="json") for a in assets], "total": total})
+
+
+@assets_router.post("")
+async def create_asset(payload: AssetCreateRequest, request: Request, user_id: str = Depends(require_bearer)):
+    asset = store.create_asset(user_id, payload)
+    return success(request, {"asset": asset.model_dump(mode="json")})
+
+
+@assets_router.delete("/{asset_id}")
+async def delete_asset(asset_id: str, request: Request, user_id: str = Depends(require_bearer)):
+    try:
+        store.delete_asset(user_id, asset_id)
+    except KeyError:
+        return failure(request, 404, "BIZ_404_NOT_FOUND", "asset not found")
+    return success(request, {"deleted": True})
+
+
+@investments_router.get("")
+async def list_investments(request: Request, user_id: str = Depends(require_bearer)):
+    return success(request, {"investments": [i.model_dump(mode="json") for i in store.list_investments(user_id)]})
+
+
+@investments_router.post("")
+async def create_investment(payload: InvestmentCreateRequest, request: Request, user_id: str = Depends(require_bearer)):
+    investment = store.create_investment(user_id, payload)
+    return success(request, {"investment": investment.model_dump(mode="json")})
+
+
+@investments_router.delete("/{investment_id}")
+async def delete_investment(investment_id: str, request: Request, user_id: str = Depends(require_bearer)):
+    try:
+        store.delete_investment(user_id, investment_id)
+    except KeyError:
+        return failure(request, 404, "BIZ_404_NOT_FOUND", "investment not found")
     return success(request, {"deleted": True})
