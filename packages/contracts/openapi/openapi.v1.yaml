@@ -751,6 +751,44 @@ components:
         category: { type: string, nullable: true }
         description: { type: string, nullable: true }
         applications: { type: string, nullable: true }
+    JournalEntry:
+      type: object
+      required: [entry_id, content, created_at, updated_at]
+      properties:
+        entry_id: { type: string, format: uuid }
+        content: { type: string }
+        mood: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    JournalEntryCreateRequest:
+      type: object
+      required: [content]
+      properties:
+        content: { type: string }
+        mood: { type: string, nullable: true }
+    LifeGoal:
+      type: object
+      required: [goal_id, dimension, title, created_at, updated_at]
+      properties:
+        goal_id: { type: string, format: uuid }
+        dimension: { type: string }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    LifeGoalCreateRequest:
+      type: object
+      required: [dimension, title]
+      properties:
+        dimension: { type: string }
+        title: { type: string }
+        description: { type: string, nullable: true }
+    LifeGoalUpdateRequest:
+      type: object
+      properties:
+        dimension: { type: string, nullable: true }
+        title: { type: string, nullable: true }
+        description: { type: string, nullable: true }
 paths:
   /auth/sms/send:
     post:
@@ -2297,6 +2335,103 @@ paths:
         - $ref: '#/components/parameters/IdempotencyKey'
         - in: path
           name: entry_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /journal:
+    get:
+      summary: List journal entries
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create a journal entry
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/JournalEntryCreateRequest' }
+      responses:
+        '200': { description: success }
+  /journal/{entry_id}:
+    delete:
+      summary: Delete a journal entry
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: entry_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /life-goals:
+    get:
+      summary: List life goals
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create a life goal
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LifeGoalCreateRequest' }
+      responses:
+        '200': { description: success }
+  /life-goals/{goal_id}:
+    patch:
+      summary: Update a life goal
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: goal_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+    delete:
+      summary: Delete a life goal
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: goal_id
           required: true
           schema: { type: string, format: uuid }
       responses:

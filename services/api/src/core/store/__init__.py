@@ -14,6 +14,7 @@ from core.store.knowledge import KnowledgeStoreMixin
 from core.store.learning_items import LearningItemStoreMixin
 from core.store.reminders import BillReminderStoreMixin, HealthReminderStoreMixin
 from core.store.family_affairs import FamilyAffairStoreMixin
+from core.store.growth import JournalStoreMixin, LifeGoalStoreMixin
 from core.store.households import HouseholdStoreMixin
 from core.store.inventory import InventoryStoreMixin
 from core.store.meetings import MeetingStoreMixin
@@ -51,6 +52,8 @@ class Store(
     HealthReminderStoreMixin,
     BillReminderStoreMixin,
     KnowledgeStoreMixin,
+    JournalStoreMixin,
+    LifeGoalStoreMixin,
     PushStoreMixin,
     AuditStoreMixin,
 ):

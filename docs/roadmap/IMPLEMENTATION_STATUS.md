@@ -611,6 +611,13 @@
   - Updated OpenAPI + 2 回归测试
   - Verified: 100/100 API tests PASS, `npm run check:all` PASS
 
+- 成长 3.2 感悟日记 + 人生愿景 (part 81):
+  - `journal_entries` + `life_goals` 表（迁移 0025）
+  - `/journal`（感悟日记 CRUD）+ `/life-goals`（人生愿景，维度 career/health/family/wealth）
+  - 修复：LifeGoalStoreMixin 的 `_goal` 与 CareerGoalStoreMixin 同名方法冲突，改名 `_life_goal`
+  - Updated OpenAPI + 2 回归测试
+  - Verified: 102/102 API tests PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：

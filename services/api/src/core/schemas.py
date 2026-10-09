@@ -581,5 +581,39 @@ class KnowledgeEntryUpdateRequest(BaseModel):
     applications: str | None = None
 
 
+class JournalEntry(BaseModel):
+    entry_id: str
+    content: str
+    mood: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class JournalEntryCreateRequest(BaseModel):
+    content: str = Field(..., min_length=1)
+    mood: str | None = Field(default=None, max_length=16)
+
+
+class LifeGoal(BaseModel):
+    goal_id: str
+    dimension: str
+    title: str
+    description: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class LifeGoalCreateRequest(BaseModel):
+    dimension: str = Field(..., max_length=16)
+    title: str = Field(..., min_length=1, max_length=128)
+    description: str | None = None
+
+
+class LifeGoalUpdateRequest(BaseModel):
+    dimension: str | None = Field(default=None, max_length=16)
+    title: str | None = Field(default=None, min_length=1, max_length=128)
+    description: str | None = None
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
