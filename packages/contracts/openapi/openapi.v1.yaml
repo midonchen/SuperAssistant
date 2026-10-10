@@ -569,33 +569,6 @@ components:
         title: { type: string }
         due_at: { type: string, format: date-time, nullable: true }
         assignee: { type: string, nullable: true }
-    CareerGoal:
-      type: object
-      required: [goal_id, title, status, progress, created_at, updated_at]
-      properties:
-        goal_id: { type: string, format: uuid }
-        title: { type: string }
-        description: { type: string, nullable: true }
-        target_year: { type: integer, nullable: true }
-        status: { type: string }
-        progress: { type: integer }
-        created_at: { type: string, format: date-time }
-        updated_at: { type: string, format: date-time }
-    CareerGoalCreateRequest:
-      type: object
-      required: [title]
-      properties:
-        title: { type: string }
-        description: { type: string, nullable: true }
-        target_year: { type: integer, nullable: true }
-    CareerGoalUpdateRequest:
-      type: object
-      properties:
-        title: { type: string, nullable: true }
-        description: { type: string, nullable: true }
-        target_year: { type: integer, nullable: true }
-        status: { type: string, nullable: true }
-        progress: { type: integer, nullable: true }
     Skill:
       type: object
       required: [skill_id, name, level, target_level, created_at, updated_at]
@@ -622,34 +595,6 @@ components:
         category: { type: string, nullable: true }
         level: { type: integer, nullable: true }
         target_level: { type: integer, nullable: true }
-    JobApplication:
-      type: object
-      required: [application_id, company, position, status, created_at, updated_at]
-      properties:
-        application_id: { type: string, format: uuid }
-        company: { type: string }
-        position: { type: string }
-        status: { type: string }
-        applied_at: { type: string, format: date-time, nullable: true }
-        notes: { type: string, nullable: true }
-        created_at: { type: string, format: date-time }
-        updated_at: { type: string, format: date-time }
-    JobApplicationCreateRequest:
-      type: object
-      required: [company, position]
-      properties:
-        company: { type: string }
-        position: { type: string }
-        applied_at: { type: string, format: date-time, nullable: true }
-        notes: { type: string, nullable: true }
-    JobApplicationUpdateRequest:
-      type: object
-      properties:
-        company: { type: string, nullable: true }
-        position: { type: string, nullable: true }
-        status: { type: string, nullable: true }
-        applied_at: { type: string, format: date-time, nullable: true }
-        notes: { type: string, nullable: true }
     LearningItem:
       type: object
       required: [item_id, title, item_type, status, created_at, updated_at]
@@ -869,6 +814,91 @@ components:
         amount: { type: number }
         return_rate: { type: number, nullable: true }
         status: { type: string }
+
+    WorkReflection:
+      type: object
+      required: [reflection_id, content, created_at, updated_at]
+      properties:
+        reflection_id: { type: string, format: uuid }
+        title: { type: string, nullable: true }
+        content: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    WorkReflectionCreateRequest:
+      type: object
+      required: [content]
+      properties:
+        title: { type: string, nullable: true }
+        content: { type: string }
+    StartupIdea:
+      type: object
+      required: [idea_id, title, status, created_at, updated_at]
+      properties:
+        idea_id: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        status: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    StartupIdeaCreateRequest:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string }
+        description: { type: string, nullable: true }
+    StartupIdeaUpdateRequest:
+      type: object
+      properties:
+        title: { type: string, nullable: true }
+        description: { type: string, nullable: true }
+        status: { type: string, nullable: true }
+    IdeaNote:
+      type: object
+      required: [note_id, idea_id, content, note_type, created_at]
+      properties:
+        note_id: { type: string, format: uuid }
+        idea_id: { type: string, format: uuid }
+        content: { type: string }
+        note_type: { type: string }
+        created_at: { type: string, format: date-time }
+    IdeaNoteCreateRequest:
+      type: object
+      required: [content]
+      properties:
+        content: { type: string }
+        note_type: { type: string }
+    Interest:
+      type: object
+      required: [interest_id, name, created_at, updated_at]
+      properties:
+        interest_id: { type: string, format: uuid }
+        name: { type: string }
+        note: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    InterestCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        note: { type: string, nullable: true }
+    LifeSkill:
+      type: object
+      required: [life_skill_id, name, level, created_at, updated_at]
+      properties:
+        life_skill_id: { type: string, format: uuid }
+        name: { type: string }
+        level: { type: integer }
+        note: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    LifeSkillCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        level: { type: integer }
+        note: { type: string, nullable: true }
 paths:
   /auth/sms/send:
     post:
@@ -1929,68 +1959,6 @@ paths:
       responses:
         '200': { description: success }
         '404': { description: not found }
-  /career-goals:
-    get:
-      summary: List career goals
-      security: [{ bearerAuth: [] }]
-      parameters:
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XAppVersion'
-        - $ref: '#/components/parameters/XPlatform'
-      responses:
-        '200': { description: success }
-    post:
-      summary: Create a career goal
-      security: [{ bearerAuth: [] }]
-      parameters:
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XAppVersion'
-        - $ref: '#/components/parameters/XPlatform'
-        - $ref: '#/components/parameters/IdempotencyKey'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/CareerGoalCreateRequest' }
-      responses:
-        '200': { description: success }
-        '402': { description: upgrade required }
-  /career-goals/{goal_id}:
-    patch:
-      summary: Update a career goal
-      security: [{ bearerAuth: [] }]
-      parameters:
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XAppVersion'
-        - $ref: '#/components/parameters/XPlatform'
-        - $ref: '#/components/parameters/IdempotencyKey'
-        - in: path
-          name: goal_id
-          required: true
-          schema: { type: string, format: uuid }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/CareerGoalUpdateRequest' }
-      responses:
-        '200': { description: success }
-        '404': { description: not found }
-    delete:
-      summary: Delete a career goal
-      security: [{ bearerAuth: [] }]
-      parameters:
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XAppVersion'
-        - $ref: '#/components/parameters/XPlatform'
-        - $ref: '#/components/parameters/IdempotencyKey'
-        - in: path
-          name: goal_id
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        '200': { description: success }
-        '404': { description: not found }
   /skills:
     get:
       summary: List skills
@@ -2048,84 +2016,6 @@ paths:
         - $ref: '#/components/parameters/IdempotencyKey'
         - in: path
           name: skill_id
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        '200': { description: success }
-        '404': { description: not found }
-  /job-applications:
-    get:
-      summary: List job applications
-      security: [{ bearerAuth: [] }]
-      parameters:
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XAppVersion'
-        - $ref: '#/components/parameters/XPlatform'
-      responses:
-        '200': { description: success }
-    post:
-      summary: Create a job application
-      security: [{ bearerAuth: [] }]
-      parameters:
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XAppVersion'
-        - $ref: '#/components/parameters/XPlatform'
-        - $ref: '#/components/parameters/IdempotencyKey'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/JobApplicationCreateRequest' }
-      responses:
-        '200': { description: success }
-        '402': { description: upgrade required }
-  /job-applications/{application_id}:
-    patch:
-      summary: Update a job application
-      security: [{ bearerAuth: [] }]
-      parameters:
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XAppVersion'
-        - $ref: '#/components/parameters/XPlatform'
-        - $ref: '#/components/parameters/IdempotencyKey'
-        - in: path
-          name: application_id
-          required: true
-          schema: { type: string, format: uuid }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/JobApplicationUpdateRequest' }
-      responses:
-        '200': { description: success }
-        '404': { description: not found }
-    delete:
-      summary: Delete a job application
-      security: [{ bearerAuth: [] }]
-      parameters:
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XAppVersion'
-        - $ref: '#/components/parameters/XPlatform'
-        - $ref: '#/components/parameters/IdempotencyKey'
-        - in: path
-          name: application_id
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        '200': { description: success }
-        '404': { description: not found }
-  /job-applications/{application_id}/review:
-    post:
-      summary: Generate an interview review
-      security: [{ bearerAuth: [] }]
-      parameters:
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XAppVersion'
-        - $ref: '#/components/parameters/XPlatform'
-        - $ref: '#/components/parameters/IdempotencyKey'
-        - in: path
-          name: application_id
           required: true
           schema: { type: string, format: uuid }
       responses:
@@ -2307,17 +2197,6 @@ paths:
       responses:
         '200': { description: success }
         '404': { description: not found }
-  /career/advice:
-    post:
-      summary: Generate career growth advice
-      security: [{ bearerAuth: [] }]
-      parameters:
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XAppVersion'
-        - $ref: '#/components/parameters/XPlatform'
-        - $ref: '#/components/parameters/IdempotencyKey'
-      responses:
-        '200': { description: success }
   /meals/suggest:
     post:
       summary: Suggest a meal from household inventory
@@ -2713,6 +2592,243 @@ paths:
         - $ref: '#/components/parameters/IdempotencyKey'
         - in: path
           name: investment_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /work-reflections:
+    get:
+      summary: List work reflections
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create a work reflection
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkReflectionCreateRequest' }
+      responses:
+        '200': { description: success }
+  /work-reflections/{reflection_id}:
+    delete:
+      summary: Delete a work reflection
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: reflection_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /startup-ideas:
+    get:
+      summary: List startup ideas
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create a startup idea
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StartupIdeaCreateRequest' }
+      responses:
+        '200': { description: success }
+        '402': { description: upgrade required }
+  /startup-ideas/{idea_id}:
+    patch:
+      summary: Update a startup idea
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: idea_id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StartupIdeaUpdateRequest' }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+    delete:
+      summary: Delete a startup idea
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: idea_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /startup-ideas/{idea_id}/notes:
+    get:
+      summary: List idea notes
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - in: path
+          name: idea_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+    post:
+      summary: Add an idea note
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: idea_id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IdeaNoteCreateRequest' }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /startup-ideas/{idea_id}/notes/{note_id}:
+    delete:
+      summary: Delete an idea note
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: note_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /interests:
+    get:
+      summary: List interests
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create an interest
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InterestCreateRequest' }
+      responses:
+        '200': { description: success }
+        '402': { description: upgrade required }
+  /interests/{interest_id}:
+    delete:
+      summary: Delete an interest
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: interest_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: success }
+        '404': { description: not found }
+  /life-skills:
+    get:
+      summary: List life skills
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+      responses:
+        '200': { description: success }
+    post:
+      summary: Create a life skill
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LifeSkillCreateRequest' }
+      responses:
+        '200': { description: success }
+        '402': { description: upgrade required }
+  /life-skills/{life_skill_id}:
+    delete:
+      summary: Delete a life skill
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XAppVersion'
+        - $ref: '#/components/parameters/XPlatform'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - in: path
+          name: life_skill_id
           required: true
           schema: { type: string, format: uuid }
       responses:

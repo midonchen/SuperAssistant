@@ -7,10 +7,12 @@ from core.response import failure, success
 from core.schemas import (
     AssetCreateRequest,
     HabitCreateRequest,
+    InterestCreateRequest,
     InvestmentCreateRequest,
     JournalEntryCreateRequest,
     LifeGoalCreateRequest,
     LifeGoalUpdateRequest,
+    LifeSkillCreateRequest,
     WorkoutCreateRequest,
 )
 from core.store import store
@@ -164,4 +166,48 @@ async def delete_investment(investment_id: str, request: Request, user_id: str =
         store.delete_investment(user_id, investment_id)
     except KeyError:
         return failure(request, 404, "BIZ_404_NOT_FOUND", "investment not found")
+    return success(request, {"deleted": True})
+
+
+interests_router = APIRouter(prefix="/interests", tags=["growth"])
+life_skills_router = APIRouter(prefix="/life-skills", tags=["growth"])
+
+
+@interests_router.get("")
+async def list_interests(request: Request, user_id: str = Depends(require_bearer)):
+    return success(request, {"interests": [i.model_dump(mode="json") for i in store.list_interests(user_id)]})
+
+
+@interests_router.post("")
+async def create_interest(payload: InterestCreateRequest, request: Request, user_id: str = Depends(require_bearer)):
+    interest = store.create_interest(user_id, payload)
+    return success(request, {"interest": interest.model_dump(mode="json")})
+
+
+@interests_router.delete("/{interest_id}")
+async def delete_interest(interest_id: str, request: Request, user_id: str = Depends(require_bearer)):
+    try:
+        store.delete_interest(user_id, interest_id)
+    except KeyError:
+        return failure(request, 404, "BIZ_404_NOT_FOUND", "interest not found")
+    return success(request, {"deleted": True})
+
+
+@life_skills_router.get("")
+async def list_life_skills(request: Request, user_id: str = Depends(require_bearer)):
+    return success(request, {"life_skills": [s.model_dump(mode="json") for s in store.list_life_skills(user_id)]})
+
+
+@life_skills_router.post("")
+async def create_life_skill(payload: LifeSkillCreateRequest, request: Request, user_id: str = Depends(require_bearer)):
+    skill = store.create_life_skill(user_id, payload)
+    return success(request, {"life_skill": skill.model_dump(mode="json")})
+
+
+@life_skills_router.delete("/{life_skill_id}")
+async def delete_life_skill(life_skill_id: str, request: Request, user_id: str = Depends(require_bearer)):
+    try:
+        store.delete_life_skill(user_id, life_skill_id)
+    except KeyError:
+        return failure(request, 404, "BIZ_404_NOT_FOUND", "life skill not found")
     return success(request, {"deleted": True})

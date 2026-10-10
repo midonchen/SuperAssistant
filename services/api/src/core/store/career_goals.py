@@ -7,7 +7,7 @@ from sqlalchemy import func, select
 from core.ai_pipeline import ai_pipeline
 from core.db import SessionLocal
 from core.errors import ApiException
-from core.models import CareerGoalModel, JobApplicationModel, LearningItemModel, SkillModel
+from core.models import CareerGoalModel, LearningItemModel, SkillModel, WorkReflectionModel
 from core.schemas import CareerGoal, CareerGoalCreateRequest, CareerGoalUpdateRequest, utc_now
 from core.store.base import StoreBase
 
@@ -110,15 +110,13 @@ class CareerGoalStoreMixin(StoreBase):
 
     def admin_career_overview(self) -> dict:
         with SessionLocal() as db:
-            goals_total = db.scalar(select(func.count()).select_from(CareerGoalModel)) or 0
             skills_total = db.scalar(select(func.count()).select_from(SkillModel)) or 0
-            apps_total = db.scalar(select(func.count()).select_from(JobApplicationModel)) or 0
             learning_total = db.scalar(select(func.count()).select_from(LearningItemModel)) or 0
+            reflections_total = db.scalar(select(func.count()).select_from(WorkReflectionModel)) or 0
         return {
             "totals": {
-                "career_goals": goals_total,
                 "skills": skills_total,
-                "job_applications": apps_total,
                 "learning_items": learning_total,
+                "work_reflections": reflections_total,
             }
         }

@@ -177,10 +177,9 @@ export type RelationshipsOverview = {
 
 export type CareerOverview = {
   totals: {
-    career_goals: number;
     skills: number;
-    job_applications: number;
     learning_items: number;
+    work_reflections: number;
   };
 };
 

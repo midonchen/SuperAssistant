@@ -22,6 +22,9 @@ DEFAULT_FREE_LIMITS: dict = {
     "learning_items": 20,
     "health_reminders": 10,
     "bill_reminders": 10,
+    "startup_ideas": 10,
+    "interests": 20,
+    "life_skills": 20,
 }
 
 

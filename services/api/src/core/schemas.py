@@ -686,5 +686,79 @@ class InvestmentCreateRequest(BaseModel):
     status: str = Field(default="active", max_length=16)
 
 
+class WorkReflection(BaseModel):
+    reflection_id: str
+    title: str | None = None
+    content: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class WorkReflectionCreateRequest(BaseModel):
+    title: str | None = Field(default=None, max_length=128)
+    content: str = Field(..., min_length=1)
+
+
+class StartupIdea(BaseModel):
+    idea_id: str
+    title: str
+    description: str | None = None
+    status: str = "idea"
+    created_at: datetime
+    updated_at: datetime
+
+
+class StartupIdeaCreateRequest(BaseModel):
+    title: str = Field(..., min_length=1, max_length=128)
+    description: str | None = Field(default=None)
+
+
+class StartupIdeaUpdateRequest(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=128)
+    description: str | None = Field(default=None)
+    status: str | None = Field(default=None, max_length=16)
+
+
+class IdeaNote(BaseModel):
+    note_id: str
+    idea_id: str
+    content: str
+    note_type: str = "thought"
+    created_at: datetime
+
+
+class IdeaNoteCreateRequest(BaseModel):
+    content: str = Field(..., min_length=1)
+    note_type: str = Field(default="thought", max_length=16)
+
+
+class Interest(BaseModel):
+    interest_id: str
+    name: str
+    note: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class InterestCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=64)
+    note: str | None = Field(default=None)
+
+
+class LifeSkill(BaseModel):
+    life_skill_id: str
+    name: str
+    level: int = 1
+    note: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class LifeSkillCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=64)
+    level: int = Field(default=1, ge=1, le=5)
+    note: str | None = Field(default=None)
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)

@@ -51,26 +51,20 @@ export default function CareerPage() {
           <div className="grid">
             <div className="card">
               <div className="metric">
-                <h4>Goals</h4>
-                <p>{data.totals.career_goals}</p>
-              </div>
-            </div>
-            <div className="card">
-              <div className="metric">
                 <h4>Skills</h4>
                 <p>{data.totals.skills}</p>
               </div>
             </div>
             <div className="card">
               <div className="metric">
-                <h4>Applications</h4>
-                <p>{data.totals.job_applications}</p>
+                <h4>Learning Items</h4>
+                <p>{data.totals.learning_items}</p>
               </div>
             </div>
             <div className="card">
               <div className="metric">
-                <h4>Learning Items</h4>
-                <p>{data.totals.learning_items}</p>
+                <h4>Work Reflections</h4>
+                <p>{data.totals.work_reflections}</p>
               </div>
             </div>
           </div>

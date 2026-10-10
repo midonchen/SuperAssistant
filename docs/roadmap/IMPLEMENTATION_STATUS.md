@@ -647,6 +647,17 @@
   - 5 个 tab 页（生活·库存 demo + 工作/关系/职业/成长占位）+ 10 个 tabBar 图标（81×81 PNG，纯 Python 生成）
   - 注：生产需 HTTPS + 小程序后台配置 request 合法域名；开发阶段微信开发者工具关闭域名校验
 
+- 信息架构重构 · 后端新增 5 实体 (part 87):
+  - `work_reflections`（工作心得）+ `startup_ideas` + `idea_notes`（创业想法/落地跟踪/思考总结）+ `interests` + `life_skills`（成长·兴趣+技能）表（迁移 0029）
+  - `/work-reflections`、`/startup-ideas`（含 notes 子路由）、`/interests`、`/life-skills` CRUD；额度 startup_ideas:10 / interests:20 / life_skills:20
+  - OpenAPI 补 10 schema + 9 path；3 回归测试
+  - Verified: 110/110 API tests PASS, `npm run check:all` PASS
+
+- 砍掉求职 + 职业目标 (part 88):
+  - 移除 `/career-goals`、`/job-applications`、`/career/advice` 路由挂载（就业做轻，不做专业求职/目标管理）
+  - 删除 test_career_goals.py + test_job_applications.py；demo 14 段改为就业（技能+学习+工作心得）+ 新增 16 段（创业/兴趣/生活技能）；admin career overview 改为 skills/learning/work_reflections；OpenAPI 移除相关 path/schema
+  - Verified: 105/105 API tests PASS, admin build PASS, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：
