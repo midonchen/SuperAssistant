@@ -658,6 +658,11 @@
   - 删除 test_career_goals.py + test_job_applications.py；demo 14 段改为就业（技能+学习+工作心得）+ 新增 16 段（创业/兴趣/生活技能）；admin career overview 改为 skills/learning/work_reflections；OpenAPI 移除相关 path/schema
   - Verified: 105/105 API tests PASS, admin build PASS, `npm run check:all` PASS
 
+- 前端 IA 重构 (part 89):
+  - HTML 移动端：底栏 5→4 项（移除职业）；工作 tab = 就业（待办+工作心得+工作技能+学习沉淀）+ 创业（想法+状态推进+思考笔记）；成长 tab += 兴趣 + 生活技能
+  - 小程序：app.json tabBar 4 项；work 页（就业+创业）+ growth 页（兴趣+生活技能）；删除 career 页
+  - Verified: 105/105 API tests PASS, mobile + miniprogram JS syntax OK, `npm run check:all` PASS
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：

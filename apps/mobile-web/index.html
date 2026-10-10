@@ -88,7 +88,6 @@ textarea { width: 100%; min-height: 80px; resize: vertical; margin-bottom: 8px; 
     <button class="active" data-tab="life" onclick="switchTab('life')"><span class="ic">🏠</span>生活</button>
     <button data-tab="work" onclick="switchTab('work')"><span class="ic">💼</span>工作</button>
     <button data-tab="rel" onclick="switchTab('rel')"><span class="ic">💗</span>关系</button>
-    <button data-tab="career" onclick="switchTab('career')"><span class="ic">🎯</span>职业</button>
     <button data-tab="growth" onclick="switchTab('growth')"><span class="ic">🌱</span>成长</button>
   </nav>
 </div>
@@ -103,8 +102,8 @@ let subTab = 'inventory';
 
 const SUB_TABS = {
   life: [['inventory','库存'],['shop','采购'],['family','家庭'],['reminders','提醒']],
-  work: [['tasks','任务'],['calendar','日历'],['meetings','会议'],['reports','周报']],
-  growth: [['knowledge','知识'],['habits','习惯'],['finance','财务'],['reflect','自省']],
+  work: [['employment','就业'],['startup','创业']],
+  growth: [['knowledge','知识'],['habits','习惯'],['finance','财务'],['reflect','自省'],['interests','兴趣'],['skills','技能']],
 };
 
 function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -140,7 +139,7 @@ function logout(){ token=''; localStorage.removeItem('sa_token'); location.reloa
 
 function switchTab(t){
   tab = t;
-  subTab = t === 'life' ? 'inventory' : (t === 'work' ? 'tasks' : (t === 'growth' ? 'knowledge' : ''));
+  subTab = t === 'life' ? 'inventory' : (t === 'work' ? 'employment' : (t === 'growth' ? 'knowledge' : ''));
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
   render();
 }
@@ -151,7 +150,6 @@ async function render(){
   try {
     if (tab==='life' || tab==='work' || tab==='growth') await renderSub(m);
     else if (tab==='rel') await renderRelations(m);
-    else if (tab==='career') renderCareer(m);
   } catch(e){ m.innerHTML = '<div class="empty">加载失败：' + esc(e.message) + '</div>'; }
 }
 
@@ -159,7 +157,7 @@ async function renderSub(m){
   const tabs = SUB_TABS[tab];
   m.innerHTML = '<div class="subnav ' + tab + '">' + tabs.map(([k,label])=>`<button class="${k===subTab?'active':''}" onclick="switchSub('${k}')">${label}</button>`).join('') + '</div><div id="sub-body" class="empty"></div>';
   const body = document.getElementById('sub-body');
-  const fn = {inventory:renderLife, shop:renderShop, family:renderFamily, reminders:renderReminders, tasks:renderTasks, calendar:renderCalendar, meetings:renderMeetings, reports:renderReports, knowledge:renderKnowledge, habits:renderHabits, finance:renderFinance, reflect:renderReflect}[subTab];
+  const fn = {inventory:renderLife, shop:renderShop, family:renderFamily, reminders:renderReminders, employment:renderEmployment, startup:renderStartup, knowledge:renderKnowledge, habits:renderHabits, finance:renderFinance, reflect:renderReflect, interests:renderInterests, skills:renderLifeSkills}[subTab];
   if (fn) await fn(body);
 }
 
@@ -454,6 +452,176 @@ async function loadStale(){
 }
 
 /* ============ 职业 ============ */
+/* ============ 工作·就业 + 创业 ============ */
+async function renderEmployment(m){
+  m.innerHTML = `
+    <div class="card"><div class="section" style="margin:0 0 8px;">待办（轻）</div>
+      <div class="toolbar"><input id="emp-task" placeholder="待办事项" style="max-width:180px;"></div>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addEmpTask()">添加待办</button>
+      <div id="emp-task-list" class="empty">加载中…</div></div>
+    <div class="card"><div class="section" style="margin:0 0 8px;">工作心得</div>
+      <div class="toolbar"><input id="wr-title" placeholder="标题（可空）" style="max-width:120px;"></div>
+      <textarea id="wr-content" placeholder="心得总结、复盘…"></textarea>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addWorkReflection()">记录心得</button>
+      <div id="wr-list" class="empty">加载中…</div></div>
+    <div class="card"><div class="section" style="margin:0 0 8px;">工作技能</div>
+      <div class="toolbar"><input id="emp-sk" placeholder="技能名" style="max-width:100px;"><input id="emp-sk-lv" placeholder="等级1-5" style="max-width:70px;" inputmode="numeric"></div>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addEmpSkill()">添加技能</button>
+      <div id="emp-sk-list" class="empty">加载中…</div></div>
+    <div class="card"><div class="section" style="margin:0 0 8px;">学习沉淀</div>
+      <div class="toolbar"><input id="emp-li" placeholder="课程/书/证书" style="max-width:120px;"><select id="emp-li-type" style="background:var(--soft);color:var(--text);border:none;padding:10px 12px;border-radius:10px;"><option value="course">课程</option><option value="book">书</option><option value="cert">证书</option></select></div>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addEmpLearning()">添加学习</button>
+      <div id="emp-li-list" class="empty">加载中…</div></div>`;
+  await Promise.all([loadEmpTasks(), loadWorkReflections(), loadEmpSkills(), loadEmpLearning()]);
+}
+async function loadEmpTasks(){
+  const d = await api('/tasks');
+  const el = document.getElementById('emp-task-list');
+  const list = (d.tasks||[]).filter(t=>t.status==='TODO').slice(0,6);
+  if(!list.length){ el.innerHTML='<div class="empty">暂无待办</div>'; return; }
+  el.innerHTML = list.map(t=>`<div class="card"><div class="row"><span class="title">${esc(t.title)}</span><span class="badge">P${t.priority}</span></div></div>`).join('');
+}
+async function addEmpTask(){
+  const title = document.getElementById('emp-task').value.trim();
+  if(!title) return toast('请输入待办');
+  try { await api('/tasks',{method:'POST',body:{title,priority:2}}); document.getElementById('emp-task').value=''; toast('已添加'); await loadEmpTasks(); }
+  catch(e){ toast(e.message); }
+}
+async function loadWorkReflections(){
+  const d = await api('/work-reflections');
+  const el = document.getElementById('wr-list');
+  if(!d.reflections.length){ el.innerHTML='<div class="empty">暂无心得</div>'; return; }
+  el.innerHTML = d.reflections.map(r=>`<div class="card"><div class="row"><span class="title">${esc(r.title||'心得')}</span></div><div class="meta">${esc(r.content)}</div><div class="actions"><button class="danger" onclick="delWorkReflection('${r.reflection_id}')">删除</button></div></div>`).join('');
+}
+async function addWorkReflection(){
+  const title = document.getElementById('wr-title').value.trim();
+  const content = document.getElementById('wr-content').value.trim();
+  if(!content) return toast('请输入心得内容');
+  try { await api('/work-reflections',{method:'POST',body:{title:title||null,content}}); document.getElementById('wr-title').value=''; document.getElementById('wr-content').value=''; toast('已记录'); await loadWorkReflections(); }
+  catch(e){ toast(e.message); }
+}
+async function delWorkReflection(id){ try { await api('/work-reflections/'+id,{method:'DELETE'}); await loadWorkReflections(); } catch(e){ toast(e.message); } }
+async function loadEmpSkills(){
+  const d = await api('/skills');
+  const el = document.getElementById('emp-sk-list');
+  if(!d.skills.length){ el.innerHTML='<div class="empty">暂无技能</div>'; return; }
+  el.innerHTML = d.skills.map(s=>`<div class="card"><div class="row"><span class="title">${esc(s.name)}</span><span class="badge">L${s.level}→L${s.target_level}</span></div><div class="actions"><button class="danger" onclick="delEmpSkill('${s.skill_id}')">删除</button></div></div>`).join('');
+}
+async function addEmpSkill(){
+  const name = document.getElementById('emp-sk').value.trim();
+  const lv = document.getElementById('emp-sk-lv').value.trim();
+  if(!name) return toast('请输入技能名');
+  try { await api('/skills',{method:'POST',body:{name,level:lv?parseInt(lv,10):1}}); document.getElementById('emp-sk').value=''; document.getElementById('emp-sk-lv').value=''; toast('已添加'); await loadEmpSkills(); }
+  catch(e){ toast(e.message); }
+}
+async function delEmpSkill(id){ try { await api('/skills/'+id,{method:'DELETE'}); await loadEmpSkills(); } catch(e){ toast(e.message); } }
+async function loadEmpLearning(){
+  const d = await api('/learning-items');
+  const el = document.getElementById('emp-li-list');
+  const TY={course:'课程',book:'书',cert:'证书'};
+  if(!d.items.length){ el.innerHTML='<div class="empty">暂无学习项</div>'; return; }
+  el.innerHTML = d.items.map(i=>`<div class="card"><div class="row"><span class="title">${esc(i.title)}</span><span class="badge">${TY[i.item_type]||i.item_type}</span></div><div class="actions"><button class="danger" onclick="delEmpLearning('${i.item_id}')">删除</button></div></div>`).join('');
+}
+async function addEmpLearning(){
+  const title = document.getElementById('emp-li').value.trim();
+  const item_type = document.getElementById('emp-li-type').value;
+  if(!title) return toast('请输入学习内容');
+  try { await api('/learning-items',{method:'POST',body:{title,item_type}}); document.getElementById('emp-li').value=''; toast('已添加'); await loadEmpLearning(); }
+  catch(e){ toast(e.message); }
+}
+async function delEmpLearning(id){ try { await api('/learning-items/'+id,{method:'DELETE'}); await loadEmpLearning(); } catch(e){ toast(e.message); } }
+
+async function renderStartup(m){
+  m.innerHTML = `
+    <div class="card"><div class="section" style="margin:0 0 8px;">创业想法 / 点子</div>
+      <div class="toolbar"><input id="si-title" placeholder="想法标题" style="max-width:150px;"></div>
+      <textarea id="si-desc" placeholder="想法描述…"></textarea>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addStartupIdea()">记录想法</button>
+      <div id="si-list" class="empty">加载中…</div></div>`;
+  await loadStartupIdeas();
+}
+const SI_STATUS={idea:'想法',research:'调研',building:'建设中',launched:'已启动',paused:'暂停',dropped:'放弃'};
+async function loadStartupIdeas(){
+  const d = await api('/startup-ideas');
+  const el = document.getElementById('si-list');
+  if(!d.ideas.length){ el.innerHTML='<div class="empty">暂无创业想法，记录第一个点子</div>'; return; }
+  el.innerHTML = d.ideas.map(i=>`<div class="card"><div class="row"><span class="title">${esc(i.title)}</span><span class="badge">${SI_STATUS[i.status]||i.status}</span></div>${i.description?'<div class="meta">'+esc(i.description)+'</div>':''}<div class="actions"><select onchange="advanceIdea('${i.idea_id}',this.value)" style="background:var(--soft);color:var(--text);border:none;padding:8px 10px;border-radius:8px;">${Object.entries(SI_STATUS).map(([k,v])=>`<option value="${k}" ${k===i.status?'selected':''}>${v}</option>`).join('')}</select><button class="primary" onclick="showIdeaNotes('${i.idea_id}')">思考</button><button class="danger" onclick="delStartupIdea('${i.idea_id}')">删除</button></div><div id="notes-${i.idea_id}" class="meta" style="margin-top:8px;"></div></div>`).join('');
+}
+async function addStartupIdea(){
+  const title = document.getElementById('si-title').value.trim();
+  const description = document.getElementById('si-desc').value.trim();
+  if(!title) return toast('请输入想法标题');
+  try { await api('/startup-ideas',{method:'POST',body:{title,description:description||null}}); document.getElementById('si-title').value=''; document.getElementById('si-desc').value=''; toast('已记录'); await loadStartupIdeas(); }
+  catch(e){ toast(e.message); }
+}
+async function advanceIdea(id,status){
+  try { await api('/startup-ideas/'+id,{method:'PATCH',body:{status}}); toast('状态已更新'); await loadStartupIdeas(); }
+  catch(e){ toast(e.message); }
+}
+async function showIdeaNotes(id){
+  const d = await api('/startup-ideas/'+id+'/notes');
+  const el = document.getElementById('notes-'+id);
+  if(!el) return;
+  const content = d.notes.length ? d.notes.map(n=>`<div style="margin:4px 0;">· ${esc(n.content)} <button class="danger" onclick="delIdeaNote('${id}','${n.note_id}')">✕</button></div>`).join('') : '暂无思考记录';
+  el.innerHTML = content + '<div class="toolbar" style="margin-top:6px;"><input id="note-input-'+id+'" placeholder="记录思考/总结…" style="max-width:150px;"><button class="primary" data-id="'+id+'" onclick="addIdeaNote(this.dataset.id)">记</button></div>';
+}
+async function addIdeaNote(id){
+  const content = document.getElementById('note-input-'+id).value.trim();
+  if(!content) return toast('请输入内容');
+  try { await api('/startup-ideas/'+id+'/notes',{method:'POST',body:{content}}); toast('已记录'); await showIdeaNotes(id); }
+  catch(e){ toast(e.message); }
+}
+async function delIdeaNote(id,noteId){
+  try { await api('/startup-ideas/'+id+'/notes/'+noteId,{method:'DELETE'}); await showIdeaNotes(id); }
+  catch(e){ toast(e.message); }
+}
+async function delStartupIdea(id){ try { await api('/startup-ideas/'+id,{method:'DELETE'}); await loadStartupIdeas(); } catch(e){ toast(e.message); } }
+
+/* ============ 成长·兴趣 + 技能 ============ */
+async function renderInterests(m){
+  m.innerHTML = `
+    <div class="card"><div class="section" style="margin:0 0 8px;">兴趣爱好</div>
+      <div class="toolbar"><input id="int-name" placeholder="兴趣（如摄影）" style="max-width:150px;"></div>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addInterest()">添加兴趣</button>
+      <div id="int-list" class="empty">加载中…</div></div>`;
+  await loadInterests();
+}
+async function loadInterests(){
+  const d = await api('/interests');
+  const el = document.getElementById('int-list');
+  if(!d.interests.length){ el.innerHTML='<div class="empty">暂无兴趣</div>'; return; }
+  el.innerHTML = d.interests.map(i=>`<div class="card"><div class="row"><span class="title">${esc(i.name)}</span></div>${i.note?'<div class="meta">'+esc(i.note)+'</div>':''}<div class="actions"><button class="danger" onclick="delInterest('${i.interest_id}')">删除</button></div></div>`).join('');
+}
+async function addInterest(){
+  const name = document.getElementById('int-name').value.trim();
+  if(!name) return toast('请输入兴趣');
+  try { await api('/interests',{method:'POST',body:{name}}); document.getElementById('int-name').value=''; toast('已添加'); await loadInterests(); }
+  catch(e){ toast(e.message); }
+}
+async function delInterest(id){ try { await api('/interests/'+id,{method:'DELETE'}); await loadInterests(); } catch(e){ toast(e.message); } }
+async function renderLifeSkills(m){
+  m.innerHTML = `
+    <div class="card"><div class="section" style="margin:0 0 8px;">生活技能</div>
+      <div class="toolbar"><input id="ls-name" placeholder="技能（如烹饪）" style="max-width:120px;"><input id="ls-lv" placeholder="水平1-5" style="max-width:70px;" inputmode="numeric"></div>
+      <button class="primary" style="background:var(--grad);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-weight:600;" onclick="addLifeSkill()">添加技能</button>
+      <div id="ls-list" class="empty">加载中…</div></div>`;
+  await loadLifeSkills();
+}
+async function loadLifeSkills(){
+  const d = await api('/life-skills');
+  const el = document.getElementById('ls-list');
+  if(!d.life_skills.length){ el.innerHTML='<div class="empty">暂无技能</div>'; return; }
+  el.innerHTML = d.life_skills.map(s=>`<div class="card"><div class="row"><span class="title">${esc(s.name)}</span><span class="badge">L${s.level}</span></div>${s.note?'<div class="meta">'+esc(s.note)+'</div>':''}<div class="actions"><button class="danger" onclick="delLifeSkill('${s.life_skill_id}')">删除</button></div></div>`).join('');
+}
+async function addLifeSkill(){
+  const name = document.getElementById('ls-name').value.trim();
+  const lv = document.getElementById('ls-lv').value.trim();
+  if(!name) return toast('请输入技能名');
+  try { await api('/life-skills',{method:'POST',body:{name,level:lv?parseInt(lv,10):1}}); document.getElementById('ls-name').value=''; document.getElementById('ls-lv').value=''; toast('已添加'); await loadLifeSkills(); }
+  catch(e){ toast(e.message); }
+}
+async function delLifeSkill(id){ try { await api('/life-skills/'+id,{method:'DELETE'}); await loadLifeSkills(); } catch(e){ toast(e.message); } }
+
 async function renderCareer(m){
   m.innerHTML = `
     <div class="card">

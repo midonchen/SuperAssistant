@@ -1,1 +1,24 @@
-<view class="page"><view class="empty">{{name}} · 功能开发中</view></view>
+<view class="page">
+  <view class="card">
+    <view class="h2">兴趣</view>
+    <input class="input" placeholder="兴趣（如摄影）" bindinput="onInterestName" />
+    <button class="btn" bindtap="addInterest">添加兴趣</button>
+    <view class="item" wx:for="{{interests}}" wx:key="interest_id">
+      <text>{{item.name}}</text>
+      <text class="meta" wx:if="{{item.note}}">{{item.note}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="h2">生活技能</view>
+    <input class="input" placeholder="技能（如烹饪）" bindinput="onSkillName" />
+    <input class="input" placeholder="水平 1-5" type="number" bindinput="onSkillLevel" />
+    <button class="btn" bindtap="addLifeSkill">添加技能</button>
+    <view class="item" wx:for="{{lifeSkills}}" wx:key="life_skill_id">
+      <text>{{item.name}}</text>
+      <text class="meta">L{{item.level}}</text>
+    </view>
+  </view>
+
+  <view class="empty">知识 · 习惯 · 财务 · 自省 即将上线</view>
+</view>

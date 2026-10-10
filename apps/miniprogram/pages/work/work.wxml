@@ -1,1 +1,41 @@
-<view class="page"><view class="empty">{{name}} · 功能开发中</view></view>
+<view class="page">
+  <view class="card">
+    <view class="h2">就业</view>
+
+    <view class="h3">工作心得</view>
+    <input class="input" placeholder="心得标题（可空）" bindinput="onReflTitle" />
+    <textarea class="input" placeholder="心得总结、复盘…" bindinput="onReflContent" auto-height />
+    <button class="btn" bindtap="addReflection">记录心得</button>
+    <view class="item" wx:for="{{reflections}}" wx:key="reflection_id">
+      <text>{{item.title || '心得'}}</text>
+      <text class="meta">{{item.content}}</text>
+    </view>
+
+    <view class="h3">工作技能</view>
+    <input class="input" placeholder="技能名" bindinput="onSkillName" />
+    <input class="input" placeholder="等级 1-5" type="number" bindinput="onSkillLevel" />
+    <button class="btn" bindtap="addSkill">添加技能</button>
+    <view class="item" wx:for="{{skills}}" wx:key="skill_id">
+      <text>{{item.name}}</text>
+      <text class="meta">L{{item.level}} → L{{item.target_level}}</text>
+    </view>
+
+    <view class="h3">学习沉淀</view>
+    <input class="input" placeholder="课程 / 书 / 证书" bindinput="onLearnTitle" />
+    <button class="btn" bindtap="addLearning">添加学习</button>
+    <view class="item" wx:for="{{learning}}" wx:key="item_id">
+      <text>{{item.title}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="h2">创业</view>
+    <input class="input" placeholder="想法标题" bindinput="onIdeaTitle" />
+    <textarea class="input" placeholder="想法描述…" bindinput="onIdeaDesc" auto-height />
+    <button class="btn" bindtap="addIdea">记录想法</button>
+    <view class="item" wx:for="{{ideas}}" wx:key="idea_id">
+      <text>{{item.title}}</text>
+      <text class="meta">{{item.description}}</text>
+    </view>
+  </view>
+</view>
