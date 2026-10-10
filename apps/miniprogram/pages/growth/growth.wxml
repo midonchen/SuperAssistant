@@ -1,24 +1,126 @@
 <view class="page">
-  <view class="card">
-    <view class="h2">兴趣</view>
-    <input class="input" placeholder="兴趣（如摄影）" bindinput="onInterestName" />
-    <button class="btn" bindtap="addInterest">添加兴趣</button>
-    <view class="item" wx:for="{{interests}}" wx:key="interest_id">
-      <text>{{item.name}}</text>
-      <text class="meta" wx:if="{{item.note}}">{{item.note}}</text>
+  <scroll-view scroll-x class="subnav-scroll">
+    <view class="subnav">
+      <button wx:for="{{tabs}}" wx:key="*this" class="subnav-btn {{item[0]===activeTab?'active':''}}" data-key="{{item[0]}}" bindtap="switchTab">{{item[1]}}</button>
+    </view>
+  </scroll-view>
+
+  <!-- 知识 -->
+  <view wx:if="{{activeTab==='knowledge'}}">
+    <view class="card">
+      <view class="h2">思维模型</view>
+      <input class="input" placeholder="模型名" bindinput="onTmName" />
+      <input class="input" placeholder="一句话说明" bindinput="onTmDesc" />
+      <button class="btn" bindtap="addModel">添加模型</button>
+      <view class="item" wx:for="{{models}}" wx:key="entry_id">
+        <text>{{item.name}}</text>
+        <text class="meta">{{item.description}}</text>
+      </view>
+    </view>
+    <view class="card">
+      <view class="h2">价值观 / 原则</view>
+      <input class="input" placeholder="名称" bindinput="onVpName" />
+      <input class="input" placeholder="一句话说明" bindinput="onVpDesc" />
+      <button class="btn" bindtap="addPrinciple">添加价值观</button>
+      <view class="item" wx:for="{{principles}}" wx:key="entry_id">
+        <text>{{item.name}}</text>
+        <text class="meta">{{item.description}}</text>
+      </view>
     </view>
   </view>
 
-  <view class="card">
-    <view class="h2">生活技能</view>
-    <input class="input" placeholder="技能（如烹饪）" bindinput="onSkillName" />
-    <input class="input" placeholder="水平 1-5" type="number" bindinput="onSkillLevel" />
-    <button class="btn" bindtap="addLifeSkill">添加技能</button>
-    <view class="item" wx:for="{{lifeSkills}}" wx:key="life_skill_id">
-      <text>{{item.name}}</text>
-      <text class="meta">L{{item.level}}</text>
+  <!-- 习惯 -->
+  <view wx:if="{{activeTab==='habits'}}">
+    <view class="card">
+      <view class="h2">习惯养成</view>
+      <input class="input" placeholder="习惯（如早睡早起）" bindinput="onHbName" />
+      <button class="btn" bindtap="addHabit">添加习惯</button>
+      <view class="item" wx:for="{{habits}}" wx:key="habit_id">
+        <text>{{item.name}}（连续 {{item.streak}} 天）</text>
+        <button class="btn mini" data-id="{{item.habit_id}}" bindtap="checkin">今日打卡</button>
+      </view>
+    </view>
+    <view class="card">
+      <view class="h2">健身运动</view>
+      <input class="input" placeholder="类型（跑步/力量/网球）" bindinput="onWkType" />
+      <input class="input" placeholder="时长（分钟）" type="number" bindinput="onWkMin" />
+      <button class="btn" bindtap="addWorkout">记录运动</button>
+      <view class="item" wx:for="{{workouts}}" wx:key="workout_id">
+        <text>{{item.workout_type}} · {{item.duration_minutes}} 分钟</text>
+        <text class="meta">{{item.workout_date}}</text>
+      </view>
     </view>
   </view>
 
-  <view class="empty">知识 · 习惯 · 财务 · 自省 即将上线</view>
+  <!-- 财务 -->
+  <view wx:if="{{activeTab==='finance'}}">
+    <view class="card">
+      <view class="h2">资产配置</view>
+      <text class="meta" wx:if="{{total}}">总资产 ¥{{total}}</text>
+      <input class="input" placeholder="资产名" bindinput="onAsName" />
+      <input class="input" placeholder="金额" type="digit" bindinput="onAsAmount" />
+      <button class="btn" bindtap="addAsset">添加资产</button>
+      <view class="item" wx:for="{{assets}}" wx:key="asset_id">
+        <text>{{item.name}}</text>
+        <text class="meta">¥{{item.amount}}</text>
+      </view>
+    </view>
+    <view class="card">
+      <view class="h2">投资记录</view>
+      <input class="input" placeholder="标的" bindinput="onIvName" />
+      <input class="input" placeholder="金额" type="digit" bindinput="onIvAmount" />
+      <button class="btn" bindtap="addInvestment">添加投资</button>
+      <view class="item" wx:for="{{investments}}" wx:key="investment_id">
+        <text>{{item.name}}</text>
+        <text class="meta">¥{{item.amount}}{{item.return_rate != null ? ' · 收益率 ' + item.return_rate + '%' : ''}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 自省 -->
+  <view wx:if="{{activeTab==='reflect'}}">
+    <view class="card">
+      <view class="h2">感悟日记</view>
+      <textarea class="input" placeholder="今天有什么感悟？" bindinput="onJnContent" auto-height />
+      <button class="btn" bindtap="addJournal">记一笔</button>
+      <view class="item" wx:for="{{journal}}" wx:key="entry_id">
+        <text>{{item.content}}</text>
+        <text class="meta">{{item.created_at}}</text>
+      </view>
+    </view>
+    <view class="card">
+      <view class="h2">人生愿景</view>
+      <input class="input" placeholder="愿景（如保持健康）" bindinput="onLgTitle" />
+      <button class="btn" bindtap="addGoal">添加愿景</button>
+      <view class="item" wx:for="{{goals}}" wx:key="goal_id">
+        <text>{{item.title}}</text>
+        <text class="meta">{{item.dimension}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 兴趣 -->
+  <view wx:if="{{activeTab==='interests'}}">
+    <view class="card">
+      <view class="h2">兴趣爱好</view>
+      <input class="input" placeholder="兴趣（如摄影）" bindinput="onInterestName" />
+      <button class="btn" bindtap="addInterest">添加兴趣</button>
+      <view class="item" wx:for="{{interests}}" wx:key="interest_id">
+        <text>{{item.name}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 生活技能 -->
+  <view wx:if="{{activeTab==='skills'}}">
+    <view class="card">
+      <view class="h2">生活技能</view>
+      <input class="input" placeholder="技能（如烹饪）" bindinput="onSkillName" />
+      <input class="input" placeholder="水平 1-5" type="number" bindinput="onSkillLevel" />
+      <button class="btn" bindtap="addLifeSkill">添加技能</button>
+      <view class="item" wx:for="{{lifeSkills}}" wx:key="life_skill_id">
+        <text>{{item.name}} · L{{item.level}}</text>
+      </view>
+    </view>
+  </view>
 </view>

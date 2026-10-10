@@ -24,3 +24,13 @@ page {
 .btn::after { border: none; }
 .item { padding: 14rpx 0; border-bottom: 1rpx solid #eee; }
 .item .meta { display: block; color: #999; font-size: 24rpx; margin-top: 4rpx; }
+.subnav { display: flex; gap: 12rpx; margin-bottom: 20rpx; }
+.subnav-btn { flex: 1; background: #fff; color: #666; border-radius: 12rpx; font-size: 26rpx; }
+.subnav-btn::after { border: none; }
+.subnav-btn.active { background: #14b8a6; color: #fff; font-weight: 600; }
+.actions { display: flex; gap: 12rpx; margin-top: 10rpx; }
+.btn.mini { margin: 0; padding: 4rpx 20rpx; font-size: 24rpx; }
+.btn.ghost { background: #eef0f5; color: #333; }
+.subnav-scroll { white-space: nowrap; margin-bottom: 20rpx; }
+.subnav-scroll .subnav { display: inline-flex; gap: 12rpx; }
+.subnav-scroll .subnav-btn { flex: none; min-width: 110rpx; }

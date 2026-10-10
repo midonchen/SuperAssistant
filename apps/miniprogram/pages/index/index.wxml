@@ -1,13 +1,91 @@
 <view class="page">
-  <view wx:if="{{loading}}" class="empty">加载中…</view>
-  <view wx:elif="{{error}}" class="empty">加载失败：{{error}}</view>
-  <block wx:else>
-    <view class="card" wx:for="{{items}}" wx:key="item_key">
-      <view class="row">
-        <text class="title">{{item.item_name}}</text>
-        <text class="badge">{{item.current_stock}} {{item.unit}}</text>
-      </view>
-      <view class="meta">{{item.status}}</view>
+  <view class="subnav">
+    <button wx:for="{{tabs}}" wx:key="*this" class="subnav-btn {{item[0]===activeTab?'active':''}}" data-key="{{item[0]}}" bindtap="switchTab">{{item[1]}}</button>
+  </view>
+
+  <!-- 库存 -->
+  <view wx:if="{{activeTab==='inventory'}}">
+    <view class="card">
+      <button class="btn" bindtap="suggestMeal">🍳 今晚吃什么</button>
+      <text class="meta" wx:if="{{meal}}">{{meal}}</text>
     </view>
-  </block>
+    <view class="h3">库存</view>
+    <view class="item" wx:for="{{items}}" wx:key="item_key">
+      <text>{{item.item_name}} · {{item.current_stock}} {{item.unit}}</text>
+      <text class="meta">预警阈值 {{item.warning_threshold}}（{{item.status}}）</text>
+      <view class="actions">
+        <button class="btn mini" data-key="{{item.item_key}}" data-unit="{{item.unit}}" data-op="ADD" bindtap="stockOp">入库</button>
+        <button class="btn mini ghost" data-key="{{item.item_key}}" data-unit="{{item.unit}}" data-op="SUBTRACT" bindtap="stockOp">出库</button>
+      </view>
+    </view>
+    <view class="h3">品类</view>
+    <input class="input" placeholder="新品类名" bindinput="onCatName" />
+    <input class="input" placeholder="单位" bindinput="onCatUnit" />
+    <button class="btn" bindtap="addCategory">添加品类</button>
+    <view class="item" wx:for="{{categories}}" wx:key="name">
+      <text>{{item.icon || ''}} {{item.name}}（{{item.unit_type}}）</text>
+      <text class="meta">{{item.is_system ? '系统' : '自定义'}}</text>
+    </view>
+  </view>
+
+  <!-- 采购 -->
+  <view wx:if="{{activeTab==='shop'}}">
+    <button class="btn" bindtap="genSuggestion">生成采购建议</button>
+    <view wx:if="{{suggestion && suggestion.items.length}}">
+      <view class="h3">采购建议</view>
+      <view class="item" wx:for="{{suggestion.items}}" wx:key="item_key">
+        <text>{{item.item_key}} · {{item.suggested_qty}} {{item.unit}}</text>
+        <text class="meta">{{item.reason}}</text>
+      </view>
+    </view>
+    <view wx:else class="empty">暂无采购建议，点上方生成</view>
+    <view class="h3">本月消费报告</view>
+    <view class="item" wx:if="{{report}}">
+      <text>{{report.month}} · 消耗 {{report.total_consumed_qty}} · 浪费 {{report.total_wasted_qty}}</text>
+    </view>
+    <view wx:else class="empty">暂无报告</view>
+  </view>
+
+  <!-- 家庭 -->
+  <view wx:if="{{activeTab==='family'}}">
+    <view class="card" wx:if="{{household}}">
+      <view class="h2">{{household.name || '我的家'}}（{{household.members.length}} 成员）</view>
+      <view class="item" wx:for="{{household.members}}" wx:key="user_id">
+        <text>{{item.phone_masked || '成员'}}（{{item.role}}）</text>
+      </view>
+    </view>
+    <view wx:else class="empty">暂无家庭</view>
+    <button class="btn" bindtap="invite">生成邀请码</button>
+    <view class="card" wx:if="{{inviteCode}}">邀请码：<text class="title">{{inviteCode}}</text></view>
+    <input class="input" placeholder="输入邀请码加入家庭" bindinput="onJoinCode" />
+    <button class="btn" bindtap="joinFamily">加入家庭</button>
+  </view>
+
+  <!-- 提醒 -->
+  <view wx:if="{{activeTab==='reminders'}}">
+    <view class="card">
+      <view class="h3">健康用药提醒</view>
+      <input class="input" placeholder="成员" bindinput="onHrMember" />
+      <input class="input" placeholder="事项（如降压药）" bindinput="onHrTitle" />
+      <input class="input" placeholder="周期天数" type="number" bindinput="onHrDays" />
+      <button class="btn" bindtap="addHealthReminder">添加健康提醒</button>
+      <view class="item" wx:for="{{healthReminders}}" wx:key="reminder_id">
+        <text>{{item.member_name}} · {{item.title}}</text>
+        <text class="meta">周期 {{item.period_days}} 天{{item.next_due_at ? ' · 下次 ' + item.next_due_at : ''}}</text>
+        <button class="btn mini ghost" data-id="{{item.reminder_id}}" bindtap="delHealthReminder">删除</button>
+      </view>
+    </view>
+    <view class="card">
+      <view class="h3">生活缴费提醒</view>
+      <input class="input" placeholder="账单（水费/电费）" bindinput="onBrName" />
+      <input class="input" placeholder="金额" type="digit" bindinput="onBrAmount" />
+      <input class="input" placeholder="周期月" type="number" bindinput="onBrMonths" />
+      <button class="btn" bindtap="addBillReminder">添加缴费提醒</button>
+      <view class="item" wx:for="{{billReminders}}" wx:key="reminder_id">
+        <text>{{item.name}}</text>
+        <text class="meta">{{item.amount ? '¥' + item.amount + ' · ' : ''}}周期 {{item.period_months}} 月{{item.next_due_at ? ' · 下次 ' + item.next_due_at : ''}}</text>
+        <button class="btn mini ghost" data-id="{{item.reminder_id}}" bindtap="delBillReminder">删除</button>
+      </view>
+    </view>
+  </view>
 </view>

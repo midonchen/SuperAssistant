@@ -663,6 +663,13 @@
   - 小程序：app.json tabBar 4 项；work 页（就业+创业）+ growth 页（兴趣+生活技能）；删除 career 页
   - Verified: 105/105 API tests PASS, mobile + miniprogram JS syntax OK, `npm run check:all` PASS
 
+- 小程序功能迁入 (part 90, W3+W4):
+  - index（生活）：库存（入库/出库/品类/今晚吃什么）+ 采购（建议/报告）+ 家庭（成员/邀请码/加入）+ 提醒（健康/缴费）
+  - rel（关系）：联系人 + 记互动 + 礼物建议 + 久未联系
+  - growth（成长）：知识/习惯/财务/自省/兴趣/技能 6 子板块
+  - app.wxss 加 subnav/subnav-btn/actions/mini/ghost 样式
+  - Verified: 小程序 JS syntax OK，4 页面结构完整
+
 ## Not Yet Implemented (next iterations)
 
 按最新产品方向（生活场景优先、工作场景后置、暂不做原生 iOS）：

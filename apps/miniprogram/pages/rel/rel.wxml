@@ -1,1 +1,29 @@
-<view class="page"><view class="empty">{{name}} · 功能开发中</view></view>
+<view class="page">
+  <view class="card">
+    <view class="h2">添加重要的人</view>
+    <input class="input" placeholder="姓名" bindinput="onName" />
+    <input class="input" placeholder="关系（如母亲）" bindinput="onRel" />
+    <input class="input" placeholder="生日 MM-DD" bindinput="onBirthday" />
+    <button class="btn" bindtap="addContact">添加</button>
+    <button class="btn ghost" bindtap="loadStale">久未联系</button>
+  </view>
+
+  <view wx:if="{{stale.length}}" class="card">
+    <view class="h3">久未联系（该问候了）</view>
+    <view class="item" wx:for="{{stale}}" wx:key="contact_id">
+      <text>{{item.name}}（{{item.relationship}}）</text>
+      <text class="meta">{{item.days_since}} 天未联系</text>
+    </view>
+  </view>
+
+  <view class="item" wx:for="{{contacts}}" wx:key="contact_id">
+    <text>{{item.name}} · {{item.relationship || '联系人'}}</text>
+    <text class="meta">生日 {{item.birthday || '—'}}{{item.notes ? ' · ' + item.notes : ''}}</text>
+    <view class="actions">
+      <button class="btn mini" data-id="{{item.contact_id}}" data-name="{{item.name}}" bindtap="recordInteraction">记互动</button>
+      <button class="btn mini" data-id="{{item.contact_id}}" bindtap="suggestGift">礼物建议</button>
+      <button class="btn mini ghost" data-id="{{item.contact_id}}" bindtap="delContact">删除</button>
+    </view>
+  </view>
+  <view wx:if="{{!contacts.length}}" class="empty">暂无联系人，先添加重要的人</view>
+</view>
